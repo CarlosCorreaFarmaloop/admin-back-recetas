@@ -1,0 +1,20 @@
+service: ${CI_PROJECT_NAME}
+
+provider:
+  name: aws
+  runtime: ${LAMBDA_RUNTIME}
+  region: ${REGION}
+  iam:
+    role: ${LAMBDA_ROLE_ARN}
+  tracing:
+    lambda: true
+
+functions:
+  main:
+    handler: handler.handler
+
+    tags:
+      Proyecto: 'farmaloop-serverless'
+      Uso: 'lambda template'
+      Usuario: 'clm-devsecops'
+      Zona: '${REGION}'

@@ -1,0 +1,23 @@
+service: update-stock-lambda
+frameworkVersion: '3'
+
+provider:
+  name: aws
+  runtime: nodejs16.x
+  region: us-east-1
+
+plugins:
+  - serverless-offline
+
+custom:
+  serverless-offline:
+    httpPort: 4000
+    lambdaPort: 4002
+
+functions:
+  app:
+    handler: handler.handler
+    events:
+      - http:
+          method: put
+          path: /update-stock
