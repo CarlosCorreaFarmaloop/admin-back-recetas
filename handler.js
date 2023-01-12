@@ -4,7 +4,7 @@ const { formatBatches } = require('./format');
 
 module.exports.handler = async (event, context, callback) => {
   try {
-    const dynamoClient = new DynamoDBClient({ endpoint: 'http://localhost:8000' });
+    const dynamoClient = new DynamoDBClient();
     const dynamoDbClient = DynamoDBDocumentClient.from(dynamoClient);
 
     // const { batchs } = JSON.parse(event.body);
