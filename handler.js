@@ -27,18 +27,30 @@ module.exports.handler = async (event, context, callback) => {
         olds: product?.Item?.batchs ?? [],
         news: batchs[i].batchs,
       });
+
+      let biggerDiscount = 0;
+      if (formattedBatches.length > 0) {
+        const discounts = [];
+        formattedBatches.forEach(batch => {
+          discounts.push(batch.normalPrice !== 0 ? (1 - batch.settlementPrice / batch.normalPrice) * 100 : 0);
+        });
+        biggerDiscount = Math.round(Math.max(...discounts));
+      }
+
       await dynamoDbClient.send(
         new UpdateCommand({
           TableName: 'ProductTableQa',
           Key: {
             sku: batchs[i].sku,
           },
-          UpdateExpression: `SET #batchs = :batchs`,
+          UpdateExpression: `SET #batchs = :batchs, #bestDiscount = :bestDiscount`,
           ExpressionAttributeValues: {
             ':batchs': formattedBatches,
+            ':bestDiscount': biggerDiscount,
           },
           ExpressionAttributeNames: {
             '#batchs': 'batchs',
+            '#bestDiscount': 'bestDiscount',
           },
         })
       );

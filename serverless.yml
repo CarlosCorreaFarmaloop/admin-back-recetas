@@ -11,8 +11,8 @@ plugins:
 
 custom:
   serverless-offline:
-    httpPort: 4000
-    lambdaPort: 4002
+    httpPort: 6000
+    lambdaPort: 6002
 
 functions:
   app:
