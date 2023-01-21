@@ -27,8 +27,7 @@
 */
 const MongoClient = require("mongodb").MongoClient;
 //import { v4 as uuid } from 'uuid';
-//const credencialsMongo = 'mongodb+srv://farmaloopuser:EKtVXHqsyao8MINV@administrador-back-appl.cugzppk.mongodb.net/?retryWrites=true&w=majority';
-const credencialsMongo = 'mongodb://admin:admin@172.16.11.191:27017'
+const credencialsMongo = process.env.mongo_connection
 //const database = 'test';
 //const credencialsMongo = 'mongodb://sudev:dev%4031415@3.137.164.24:27017';
 const database = 'test';

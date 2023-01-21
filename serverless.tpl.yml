@@ -15,6 +15,7 @@ functions:
     tracing: Active
     environment:
       ENVIRONMENT: dev
+      mongo_connection: ${mongo_connection}
     vpc:
       securityGroupIds:
         - sg-0a29e27e811c526f0
