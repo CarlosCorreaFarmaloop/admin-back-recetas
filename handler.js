@@ -40,8 +40,8 @@ module.exports.handler = async (event, context, callback) => {
         console.log('conectado a mongo');
     });
 
-    return callback(undefined, {
+    return {
       statusCode: '200',
       body: JSON.stringify(event)
-    });
+    };
 }
