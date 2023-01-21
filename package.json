@@ -1,13 +1,12 @@
 {
-  "name": "update-stock-lambda",
+  "name": "create-order",
   "main": "handler.js",
   "scripts": {
     "build": "node handler.js",
     "dev": "serverless offline start --reloadHandler"
   },
   "dependencies": {
-    "@aws-sdk/client-dynamodb": "3.218.0",
-    "@aws-sdk/lib-dynamodb": "3.218.0"
+    "mongodb": "^4.13.0"
   },
   "devDependencies": {
     "serverless-offline": "11.6.0"

@@ -20,4 +20,4 @@ functions:
     events:
       - http:
           method: put
-          path: /update-stock
+          path: /create-order

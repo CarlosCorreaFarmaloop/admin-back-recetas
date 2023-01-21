@@ -1,72 +1,15 @@
-const { DynamoDBClient } = require('@aws-sdk/client-dynamodb');
-const { DynamoDBDocumentClient, UpdateCommand, GetCommand } = require('@aws-sdk/lib-dynamodb');
-const { compareAndFormatBatches } = require('./format');
 
-module.exports.handler = async (event, context, callback) => {
+/*module.exports.handler = async (event, context, callback) => {
   try {
-    const dynamoClient = new DynamoDBClient();
-    const dynamoDbClient = DynamoDBDocumentClient.from(dynamoClient);
-
-    // const { batchs } = JSON.parse(event.body);
-
-    console.log('Batches: ', event.detail.batchs);
-
-    const { batchs } = event.detail;
-
-    for (let i = 0; i < batchs.length; i++) {
-      const product = await dynamoDbClient.send(
-        new GetCommand({
-          TableName: 'ProductTableQa',
-          Key: {
-            sku: batchs[i].sku,
-          },
-        })
-      );
-      if (!product.Item) throw new Error('Product does not exist');
-      const formattedBatches = compareAndFormatBatches({
-        olds: product?.Item?.batchs ?? [],
-        news: batchs[i].batchs,
-      });
-
-      let biggerDiscount = 0;
-      if (formattedBatches.length > 0) {
-        const discounts = [];
-        formattedBatches.forEach(batch => {
-          discounts.push(batch.normalPrice !== 0 ? (1 - batch.settlementPrice / batch.normalPrice) * 100 : 0);
-        });
-        biggerDiscount = Math.round(Math.max(...discounts));
-      }
-
-      await dynamoDbClient.send(
-        new UpdateCommand({
-          TableName: 'ProductTableQa',
-          Key: {
-            sku: batchs[i].sku,
-          },
-          UpdateExpression: `SET #batchs = :batchs, #bestDiscount = :bestDiscount`,
-          ExpressionAttributeValues: {
-            ':batchs': formattedBatches,
-            ':bestDiscount': biggerDiscount,
-          },
-          ExpressionAttributeNames: {
-            '#batchs': 'batchs',
-            '#bestDiscount': 'bestDiscount',
-          },
-        })
-      );
-    }
-
-    console.log('Success, Batches updated');
+    
+    console.log('test successfully');
 
     return callback(undefined, {
       statusCode: 200,
       body: JSON.stringify(
         {
-          message: 'Updated batches.',
-          input: event,
-        },
-        null,
-        2
+          message: 'test successfully',
+        }
       ),
     });
   } catch (error) {
@@ -75,12 +18,31 @@ module.exports.handler = async (event, context, callback) => {
       statusCode: 200,
       body: JSON.stringify(
         {
-          message: 'Error updating batches.',
-          input: event,
-        },
-        null,
-        2
+          message: 'Error',
+        }
       ),
     });
   }
 };
+*/
+const MongoClient = require("mongodb").MongoClient;
+const { v4: uuidv4 } = require('uuid');
+//import { v4 as uuid } from 'uuid';
+//const credencialsMongo = 'mongodb+srv://farmaloopuser:EKtVXHqsyao8MINV@administrador-back-appl.cugzppk.mongodb.net/?retryWrites=true&w=majority';
+const credencialsMongo = 'mongodb://admin:admin@172.16.11.191:27017'
+//const database = 'test';
+//const credencialsMongo = 'mongodb://sudev:dev%4031415@3.137.164.24:27017';
+const database = 'test';
+
+module.exports.handler = async (event, context, callback) => {
+
+
+    await MongoClient.connect(credencialsMongo).then(async (client) => {
+        console.log('conectado a mongo');
+    });
+
+    return callback(undefined, {
+      statusCode: '200',
+      body: JSON.stringify(event)
+    });
+}
