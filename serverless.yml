@@ -1,4 +1,5 @@
 service: update-stock-lambda
+useDotenv: true
 frameworkVersion: '3'
 
 provider:
@@ -8,6 +9,7 @@ provider:
 
 plugins:
   - serverless-offline
+  - serverless-dotenv-plugin
 
 custom:
   serverless-offline:
