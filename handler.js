@@ -1,13 +1,17 @@
-const MongoClient = require("mongodb").MongoClient;
+const {MongoClient} = require("mongodb");
 const { v4: uuidv4 } = require('uuid');
 const credencialsMongo = process.env.mongo_connection;
 const database = 'test';
 
+const client = new MongoClient(credencialsMongo);
+
 module.exports.handler = async (event, context, callback) => {
 
-    await MongoClient.connect(credencialsMongo).then(async (client) => {
+    try{
 
-      const connect = await client.db(database);
+      await client.connect();
+      const connect = client.db(database);
+
       const collection = await connect.collection("orders");
 
       const order = event.detail;
@@ -57,7 +61,10 @@ module.exports.handler = async (event, context, callback) => {
       console.log('--- order save sucessfully --');
 
 
-    });
+    } finally {
+        await client.close();
+        console.log('finalizado');
+    }
 
     return {
       statusCode: '200',
