@@ -6,7 +6,6 @@
     "dev": "serverless offline start --reloadHandler"
   },
   "dependencies": {
-    "i": "^0.3.7",
     "mongodb": "^4.13.0",
     "uuid": "^9.0.0"
   },
