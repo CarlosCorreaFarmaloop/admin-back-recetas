@@ -1,7 +1,7 @@
 const {MongoClient} = require("mongodb");
 const { v4: uuidv4 } = require('uuid');
 const credencialsMongo = process.env.mongo_connection;
-const database = 'test';
+const database = process.env.database;
 
 const client = new MongoClient(credencialsMongo);
 
