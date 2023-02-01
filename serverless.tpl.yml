@@ -21,9 +21,6 @@ functions:
       securityGroupIds:
         - sg-0a29e27e811c526f0
       subnetIds:
-        - subnet-0574ba6c90957ff0f
-        - subnet-08a8c1e16d1a37ab5
-        - subnet-0574ba6c90957ff0f
         - subnet-07a546697a11eecff
         - subnet-0797325953e798bd0
         - subnet-03e33a6ae0f1b689b
