@@ -1,9 +1,10 @@
 include:
-  - project: 'farmaloop-latam/infra/gitlab-ci'
+  - project: "farmaloop-latam/infra/gitlab-ci"
     file:
-      - 'serverlesss-whitout-tpl.yml'
+      - "serverlesss-whitout-tpl.yml"
 
 variables:
-  LAMBDA_RUNTIME: 'nodejs16.x'
-  APP_NAME: 'update-stock-lambda'
-  REGIONS: 'us-east-1'
+  LAMBDA_RUNTIME: "nodejs16.x"
+  APP_NAME: "update-stock-lambda"
+  REGIONS: "us-east-1"
+  SECRET: "administrador/mongo_connection_secrets"
