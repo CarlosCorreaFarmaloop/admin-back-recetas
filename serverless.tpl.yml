@@ -13,7 +13,7 @@ functions:
   main:
     handler: handler.handler
     tracing: Active
-    environment: { SECRETS }
+    environment: ${ SECRETS }
     vpc:
       securityGroupIds:
         - sg-0a29e27e811c526f0
