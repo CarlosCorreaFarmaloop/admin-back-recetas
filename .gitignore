@@ -3,6 +3,7 @@ docker
 build
 .build
 .env*
+!.env.example
 
 # package directories
 node_modules
