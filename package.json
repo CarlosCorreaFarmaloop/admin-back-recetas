@@ -6,11 +6,11 @@
     "dev": "serverless offline start --reloadHandler"
   },
   "dependencies": {
-    "mongodb": "^4.13.0",
-    "uuid": "^9.0.0"
+    "mongodb": "4.13.0",
+    "uuid": "9.0.0"
   },
   "devDependencies": {
-    "serverless-dotenv-plugin": "^4.0.2",
+    "serverless-dotenv-plugin": "4.0.2",
     "serverless-offline": "11.6.0"
   }
 }

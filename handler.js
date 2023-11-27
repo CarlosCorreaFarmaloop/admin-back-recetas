@@ -1,7 +1,7 @@
 const { MongoClient } = require('mongodb');
 const { v4: uuidv4 } = require('uuid');
-const credencialsMongo = process.env.MONGO_CONECTION;
-const database = process.env.MONGO_DATABASE;
+const credencialsMongo = process.env.MONGO_CONNECTION_STRING;
+const database = process.env.MONGO_DATA_BASE;
 
 module.exports.handler = async (event, _context, _callback) => {
   const client = new MongoClient(credencialsMongo);

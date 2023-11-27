@@ -1,4 +1,4 @@
-service: update-stock-lambda
+service: create-order
 useDotenv: true
 frameworkVersion: '3'
 
