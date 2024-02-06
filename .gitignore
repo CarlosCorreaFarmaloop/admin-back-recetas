@@ -4,6 +4,7 @@ build
 .build
 .env*
 !.env.example
+.vscode
 
 # package directories
 node_modules

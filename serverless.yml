@@ -1,13 +1,13 @@
 service: create-order
-useDotenv: true
 frameworkVersion: '3'
 
 provider:
   name: aws
-  runtime: nodejs16.x
+  runtime: nodejs20.x
   region: us-east-1
 
 plugins:
+  - serverless-plugin-typescript
   - serverless-offline
   - serverless-dotenv-plugin
 
@@ -18,8 +18,8 @@ custom:
 
 functions:
   app:
-    handler: handler.handler
+    handler: src/handler.handler
     events:
       - http:
-          method: put
+          method: POST
           path: /create-order

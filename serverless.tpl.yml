@@ -11,21 +11,17 @@ provider:
 
 functions:
   main:
-    handler: handler.handler
-    tracing: Active
+    handler: build/handler.handler
     environment:
       MONGO_CONNECTION_STRING: ${MONGO_CONNECTION_STRING}
       MONGO_DATA_BASE: ${MONGO_DATA_BASE}
     vpc:
       securityGroupIds:
-        - sg-0a29e27e811c526f0
+        - ${LAMBDA_SG}
       subnetIds:
-        - subnet-07a546697a11eecff
-        - subnet-0797325953e798bd0
-        - subnet-03e33a6ae0f1b689b
-
-    tags:
-      Proyecto: 'farmaloop-serverless'
-      Uso: 'lambda template'
-      Usuario: 'clm-devsecops'
-      Zona: '${REGION}'
+        # - ${PUBLIC_SUBNET_1}
+        # - ${PUBLIC_SUBNET_2}
+        # - ${PUBLIC_SUBNET_1}
+        - ${PRIVATE_SUBNET_1}
+        - ${PRIVATE_SUBNET_2}
+        - ${PRIVATE_SUBNET_3}
