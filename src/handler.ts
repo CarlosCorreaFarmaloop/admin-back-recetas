@@ -1,10 +1,12 @@
 import { OrderFromEcommerce } from './interface';
 import { getMongoClient } from './mongo_connection';
+import { EventBridge } from './services/eventBridge/eventBridge.service';
 
 const mongoClient = getMongoClient();
 
 export const handler = async (event: any, _context: any, _callback: any) => {
   try {
+    const eventBridge = new EventBridge();
     const order: OrderFromEcommerce = event.detail;
 
     console.log('--- Orden de Ecommerce: ', JSON.stringify(order, null, 2));
@@ -46,6 +48,19 @@ export const handler = async (event: any, _context: any, _callback: any) => {
     console.log('Se va a crear orden: ', JSON.stringify(new_order, null, 2));
 
     await orders_collection.insertOne(new_order);
+
+    await eventBridge.emit({
+      detail: {
+        action: 'ordenes',
+        type: 'ORDEN_ACTUALIZADA',
+        body: {
+          orderId: order.id,
+        },
+      },
+      detailType: 'Orden creada notifica a Admin',
+      eventBusName: 'arn:aws:events:us-east-1:069526102702:event-bus/default',
+      source: process.env.ENVIAR_ORDEN_SQS_SOCKET ?? '',
+    });
 
     return {
       statusCode: '200',
