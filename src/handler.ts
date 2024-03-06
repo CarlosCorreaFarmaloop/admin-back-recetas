@@ -52,10 +52,8 @@ export const handler = async (event: any, _context: any, _callback: any) => {
     await eventBridge.emit({
       detail: {
         action: 'ordenes',
-        type: 'ORDEN_ACTUALIZADA',
-        body: {
-          orderId: order.id,
-        },
+        type: 'ORDEN_CREADA',
+        orderId: order.id,
       },
       detailType: 'Orden creada notifica a Admin',
       eventBusName: 'arn:aws:events:us-east-1:069526102702:event-bus/default',
