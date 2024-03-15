@@ -2,9 +2,10 @@ export interface OrderFromEcommerce {
   id: string;
   cotizacion?: string;
   customer: string;
-  productsOrder: ProductOrder[];
   delivery: Delivery;
+  extras: Extras;
   payment: Payment;
+  productsOrder: ProductOrder[];
   resumeOrder: ResumeOrder;
   statusOrder: string;
 }
@@ -77,4 +78,8 @@ export interface DescuentoUnitario {
   mg: number;
   price: number;
   sku: string;
+}
+
+export interface Extras {
+  referrer: string;
 }
