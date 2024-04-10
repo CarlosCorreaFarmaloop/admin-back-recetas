@@ -2,21 +2,11 @@ export interface OrderFromEcommerce {
   id: string;
   cotizacion?: string;
   customer: string;
-  productsOrder: ProductOrder[];
   delivery: Delivery;
   payment: Payment;
+  productsOrder: ProductOrder[];
   resumeOrder: ResumeOrder;
   statusOrder: string;
-}
-
-export interface ProductOrder {
-  sku: string;
-  batchId: string;
-  qty: number;
-  normalUnitPrice: number;
-  price: number;
-  requirePrescription: boolean;
-  prescription?: string;
 }
 
 export interface Delivery {
@@ -46,6 +36,31 @@ export interface Payment {
   amount?: number;
   originCode?: string;
   status?: string;
+}
+
+export interface ProductOrder {
+  batchId: string;
+  bioequivalent: boolean;
+  cooled: boolean;
+  ean: string;
+  fullName: string;
+  laboratoryName: string;
+  liquid: boolean;
+  normalUnitPrice: number;
+  pharmaceuticalForm: string;
+  photoURL: string;
+  prescription?: string;
+  prescriptionType: PrescriptionType;
+  presentation: string;
+  price: number;
+  productCategory: string;
+  productSubCategory: string[];
+  qty: number;
+  quantityPerContainer: string;
+  recommendations: string;
+  requirePrescription: boolean;
+  shortName: string;
+  sku: string;
 }
 
 export interface ResumeOrder {
@@ -78,3 +93,9 @@ export interface DescuentoUnitario {
   price: number;
   sku: string;
 }
+
+export type PrescriptionType =
+  | 'Presentación receta médica'
+  | 'Venta directa (Sin receta)'
+  | 'Venta bajo receta cheque'
+  | 'Receta médica retenida';

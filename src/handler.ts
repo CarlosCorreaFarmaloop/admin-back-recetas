@@ -48,7 +48,7 @@ export const handler = async (event: any, _context: any, _callback: any) => {
     await orders_collection.insertOne(new_order);
 
     return {
-      statusCode: '200',
+      statusCode: 200,
       body: JSON.stringify(event),
     };
   } catch (error) {
