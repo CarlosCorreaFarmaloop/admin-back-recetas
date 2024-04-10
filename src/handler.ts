@@ -52,7 +52,7 @@ export const handler = async (event: any, _context: any, _callback: any) => {
         const productos_con_cotizacion: ProductOrder[] = new_order.productsOrder.map((productOrder) => {
           const producto_encontrado = cotizacion_db.productos.find(
             (cotizacionProduct) =>
-              cotizacionProduct.sku === productOrder.sku && cotizacionProduct.lote === productOrder.sku
+              cotizacionProduct.sku === productOrder.sku && cotizacionProduct.lote === productOrder.batchId
           );
 
           if (!producto_encontrado) return productOrder;
