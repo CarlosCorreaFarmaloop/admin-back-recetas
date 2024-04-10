@@ -3,6 +3,7 @@ export interface OrderFromEcommerce {
   cotizacion?: string;
   customer: string;
   delivery: Delivery;
+  extras: Extras;
   payment: Payment;
   productsOrder: ProductOrder[];
   resumeOrder: ResumeOrder;
@@ -92,6 +93,10 @@ export interface DescuentoUnitario {
   mg: number;
   price: number;
   sku: string;
+}
+
+export interface Extras {
+  referrer: string;
 }
 
 export type PrescriptionType =
