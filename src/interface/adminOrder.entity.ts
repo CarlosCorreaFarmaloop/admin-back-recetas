@@ -1,42 +1,61 @@
-export interface OrderFromEcommerce {
+export interface AdminOrderEntity {
   id: string;
+  billing: Billing;
   cotizacion?: string;
+  createdAt: Date;
   customer: string;
   delivery: Delivery;
   extras: Extras;
   payment: Payment;
   productsOrder: ProductOrder[];
   resumeOrder: ResumeOrder;
+  seguro_complementario?: SeguroComplementario;
   statusOrder: string;
+  tracking: Tracking[];
 }
 
-export interface Delivery {
+interface Billing {
+  emitter: string;
+  number: string;
+  type: string;
+  urlBilling: string;
+}
+
+interface Delivery {
+  cost: number;
   delivery_address: DeliveryAddress;
   method: string;
+  provider: Provider;
   type?: string;
-  cost: number;
 }
 
-export interface DeliveryAddress {
+interface DeliveryAddress {
+  comuna: string;
+  dpto: string;
   firstName: string;
+  homeType: string;
   lastName: string;
   phone: string;
-  streetName: string;
-  comuna: string;
   region: string;
-  city?: string;
-  homeType: string;
-  number?: string;
-  dpto?: string;
-  reference?: string;
+  streetName: string;
 }
 
-export interface Payment {
-  wallet?: string;
-  method?: string;
+interface Provider {
+  provider: string;
+  orderTransport: string;
+  urlLabel: string;
+}
+
+interface Extras {
+  referrer: string;
+}
+
+interface Payment {
   amount?: number;
+  method?: string;
   originCode?: string;
-  status?: string;
+  status: string;
+  wallet: string;
 }
 
 export interface ProductOrder {
@@ -50,7 +69,7 @@ export interface ProductOrder {
   normalUnitPrice: number;
   pharmaceuticalForm: string;
   photoURL: string;
-  prescription?: string;
+  prescription: Prescription;
   prescriptionType: PrescriptionType;
   presentation: string;
   price: number;
@@ -62,9 +81,25 @@ export interface ProductOrder {
   requirePrescription: boolean;
   shortName: string;
   sku: string;
+  seguro_complementario?: SeguroComplementarioProducto;
 }
 
-export interface ResumeOrder {
+interface Prescription {
+  state: string;
+  file: string;
+  validation: { rut: string; comments: string };
+}
+
+interface SeguroComplementarioProducto {
+  beneficio_unitario: number;
+  cantidad: number;
+  copago_unitario: number;
+  deducible_unitario: number;
+  observacion: string;
+  precio_unitario: number;
+}
+
+interface ResumeOrder {
   nroProducts: number;
   subtotal: number;
   deliveryPrice: number;
@@ -72,12 +107,12 @@ export interface ResumeOrder {
   discount: Discount;
 }
 
-export interface Discount {
+interface Discount {
   total: number;
   details: Details[];
 }
 
-export interface Details {
+interface Details {
   descuentos_unitarios?: DescuentoUnitario[];
   discount?: number;
   promotionCode?: string;
@@ -85,7 +120,7 @@ export interface Details {
   type?: string;
 }
 
-export interface DescuentoUnitario {
+interface DescuentoUnitario {
   cantidad: number;
   descuento_unitario: number;
   expireDate: string;
@@ -95,8 +130,26 @@ export interface DescuentoUnitario {
   sku: string;
 }
 
-export interface Extras {
-  referrer: string;
+interface SeguroComplementario {
+  beneficiario: string;
+  cotizacion_id: number;
+  credencial: string;
+  deducible_total: number;
+  descuento_total: number;
+  documento: string;
+  estado_crendencial: string;
+  estado: string;
+  fecha_creacion: number;
+  id: string;
+  rut: string;
+  seguro_id: string;
+  seguro_nombre: string;
+}
+
+interface Tracking {
+  date: Date;
+  responsible: string;
+  toStatus: string;
 }
 
 export type PrescriptionType =

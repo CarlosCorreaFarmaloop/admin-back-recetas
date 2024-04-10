@@ -1,11 +1,13 @@
-import { OrderFromEcommerce } from './interface';
+import { CotizacionEntity } from './interface/cotizacion.entity';
+import { AdminOrderEntity, ProductOrder } from './interface/adminOrder.entity';
+import { EcommerceOrderEntity } from './interface/ecommerceOrder.entity';
 import { getMongoClient } from './mongo_connection';
 
 const mongoClient = getMongoClient();
 
 export const handler = async (event: any, _context: any, _callback: any) => {
   try {
-    const order: OrderFromEcommerce = event.detail;
+    const order: EcommerceOrderEntity = event.detail;
 
     console.log('--- Orden de Ecommerce: ', JSON.stringify(order, null, 2));
 
@@ -21,7 +23,7 @@ export const handler = async (event: any, _context: any, _callback: any) => {
 
     const orders_collection = db_connection.collection('orders');
 
-    const new_order: any = {
+    const new_order: AdminOrderEntity = {
       id: order.id,
       billing: { type: '', number: '', emitter: '', urlBilling: '' },
       createdAt: new Date(),
@@ -41,21 +43,47 @@ export const handler = async (event: any, _context: any, _callback: any) => {
     };
 
     if (order.cotizacion) {
-      new_order.cotizacion = order.cotizacion;
+      const cotizacion_id = order.cotizacion;
+
+      const cotizaciones_collection = db_connection.collection('cotizaciones');
+      const cotizacion_db = await cotizaciones_collection.findOne<CotizacionEntity>({ id: cotizacion_id });
+
+      if (cotizacion_db) {
+        const productos_con_cotizacion: ProductOrder[] = new_order.productsOrder.map((productOrder) => {
+          const producto_encontrado = cotizacion_db.productos.find(
+            (cotizacionProduct) =>
+              cotizacionProduct.sku === productOrder.sku && cotizacionProduct.lote === productOrder.sku
+          );
+
+          if (!producto_encontrado) return productOrder;
+
+          return {
+            ...productOrder,
+            seguro_complementario: {
+              beneficio_unitario: producto_encontrado.beneficio_unitario,
+              cantidad: producto_encontrado.cantidad,
+              copago_unitario: producto_encontrado.copago_unitario,
+              deducible_unitario: producto_encontrado.deducible_unitario,
+              observacion: producto_encontrado.observacion,
+              precio_unitario: producto_encontrado.precio_unitario,
+            },
+          };
+        });
+
+        const { tracking, ...restoCotizacion } = cotizacion_db;
+
+        new_order.cotizacion = order.cotizacion;
+        new_order.seguro_complementario = restoCotizacion;
+        new_order.productsOrder = productos_con_cotizacion;
+      }
     }
 
     console.log('Se va a crear orden: ', JSON.stringify(new_order, null, 2));
 
     await orders_collection.insertOne(new_order);
 
-    return {
-      statusCode: 200,
-      body: JSON.stringify(event),
-    };
+    return { statusCode: 200, body: JSON.stringify(event) };
   } catch (error) {
-    return {
-      statusCode: 400,
-      body: JSON.stringify(event),
-    };
+    return { statusCode: 400, body: JSON.stringify(event) };
   }
 };
