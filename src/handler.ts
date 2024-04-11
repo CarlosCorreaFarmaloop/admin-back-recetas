@@ -25,19 +25,20 @@ export const handler = async (event: any, _context: any, _callback: any) => {
 
     const new_order: any = {
       id: order.id,
+      billing: { type: '', number: '', emitter: '', urlBilling: '' },
+      createdAt: new Date(),
       customer: order.customer,
+      delivery: { ...order.delivery, provider: { provider: '', orderTransport: '', urlLabel: '' } },
+      extras: order.extras,
+      payment: order.payment,
       productsOrder: order.productsOrder.map((product) => {
         return {
           ...product,
           prescription: { state: '', file: product.prescription ?? '', validation: { rut: '', comments: '' } },
         };
       }),
-      delivery: { ...order.delivery, provider: { provider: '', orderTransport: '', urlLabel: '' } },
-      payment: order.payment,
       resumeOrder: order.resumeOrder,
       statusOrder: order.statusOrder,
-      createdAt: new Date(),
-      billing: { type: '', number: '', emitter: '', urlBilling: '' },
       tracking: [{ date: new Date(), responsible: 'eCommerce', toStatus: order.statusOrder }],
     };
 
