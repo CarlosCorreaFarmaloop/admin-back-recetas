@@ -11,10 +11,11 @@ export interface EcommerceOrderEntity {
 }
 
 interface Delivery {
+  compromiso_entrega: string;
+  cost: number;
   delivery_address: DeliveryAddress;
   method: string;
   type?: string;
-  cost: number;
 }
 
 interface DeliveryAddress {

@@ -23,10 +23,12 @@ export const handler = async (event: any, _context: any, _callback: any) => {
 
     const orders_collection = db_connection.collection('orders');
 
+    const fecha_hoy = new Date();
+
     const new_order: AdminOrderEntity = {
       id: order.id,
       billing: { type: '', number: '', emitter: '', urlBilling: '' },
-      createdAt: new Date(),
+      createdAt: fecha_hoy,
       customer: order.customer,
       delivery: { ...order.delivery, provider: { provider: '', orderTransport: '', urlLabel: '' } },
       extras: order.extras,
@@ -39,7 +41,7 @@ export const handler = async (event: any, _context: any, _callback: any) => {
       }),
       resumeOrder: order.resumeOrder,
       statusOrder: order.statusOrder,
-      tracking: [{ date: new Date(), responsible: 'eCommerce', toStatus: order.statusOrder }],
+      tracking: [{ date: fecha_hoy, responsible: 'eCommerce', toStatus: order.statusOrder }],
     };
 
     if (order.cotizacion) {

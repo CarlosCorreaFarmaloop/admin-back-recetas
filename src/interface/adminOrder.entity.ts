@@ -22,6 +22,7 @@ interface Billing {
 }
 
 interface Delivery {
+  compromiso_entrega: string;
   cost: number;
   delivery_address: DeliveryAddress;
   method: string;
