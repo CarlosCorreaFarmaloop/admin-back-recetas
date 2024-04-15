@@ -64,7 +64,7 @@ export interface ProductOrder {
   bioequivalent: boolean;
   cooled: boolean;
   ean: string;
-  expireDate: string;
+  expiration: number;
   fullName: string;
   laboratoryName: string;
   liquid: boolean;

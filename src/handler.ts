@@ -36,6 +36,7 @@ export const handler = async (event: any, _context: any, _callback: any) => {
       productsOrder: order.productsOrder.map((product) => {
         return {
           ...product,
+          expiration: new Date(product.expireDate).getTime(),
           prescription: { state: '', file: product.prescription ?? '', validation: { rut: '', comments: '' } },
         };
       }),
