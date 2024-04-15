@@ -1,4 +1,4 @@
-service: create-order
+service: admin-back-order-core
 frameworkVersion: '3'
 
 provider:
