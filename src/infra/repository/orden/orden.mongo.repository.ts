@@ -8,7 +8,7 @@ export class OrdenMongoRepository implements IOrdenRepository {
   };
 
   updateOrder = async (order: OrdenEntity) => {
-    return await OrderModel.findOneAndUpdate({ id: order.id }, order, { new: true, upsert: false })
+    return await OrderModel.findOneAndUpdate({ id: order.id }, { new: true, upsert: false })
       .then((res) => res?.toObject())
       .catch((err) => err);
   };

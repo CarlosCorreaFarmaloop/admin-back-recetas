@@ -32,14 +32,18 @@ export class OrdenUseCase implements IOrdenUseCase {
   }
 
   async updateOrder(order: OrdenEntity, origin: IOrigin): Promise<IRespuesta> {
+    console.log('--- Actualizar Orden: ', order);
     const ordenActualizada = await this.ordenRepository.updateOrder(order);
 
     if (!ordenActualizada) {
+      console.log('--- Error al actualizar la orden: ', order);
       return {
         statusCode: 400,
         body: JSON.stringify({ message: 'Error al actualizar la orden.' }),
       };
     }
+
+    console.log('--- Orden Actualizada: ', ordenActualizada);
 
     await ordenSocketEvent(ordenActualizada);
 
