@@ -29,7 +29,7 @@ export const handler = async (event: SQSEvent) => {
       case 'actualizar-order':
         console.log('--- Orden de Ecommerce Actualizar Orden: ', order);
         return await orderUseCase.updateOrder(order, origin);
-      case 'actulizar-pago':
+      case 'actualizar-pago':
         console.log('--- Orden de Ecommerce Actualizar Pago: ', order);
         return await orderUseCase.updatePayment(order, origin);
       default:
@@ -44,6 +44,12 @@ export const handler = async (event: SQSEvent) => {
       case 'actualizar-order':
         console.log('--- Orden de Admin Actualizar Orden: ', order);
         return await orderUseCase.updateOrder(order, origin);
+
+      case 'generar-courier': {
+        console.log('--- Orden de Admin Generar Courier: ', order);
+        return await orderUseCase.updateOrder(order, origin);
+      }
+
       default:
         return { statusCode: 400, body: JSON.stringify(event) };
     }

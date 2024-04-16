@@ -8,4 +8,10 @@ export interface IEventDetail {
 
 export type IOrigin = 'ecommerce' | 'admin';
 
-export type IAction = 'crear-orden' | 'actualizar-order' | 'actulizar-pago';
+export type IAction =
+  | 'crear-orden'
+  | 'actualizar-order'
+  | 'actualizar-pago'
+  | 'actualizar-a-retiro-envio'
+  | 'generar-courier'
+  | 'generar-documento-tributario';

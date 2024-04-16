@@ -5,9 +5,10 @@ import { IOrdenRepository } from '../domain/order.repository';
 import { IOrdenUseCase, IRespuesta } from './orden.usecase.interface';
 import { OrdenOValue } from './orden.vo';
 import { IOrigin } from '.././../../../interface/event';
-import { actualizarStock, notificarEstadoDeOrden } from '../domain/eventos';
+import { actualizarStock, crearCourier, notificarEstadoDeOrden } from '../domain/eventos';
 import { MovementRepository } from '../../../modules/movements/domain/movements.repositoy';
 import { v4 as uuid } from 'uuid';
+import { CourierValueObject } from './courier.vo';
 
 export class OrdenUseCase implements IOrdenUseCase {
   constructor(
@@ -127,4 +128,15 @@ export class OrdenUseCase implements IOrdenUseCase {
       body: JSON.stringify(ordenActualizada),
     };
   }
+
+  createCourier = async (order: OrdenEntity, origin: IOrigin): Promise<IRespuesta> => {
+    const orderVO = new CourierValueObject().crearCourier(order);
+
+    await crearCourier(orderVO);
+
+    return {
+      statusCode: 200,
+      body: JSON.stringify(orderVO),
+    };
+  };
 }

@@ -1,5 +1,6 @@
 import { EventBridgeClient, PutEventsCommand } from '@aws-sdk/client-eventbridge';
 import { OrdenEntity } from './order.entity';
+import { CourierEventPayload } from '../application/courier.vo';
 
 const eventBridgeClient = new EventBridgeClient();
 const env = process.env.ENV?.toLowerCase() ?? '';
@@ -44,4 +45,21 @@ export const actualizarStock = async (orden: OrdenEntity) => {
       console.log('--- EVENTO DESCONTAR STOCK --- ', evento);
     })
   );
+};
+
+export const crearCourier = async (courier: CourierEventPayload) => {
+  const evento = await eventBridgeClient.send(
+    new PutEventsCommand({
+      Entries: [
+        {
+          Detail: JSON.stringify(courier),
+          DetailType: 'Crear courier.',
+          EventBusName: 'arn:aws:events:us-east-1:069526102702:event-bus/default',
+          Source: `genera_orden_courier_${env}`,
+          Time: new Date(),
+        },
+      ],
+    })
+  );
+  console.log('--- EVENTO CREAR COURIER --- ', evento);
 };
