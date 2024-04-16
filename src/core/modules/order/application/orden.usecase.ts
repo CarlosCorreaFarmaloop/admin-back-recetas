@@ -137,6 +137,58 @@ export class OrdenUseCase implements IOrdenUseCase {
     };
   }
 
+  updateToEnvio = async (order: OrdenEntity, origin: IOrigin): Promise<IRespuesta> => {
+    const orderVO = new OrdenOValue().actualizarTrackingpayment(
+      {
+        responsible: origin,
+        toStatus: order.statusOrder,
+      },
+      order
+    );
+
+    const ordenActualizada = await this.ordenRepository.updateOrder(orderVO);
+
+    if (!ordenActualizada) {
+      return {
+        statusCode: 400,
+        body: JSON.stringify({ message: 'Error al actualizar la orden.' }),
+      };
+    }
+
+    const courierVO = new CourierValueObject().crearCourier(order);
+
+    await crearCourier(courierVO);
+
+    // TODO: Generar Documento Tributario
+
+    await ordenSocketEvent(ordenActualizada);
+
+    return {
+      statusCode: 200,
+      body: JSON.stringify(ordenActualizada),
+    };
+  };
+
+  updateToRetiro = async (order: OrdenEntity, origin: IOrigin) => {
+    const ordenActualizada = await this.ordenRepository.updateOrder(order);
+
+    if (!ordenActualizada) {
+      return {
+        statusCode: 400,
+        body: JSON.stringify({ message: 'Error al actualizar la orden.' }),
+      };
+    }
+
+    await ordenSocketEvent(ordenActualizada);
+
+    // TODO:  Generar Documento Tributario
+
+    return {
+      statusCode: 200,
+      body: JSON.stringify(ordenActualizada),
+    };
+  };
+
   createCourier = async (order: OrdenEntity, origin: IOrigin): Promise<IRespuesta> => {
     const orderVO = new CourierValueObject().crearCourier(order);
 

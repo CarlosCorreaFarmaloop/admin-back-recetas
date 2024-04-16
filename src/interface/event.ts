@@ -14,4 +14,6 @@ export type IAction =
   | 'actualizar-pago'
   | 'actualizar-a-retiro-envio'
   | 'generar-courier'
+  | 'actualizar-a-envio'
+  | 'actualizar-a-listo-retiro'
   | 'generar-documento-tributario';

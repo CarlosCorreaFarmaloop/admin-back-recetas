@@ -11,7 +11,12 @@ export const handler = async (event: SQSEvent) => {
   // Connect to Mongo
   await connectoToMongoDB();
 
+  console.log('--- Event: ', event);
+
   const body: EventBridgeEvent<string, IEventDetail> = JSON.parse(event.Records[0].body);
+  // const body = JSON.parse(event.body);
+
+  // const { origin, order, action } = body;
 
   const { origin, order, action } = body.detail;
   // Orden de Ecommerce
@@ -44,6 +49,14 @@ export const handler = async (event: SQSEvent) => {
       case 'actualizar-order':
         console.log('--- Orden de Admin Actualizar Orden: ', order);
         return await orderUseCase.updateOrder(order, origin);
+
+      case 'actualizar-a-envio':
+        console.log('--- Orden de Admin Actualizar a Envio: ', order);
+        return await orderUseCase.updateToEnvio(order, origin);
+
+      case 'actualizar-a-listo-retiro':
+        console.log('--- Orden de Admin Actualizar a Listo Retiro: ', order);
+        return await orderUseCase.updateToRetiro(order, origin);
 
       case 'generar-courier': {
         console.log('--- Orden de Admin Generar Courier: ', order);
