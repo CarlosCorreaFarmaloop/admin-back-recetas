@@ -1,10 +1,11 @@
 import { SQSEvent, EventBridgeEvent } from 'aws-lambda';
-import { IEventDetail } from './interface/event';
+import { IAsignacionCourier, IEventDetail, ITrackingCourier } from './interface/event';
 import { OrdenUseCase } from './core/modules/order/application/orden.usecase';
 import { OrdenMongoRepository } from './infra/repository/orden/orden.mongo.repository';
 import { connectoToMongoDB } from './infra/db/mongo';
 import { CotizacionRepository } from './infra/repository/cotizacion/cotizacion.mongo.respository';
 import { MovementMongoRepository } from './infra/repository/movements/movements.mongo.repository';
+import { OrdenEntity } from './core/modules/order/domain/order.entity';
 
 // event can be event: EventBridgeEvent<string, IEventDetail> or event: EventBridgeEvent<string, IEventDetail>  {body: IEventDetail}
 export const handler = async (event: SQSEvent) => {
@@ -13,12 +14,12 @@ export const handler = async (event: SQSEvent) => {
 
   console.log('--- Event: ', event);
 
-  const body: EventBridgeEvent<string, IEventDetail> = JSON.parse(event.Records[0].body);
+  const bodyEvent: EventBridgeEvent<string, IEventDetail> = JSON.parse(event.Records[0].body);
   // const body = JSON.parse(event.body);
 
   // const { origin, order, action } = body;
 
-  const { origin, order, action } = body.detail;
+  const { origin, body, action } = bodyEvent.detail;
   // Orden de Ecommerce
   const orderRespository = new OrdenMongoRepository();
   const cotizacionRespository = new CotizacionRepository();
@@ -29,14 +30,14 @@ export const handler = async (event: SQSEvent) => {
   if (origin === 'ecommerce') {
     switch (action) {
       case 'crear-orden':
-        console.log('--- Orden de Ecommerce Crear Orden: ', order);
-        return await orderUseCase.createOrder(order, origin);
+        console.log('--- Orden de Ecommerce Crear Orden: ', body);
+        return await orderUseCase.createOrder(body, origin);
       case 'actualizar-order':
-        console.log('--- Orden de Ecommerce Actualizar Orden: ', order);
-        return await orderUseCase.updateOrder(order, origin);
+        console.log('--- Orden de Ecommerce Actualizar Orden: ', body);
+        return await orderUseCase.updateOrder(body, origin);
       case 'actualizar-pago':
-        console.log('--- Orden de Ecommerce Actualizar Pago: ', order);
-        return await orderUseCase.updatePayment(order, origin);
+        console.log('--- Orden de Ecommerce Actualizar Pago: ', body);
+        return await orderUseCase.updatePayment(body, origin);
       default:
         return { statusCode: 400, body: JSON.stringify(event) };
     }
@@ -44,23 +45,33 @@ export const handler = async (event: SQSEvent) => {
   if (origin === 'admin') {
     switch (action) {
       case 'crear-orden':
-        console.log('--- Orden de Admin Crear Orden: ', order);
-        return await orderUseCase.createOrder(order, origin);
+        console.log('--- Orden de Admin Crear Orden: ', body as OrdenEntity);
+        return await orderUseCase.createOrder(body as OrdenEntity, origin);
       case 'actualizar-order':
-        console.log('--- Orden de Admin Actualizar Orden: ', order);
-        return await orderUseCase.updateOrder(order, origin);
+        console.log('--- Orden de Admin Actualizar Orden: ', body);
+        return await orderUseCase.updateOrder(body as OrdenEntity, origin);
 
       case 'actualizar-a-envio':
-        console.log('--- Orden de Admin Actualizar a Envio: ', order);
-        return await orderUseCase.updateToEnvio(order, origin);
+        console.log('--- Orden de Admin Actualizar a Envio: ', body);
+        return await orderUseCase.updateToEnvio(body as OrdenEntity, origin);
 
       case 'actualizar-a-listo-retiro':
-        console.log('--- Orden de Admin Actualizar a Listo Retiro: ', order);
-        return await orderUseCase.updateToRetiro(order, origin);
+        console.log('--- Orden de Admin Actualizar a Listo Retiro: ', body);
+        return await orderUseCase.updateToRetiro(body as OrdenEntity, origin);
 
       case 'generar-courier': {
-        console.log('--- Orden de Admin Generar Courier: ', order);
-        return await orderUseCase.updateOrder(order, origin);
+        console.log('--- Orden de Admin Generar Courier: ', body);
+        return await orderUseCase.updateOrder(body as OrdenEntity, origin);
+      }
+
+      case 'confirmar-asignacion-courier': {
+        console.log('--- Orden de Admin Confirmar Asignacion Courier: ', body);
+        return await orderUseCase.confirmarCourier(body as IAsignacionCourier, origin);
+      }
+
+      case 'actualizar-tracking-courier': {
+        console.log('--- Orden de Admin Actualizar Tracking Courier: ', body);
+        return await orderUseCase.updateTrackingCourier(body as ITrackingCourier, origin);
       }
 
       default:

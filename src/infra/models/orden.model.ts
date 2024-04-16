@@ -205,6 +205,7 @@ const DeliveryTransportSchema = new mongoose.Schema(
 
 const ProviderSchema = new mongoose.Schema(
   {
+    status: String,
     provider: String,
     orderTransport: String,
     urlLabel: String,

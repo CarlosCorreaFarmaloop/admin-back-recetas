@@ -12,4 +12,10 @@ export class OrdenMongoRepository implements IOrdenRepository {
       .then((res) => res?.toObject())
       .catch((err) => err);
   };
+
+  findOrderById = async (id: string) => {
+    return await OrderModel.findOne({ id })
+      .then((res) => res?.toObject())
+      .catch((err) => err);
+  };
 }

@@ -4,7 +4,7 @@ import { OrdenEntity } from '../domain/order.entity';
 import { IOrdenRepository } from '../domain/order.repository';
 import { IOrdenUseCase, IRespuesta } from './orden.usecase.interface';
 import { OrdenOValue } from './orden.vo';
-import { IOrigin } from '.././../../../interface/event';
+import { IAsignacionCourier, IOrigin, ITrackingCourier } from '.././../../../interface/event';
 import { actualizarStock, crearCourier, notificarEstadoDeOrden, ordenSocketEvent } from '../domain/eventos';
 import { MovementRepository } from '../../../modules/movements/domain/movements.repositoy';
 import { v4 as uuid } from 'uuid';
@@ -189,14 +189,61 @@ export class OrdenUseCase implements IOrdenUseCase {
     };
   };
 
-  createCourier = async (order: OrdenEntity, origin: IOrigin): Promise<IRespuesta> => {
-    const orderVO = new CourierValueObject().crearCourier(order);
+  confirmarCourier = async (payload: IAsignacionCourier, origin: IOrigin) => {
+    const order = await this.ordenRepository.findOrderById(payload.id);
 
-    await crearCourier(orderVO);
+    if (!order) {
+      return {
+        statusCode: 400,
+        body: JSON.stringify({ message: 'Error al encontrar la orden.' }),
+      };
+    }
+
+    const orderVO = new OrdenOValue().confirmacionCourier(payload, order);
+
+    const ordenActualizada = await this.ordenRepository.updateOrder(orderVO);
+
+    if (!ordenActualizada) {
+      return {
+        statusCode: 400,
+        body: JSON.stringify({ message: 'Error al actualizar la orden.' }),
+      };
+    }
+
+    await ordenSocketEvent(ordenActualizada);
 
     return {
       statusCode: 200,
-      body: JSON.stringify(orderVO),
+      body: JSON.stringify(ordenActualizada),
+    };
+  };
+
+  updateTrackingCourier = async (payload: ITrackingCourier, origin: IOrigin) => {
+    const order = await this.ordenRepository.findOrderById(payload.id);
+
+    if (!order) {
+      return {
+        statusCode: 400,
+        body: JSON.stringify({ message: 'Error al encontrar la orden.' }),
+      };
+    }
+
+    const orderVO = new OrdenOValue().actualizarTrackingCourier(payload, order);
+
+    const ordenActualizada = await this.ordenRepository.updateOrder(orderVO);
+
+    if (!ordenActualizada) {
+      return {
+        statusCode: 400,
+        body: JSON.stringify({ message: 'Error al actualizar la orden.' }),
+      };
+    }
+
+    await ordenSocketEvent(ordenActualizada);
+
+    return {
+      statusCode: 200,
+      body: JSON.stringify(ordenActualizada),
     };
   };
 }

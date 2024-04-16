@@ -118,6 +118,7 @@ export type DeliveryType =
   | 'Envío 24 horas hábiles';
 
 export interface DeliveryProvider {
+  status: string;
   provider: string;
   orderTransport: string;
   urlLabel: string;
@@ -131,6 +132,8 @@ export interface DeliveryProvider {
 export interface DeliveryTracking {
   fecha: Date;
   estado: string;
+  comentario: string;
+  evidencias: string[];
 }
 
 export interface Documento {
