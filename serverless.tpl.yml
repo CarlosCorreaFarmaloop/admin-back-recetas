@@ -15,7 +15,7 @@ functions:
     environment:
       MONGO_CONNECTION_STRING: ${MONGO_CONNECTION_STRING}
       MONGO_DATA_BASE: ${MONGO_DATA_BASE}
-      ENVIAR_ORDEN_SQS_SOCKET: ${ENVIAR_ORDEN_SQS_SOCKET}
+      ENV: ${ENV}
     vpc:
       securityGroupIds:
         - ${LAMBDA_SG}

@@ -1,4 +1,4 @@
-// import { EventBridgeEvent } from 'aws-lambda';
+import { SQSEvent, EventBridgeEvent } from 'aws-lambda';
 import { IEventDetail } from './interface/event';
 import { OrdenUseCase } from './core/modules/order/application/orden.usecase';
 import { OrdenMongoRepository } from './infra/repository/orden/orden.mongo.repository';
@@ -7,11 +7,13 @@ import { CotizacionRepository } from './infra/repository/cotizacion/cotizacion.m
 import { MovementMongoRepository } from './infra/repository/movements/movements.mongo.repository';
 
 // event can be event: EventBridgeEvent<string, IEventDetail> or event: EventBridgeEvent<string, IEventDetail>  {body: IEventDetail}
-export const handler = async (event: any) => {
+export const handler = async (event: SQSEvent) => {
   // Connect to Mongo
   await connectoToMongoDB();
-  const detail = event.detail ?? (JSON.parse(event.body) as IEventDetail);
-  const { origin, order, action } = detail;
+
+  const body: EventBridgeEvent<string, IEventDetail> = JSON.parse(event.Records[0].body);
+
+  const { origin, order, action } = body.detail;
   // Orden de Ecommerce
   const orderRespository = new OrdenMongoRepository();
   const cotizacionRespository = new CotizacionRepository();
