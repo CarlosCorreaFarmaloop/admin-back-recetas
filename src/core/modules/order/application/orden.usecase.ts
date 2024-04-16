@@ -5,7 +5,7 @@ import { IOrdenRepository } from '../domain/order.repository';
 import { IOrdenUseCase, IRespuesta } from './orden.usecase.interface';
 import { OrdenOValue } from './orden.vo';
 import { IOrigin } from '.././../../../interface/event';
-import { actualizarStock, crearCourier, notificarEstadoDeOrden } from '../domain/eventos';
+import { actualizarStock, crearCourier, notificarEstadoDeOrden, ordenSocketEvent } from '../domain/eventos';
 import { MovementRepository } from '../../../modules/movements/domain/movements.repositoy';
 import { v4 as uuid } from 'uuid';
 import { CourierValueObject } from './courier.vo';
@@ -40,6 +40,8 @@ export class OrdenUseCase implements IOrdenUseCase {
         body: JSON.stringify({ message: 'Error al actualizar la orden.' }),
       };
     }
+
+    await ordenSocketEvent(ordenActualizada);
 
     return {
       statusCode: 200,
@@ -79,6 +81,8 @@ export class OrdenUseCase implements IOrdenUseCase {
         await notificarEstadoDeOrden(ordenActualizada);
       }
       await actualizarStock(ordenActualizada);
+
+      await ordenSocketEvent(ordenActualizada);
 
       return {
         statusCode: 200,

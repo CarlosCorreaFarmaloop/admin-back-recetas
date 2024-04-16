@@ -47,6 +47,23 @@ export const actualizarStock = async (orden: OrdenEntity) => {
   );
 };
 
+export const ordenSocketEvent = async (orden: OrdenEntity) => {
+  const evento = await eventBridgeClient.send(
+    new PutEventsCommand({
+      Entries: [
+        {
+          Detail: JSON.stringify(orden),
+          DetailType: 'Orden socket.',
+          EventBusName: 'arn:aws:events:us-east-1:069526102702:event-bus/default',
+          Source: process.env.ENVIAR_ORDEN_SQS_SOCKET,
+          Time: new Date(),
+        },
+      ],
+    })
+  );
+  console.log('--- EVENTO SOCKET ORDEN --- ', evento);
+};
+
 export const crearCourier = async (courier: CourierEventPayload) => {
   const evento = await eventBridgeClient.send(
     new PutEventsCommand({
