@@ -27,26 +27,6 @@ export const handler = async (event: SQSEvent) => {
     if (['VALIDANDO_RECETA', 'RECETA_VALIDADA', 'OBSERVACIONES_RECETAS'].includes(order.statusOrder)) {
       await notificarEstadoDeOrden(order);
     }
-
-    if (order?.payment?.payment.status === 'Aprobado') {
-      await movementsRepository.createMovements(
-        order.productsOrder.map((producto) => {
-          return {
-            batch: producto.batchId,
-            createAt: new Date(),
-            documentNumber: order.id,
-            documentType: 'Order',
-            id: uuid(),
-            movementType: 'Salida',
-            quantity: producto.qty * -1,
-            sku: producto.sku,
-            documento_referencia: order.id,
-          };
-        })
-      );
-
-      await actualizarStock(order);
-    }
   };
 
   const updateStock = async (order: OrdenEntity) => {
@@ -87,6 +67,8 @@ export const handler = async (event: SQSEvent) => {
         console.log('--- Orden de Ecommerce Actualizar Pago: ', body);
 
         return await orderUseCase.updatePayment(body, origin).then(async (res) => {
+          if (res.statusCode !== 200) return res;
+
           await notifyStatusOrder(JSON.parse(res.body));
           await updateStock(JSON.parse(res.body));
 
