@@ -1,11 +1,13 @@
 import { SQSEvent, EventBridgeEvent } from 'aws-lambda';
-import { IAsignacionCourier, IEventDetail, ITrackingCourier } from './interface/event';
+import { IAsignacionCourier, IEventDetail, IRechazarOrden, ITrackingCourier } from './interface/event';
 import { OrdenUseCase } from './core/modules/order/application/orden.usecase';
 import { OrdenMongoRepository } from './infra/repository/orden/orden.mongo.repository';
 import { connectoToMongoDB } from './infra/db/mongo';
 import { CotizacionRepository } from './infra/repository/cotizacion/cotizacion.mongo.respository';
 import { MovementMongoRepository } from './infra/repository/movements/movements.mongo.repository';
 import { OrdenEntity } from './core/modules/order/domain/order.entity';
+import { v4 as uuid } from 'uuid';
+import { actualizarStock, notificarEstadoDeOrden } from './core/modules/order/domain/eventos';
 
 // event can be event: EventBridgeEvent<string, IEventDetail> or event: EventBridgeEvent<string, IEventDetail>  {body: IEventDetail}
 export const handler = async (event: SQSEvent) => {
@@ -15,11 +17,60 @@ export const handler = async (event: SQSEvent) => {
   console.log('--- Event: ', event);
 
   const bodyEvent: EventBridgeEvent<string, IEventDetail> = JSON.parse(event.Records[0].body);
-  // const body = JSON.parse(event.body);
-
-  // const { origin, order, action } = body;
-
   const { origin, body, action } = bodyEvent.detail;
+
+  // const bodyDetail = JSON.parse(event.body);
+
+  // const { origin, body, action } = bodyDetail;
+
+  const notifyStatusOrder = async (order: OrdenEntity) => {
+    if (['VALIDANDO_RECETA', 'RECETA_VALIDADA', 'OBSERVACIONES_RECETAS'].includes(order.statusOrder)) {
+      await notificarEstadoDeOrden(order);
+    }
+
+    if (order?.payment?.payment.status === 'Aprobado') {
+      await movementsRepository.createMovements(
+        order.productsOrder.map((producto) => {
+          return {
+            batch: producto.batchId,
+            createAt: new Date(),
+            documentNumber: order.id,
+            documentType: 'Order',
+            id: uuid(),
+            movementType: 'Salida',
+            quantity: producto.qty * -1,
+            sku: producto.sku,
+            documento_referencia: order.id,
+          };
+        })
+      );
+
+      await actualizarStock(order);
+    }
+  };
+
+  const updateStock = async (order: OrdenEntity) => {
+    if (order?.payment?.payment.status === 'Aprobado') {
+      await movementsRepository.createMovements(
+        order.productsOrder.map((producto) => {
+          return {
+            batch: producto.batchId,
+            createAt: new Date(),
+            documentNumber: order.id,
+            documentType: 'Order',
+            id: uuid(),
+            movementType: 'Salida',
+            quantity: producto.qty * -1,
+            sku: producto.sku,
+            documento_referencia: order.id,
+          };
+        })
+      );
+
+      await actualizarStock(order);
+    }
+  };
+
   // Orden de Ecommerce
   const orderRespository = new OrdenMongoRepository();
   const cotizacionRespository = new CotizacionRepository();
@@ -29,22 +80,27 @@ export const handler = async (event: SQSEvent) => {
 
   if (origin === 'ecommerce') {
     switch (action) {
-      case 'crear-orden':
+      case 'crear-order':
         console.log('--- Orden de Ecommerce Crear Orden: ', body);
-        return await orderUseCase.createOrder(body, origin);
-      case 'actualizar-order':
-        console.log('--- Orden de Ecommerce Actualizar Orden: ', body);
-        return await orderUseCase.updateOrder(body, origin);
+        return await orderUseCase.createOrderFromEcommerce(body, origin);
       case 'actualizar-pago':
         console.log('--- Orden de Ecommerce Actualizar Pago: ', body);
-        return await orderUseCase.updatePayment(body, origin);
+
+        return await orderUseCase.updatePayment(body, origin).then(async (res) => {
+          await notifyStatusOrder(JSON.parse(res.body));
+          await updateStock(JSON.parse(res.body));
+
+          return res;
+        });
+
       default:
         return { statusCode: 400, body: JSON.stringify(event) };
     }
   }
+
   if (origin === 'admin') {
     switch (action) {
-      case 'crear-orden':
+      case 'crear-order':
         console.log('--- Orden de Admin Crear Orden: ', body as OrdenEntity);
         return await orderUseCase.createOrder(body as OrdenEntity, origin);
       case 'actualizar-order':
@@ -74,10 +130,16 @@ export const handler = async (event: SQSEvent) => {
         return await orderUseCase.updateTrackingCourier(body as ITrackingCourier, origin);
       }
 
+      case 'rechazar-order': {
+        console.log('--- Orden de Admin Rechazar Orden: ', body);
+        return await orderUseCase.rechazarOrder(body as IRechazarOrden, origin);
+      }
+
       default:
         return { statusCode: 400, body: JSON.stringify(event) };
     }
   }
+
   return { statusCode: 400, body: JSON.stringify(event) };
 
   // try {

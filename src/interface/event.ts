@@ -7,7 +7,7 @@ export interface IEventDetail {
 export type IOrigin = 'ecommerce' | 'admin' | 'courier';
 
 export type IAction =
-  | 'crear-orden'
+  | 'crear-order'
   | 'actualizar-order'
   | 'actualizar-pago'
   | 'actualizar-a-retiro-envio'
@@ -17,7 +17,8 @@ export type IAction =
   | 'actualizar-a-listo-retiro'
   | 'generar-documento-tributario'
   | 'confirmar-asignacion-courier'
-  | 'actualizar-tracking-courier';
+  | 'actualizar-tracking-courier'
+  | 'rechazar-order';
 
 export interface IAsignacionCourier {
   id: string;
@@ -33,4 +34,11 @@ export interface ITrackingCourier {
   estado: string;
   comentario: string;
   evidencias: string[];
+}
+
+export interface IRechazarOrden {
+  id: string;
+  responsible: string;
+  reason: string;
+  toPos: boolean;
 }

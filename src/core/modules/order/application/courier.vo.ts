@@ -5,9 +5,9 @@ export class CourierValueObject {
     return {
       courier: order.delivery.provider.provider,
       direccion: {
-        calle: order.delivery.delivery_address.streetName,
+        calle: order.delivery.delivery_address.streetName ?? '',
         comuna: order.delivery.delivery_address.comuna,
-        numero_calle: order.delivery.delivery_address.streetNumber,
+        numero_calle: order.delivery.delivery_address.streetNumber ?? '',
         numero_domicilio: order.delivery.delivery_address.dpto,
         pais: 'Chile',
         referencias: '',
@@ -38,6 +38,9 @@ export class CourierValueObject {
 
       case 'Envío Estándar (48 horas hábiles)':
         return 'NXD';
+
+      default:
+        return 'EXP';
     }
   };
 }

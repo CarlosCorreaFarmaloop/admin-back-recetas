@@ -312,7 +312,7 @@ const BillingSchema = new mongoose.Schema(
     invoiceCustomer: InvoiceCustomerSchema,
     number: String,
     referenceDocumentId: String,
-    type: { type: String, enum: ['Boleta', 'Factura', 'Despacho'] },
+    type: { type: String, enum: ['Boleta', 'Factura', 'Despacho', ''] },
     urlBilling: String,
     urlTimbre: String,
   },
@@ -368,6 +368,7 @@ const OrderSchema = new mongoose.Schema({
   urlLabel: String,
   observations: [ObservationsSchema],
   history: [HistorySchema],
+  extras: { referrer: String },
 });
 
 const OrderModel = model<OrdenEntity>('orders', OrderSchema);

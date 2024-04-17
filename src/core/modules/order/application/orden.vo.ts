@@ -1,4 +1,4 @@
-import { IAsignacionCourier, ITrackingCourier } from '../../../../interface/event';
+import { IAsignacionCourier, IRechazarOrden, ITrackingCourier } from '../../../../interface/event';
 import { OrdenEntity, StatusOrder } from '../domain/order.entity';
 
 export class OrdenOValue {
@@ -69,6 +69,35 @@ export class OrdenOValue {
           date: new Date(),
           responsible: 'courier',
           toStatus: payload.estado as StatusOrder,
+        },
+      ],
+    };
+  };
+
+  rechazarOrden = (payload: IRechazarOrden, order: OrdenEntity): OrdenEntity => {
+    return {
+      ...order,
+      statusOrder: 'CANCELADO',
+      tracking: [
+        ...(order.tracking ?? []),
+        {
+          date: new Date(),
+          responsible: payload.responsible,
+          toStatus: 'CANCELADO',
+        },
+      ],
+      history: [
+        ...order.history,
+        {
+          type: 'status',
+          changeDate: new Date(),
+          responsible: payload.responsible,
+          changeFrom: order.statusOrder,
+          changeTo: 'CANCELADO',
+          aditionalInfo: {
+            comments: payload.reason,
+            product_sku: '',
+          },
         },
       ],
     };

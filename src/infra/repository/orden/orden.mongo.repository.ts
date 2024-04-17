@@ -1,10 +1,27 @@
+import { AdminOrderEntity } from '../../../interface/adminOrder.entity';
 import { OrdenEntity } from '../../../core/modules/order/domain/order.entity';
 import { IOrdenRepository } from '../../../core/modules/order/domain/order.repository';
 import OrderModel from '../../models/orden.model';
 
 export class OrdenMongoRepository implements IOrdenRepository {
+  createOrderFromEcommerce = async (order: AdminOrderEntity) => {
+    console.log('------Order To Create ----', JSON.stringify(order, null, 2));
+    return await OrderModel.create(order);
+  };
+
   createOrder = async (order: OrdenEntity) => {
     return await OrderModel.create(order);
+  };
+
+  updatePayment = async (id: string, payload: any) => {
+    return await OrderModel.findOneAndUpdate(
+      { id },
+      {
+        $set: payload,
+        $push: { tracking: { date: new Date(), responsible: 'eCommerce', toStatus: payload.statusOrder } as any },
+      },
+      { returnDocument: 'after' }
+    );
   };
 
   updateOrder = async (order: OrdenEntity) => {

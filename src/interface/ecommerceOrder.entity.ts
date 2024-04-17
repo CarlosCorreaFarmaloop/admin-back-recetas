@@ -14,9 +14,18 @@ interface Delivery {
   compromiso_entrega: string;
   cost: number;
   delivery_address: DeliveryAddress;
-  method: string;
-  type?: string;
+  method: DeliveryMethod;
+  type?: DeliveryType;
 }
+
+export type DeliveryType =
+  | ''
+  | 'Envío Estándar (48 horas hábiles)'
+  | 'Envío Express (4 horas hábiles)'
+  | 'Envío en el día (24 horas hábiles)'
+  | 'Envío 24 horas hábiles';
+
+export type DeliveryMethod = 'DELIVERY' | 'STORE';
 
 interface DeliveryAddress {
   comuna: string;
@@ -34,8 +43,8 @@ interface Extras {
 }
 
 interface Payment {
-  amount?: number;
-  method?: string;
+  amount: number;
+  method: string;
   originCode?: string;
   status: string;
   wallet: string;

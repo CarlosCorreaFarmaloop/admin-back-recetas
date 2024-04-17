@@ -19,6 +19,7 @@ export interface OrdenEntity {
   urlLabel?: string;
   observations?: Observations[];
   history: IOrderHistory[];
+  extras: { referrer: string };
 }
 
 export interface Billing {
@@ -26,12 +27,12 @@ export interface Billing {
   delivery?: BillingDelivery;
   direccion_destino?: DireccionDeDestino;
   direccion_origen?: DireccionDeOrigen;
-  emissionDate: Date;
+  emissionDate?: Date;
   emitter: string;
   invoiceCustomer?: InvoiceCustomer;
   number: string;
   referenceDocumentId?: string;
-  type: 'Boleta' | 'Factura' | 'Despacho';
+  type: '' | 'Boleta' | 'Factura' | 'Despacho';
   urlBilling: string;
   urlTimbre?: string;
 }
@@ -107,11 +108,12 @@ export interface DeliveryAddress {
   homeType: string;
   phone: string;
   region: string;
-  streetName: string;
-  streetNumber: string;
+  streetName?: string;
+  streetNumber?: string;
 }
 
 export type DeliveryType =
+  | ''
   | 'Envío Estándar (48 horas hábiles)'
   | 'Envío Express (4 horas hábiles)'
   | 'Envío en el día (24 horas hábiles)'
@@ -189,7 +191,6 @@ export interface PaymentForm {
 
 export interface ProductOrder {
   batchId: string;
-  expireDate?: Date;
   expiration?: number;
   lineNumber?: number;
   modified?: boolean;
@@ -205,7 +206,6 @@ export interface ProductOrder {
   requirePrescription: boolean;
   sku: string;
 
-  batchID: string;
   bioequivalent: boolean;
   cooled: boolean;
   ean: string;
