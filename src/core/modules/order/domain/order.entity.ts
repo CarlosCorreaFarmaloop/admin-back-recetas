@@ -1,6 +1,5 @@
 export interface OrdenEntity {
   billing: Billing;
-  cotizacion?: string;
   createdAt: Date;
   customer?: string;
   delivery: Delivery;
@@ -15,27 +14,37 @@ export interface OrdenEntity {
   responsible: string;
   resumeOrder: ResumeOrder;
   statusOrder: StatusOrder;
-  tracking?: Tracking[];
+  provisionalStatusOrder: IProvisionalStatusOrder;
+  provisionalStatusOrderDate: number;
+  tracking: Tracking[];
+  cotizacion?: string;
   urlLabel?: string;
   observations?: Observations[];
   history: IOrderHistory[];
   extras: { referrer: string };
 }
 
+export type IProvisionalStatusOrder = '' | 'Pendiente' | 'Error';
+
 export interface Billing {
+  emitter: string;
+  number: string;
+  type: '' | 'Boleta' | 'Factura' | 'Despacho';
+  status: IBillingStatus;
+  statusDate?: Date;
+  urlBilling: string;
+
   creditNotes?: CreditNote[];
   delivery?: BillingDelivery;
   direccion_destino?: DireccionDeDestino;
   direccion_origen?: DireccionDeOrigen;
   emissionDate?: Date;
-  emitter: string;
   invoiceCustomer?: InvoiceCustomer;
-  number: string;
   referenceDocumentId?: string;
-  type: '' | 'Boleta' | 'Factura' | 'Despacho';
-  urlBilling: string;
   urlTimbre?: string;
 }
+
+export type IBillingStatus = '' | 'Pendiente' | 'Aprobado' | 'Rechazado';
 
 export interface CreditNote {
   createdAt: Date;
@@ -98,6 +107,7 @@ export interface Delivery {
   cost: number;
   provider: DeliveryProvider;
   deliveryTracking?: DeliveryTracking[];
+  compromiso_entrega: string;
 }
 
 export interface DeliveryAddress {
@@ -120,16 +130,20 @@ export type DeliveryType =
   | 'Envío 24 horas hábiles';
 
 export interface DeliveryProvider {
-  status: string;
+  status: DeliveryProviderStatus;
   provider: string;
   orderTransport: string;
   urlLabel: string;
+
+  statusDate?: Date;
   trackingNumber?: string;
   urlLabelRayo?: string;
   service_id?: string;
   delivery_transport?: IDeliveryTransport;
   method?: string;
 }
+
+export type DeliveryProviderStatus = '' | 'Pendiente' | 'Asignado';
 
 export interface DeliveryTracking {
   fecha: Date;
@@ -175,9 +189,9 @@ export interface ProductoDocumento {
 
 export interface Payment {
   payment: {
-    amount: number;
-    method: string;
-    originCode: string;
+    amount?: number;
+    method?: string;
+    originCode?: string;
     status: string;
     wallet: string;
   };
@@ -191,41 +205,39 @@ export interface PaymentForm {
 
 export interface ProductOrder {
   batchId: string;
-  expiration?: number;
-  lineNumber?: number;
-  modified?: boolean;
-  name?: string;
-  laboratory: string;
-  normalUnitPrice: number;
-  originalPrice?: number;
-  prescription: Prescription;
-  price: number;
-  qty: number;
-  referenceId?: number;
-  refundedQuantity?: number;
-  requirePrescription: boolean;
-  sku: string;
-
   bioequivalent: boolean;
   cooled: boolean;
   ean: string;
-  fullName: string;
+  expiration: number;
   laboratoryName: string;
+  lineNumber?: number;
   liquid: boolean;
+  modified: boolean;
+  fullName: string;
+  normalUnitPrice: number;
+  originalPrice: number;
   pharmaceuticalForm: string;
   photoURL: string;
+  prescription: Prescription;
   prescriptionType: string;
   presentation: string;
+  price: number;
   productCategory: string;
   productSubCategory: string[];
+  qty: number;
   quantityPerContainer: string;
   recommendations: string;
+  referenceId?: number;
+  refundedQuantity?: number;
+  requirePrescription: boolean;
   shortName: string;
+  sku: string;
 }
 
 export interface Prescription {
   file: string;
   state: StatePrescription;
+  stateDate: number;
   validation: PrescriptionValidation;
 }
 
@@ -255,7 +267,7 @@ export interface Discount {
 
 export interface Details {
   descuentos_unitarios?: DescuentosUnitarios[];
-  discount: number;
+  discount?: number;
   promotionCode: string;
   reference: string;
   type: string;
@@ -301,7 +313,7 @@ export interface Observations {
 }
 
 export interface IOrderHistory {
-  type: IType;
+  type: IHistoryType;
   changeDate: Date;
   responsible: string;
   changeFrom: string;
@@ -312,7 +324,7 @@ export interface IOrderHistory {
   };
 }
 
-export type IType =
+export type IHistoryType =
   | 'status'
   | 'receta-reemplazada'
   | 'receta-cargada'

@@ -1,18 +1,36 @@
 import { EcommerceOrderEntity } from '../../../../interface/ecommerceOrder.entity';
-import { IAsignacionCourier, IOrigin, ITrackingCourier, IRechazarOrden } from '.././../../../interface/event';
-import { OrdenEntity } from '../domain/order.entity';
-import { OrderFromEcommerce } from './updatePayment.interface';
+import { IOrigin } from '.././../../../interface/event';
+import { OrdenEntity, StatusOrder } from '../domain/order.entity';
+import {
+  IUpdateBillingStatus,
+  IUpdateOrderHistory,
+  IUpdateOrderTracking,
+  IUpdatePaymentOrden,
+  IUpdatePrescriptionState,
+  IUpdateProvider,
+  IUpdateProviderStatus,
+  IUpdateProvisionalStatusOrder,
+  IUploadPrescription,
+} from './interface';
 
 export interface IOrdenUseCase {
-  createOrderFromEcommerce: (order: EcommerceOrderEntity, origin: IOrigin) => Promise<IRespuesta>;
-  createOrder: (order: OrdenEntity, origin: IOrigin) => Promise<IRespuesta>;
-  updateOrder: (order: OrdenEntity, origin: IOrigin) => Promise<IRespuesta>;
-  updatePayment: (order: OrderFromEcommerce, origin: IOrigin) => Promise<IRespuesta>;
-  updateToEnvio: (order: OrdenEntity, origin: IOrigin) => Promise<IRespuesta>;
-  updateToRetiro: (order: OrdenEntity, origin: IOrigin) => Promise<IRespuesta>;
-  confirmarCourier: (payload: IAsignacionCourier, origin: IOrigin) => Promise<IRespuesta>;
-  updateTrackingCourier: (payload: ITrackingCourier, origin: IOrigin) => Promise<IRespuesta>;
-  rechazarOrder: (payload: IRechazarOrden, origin: IOrigin) => Promise<IRespuesta>;
+  createOrderFromEcommerce: (order: EcommerceOrderEntity, origin: IOrigin) => Promise<void>;
+  updatePayment: (order: IUpdatePaymentOrden, origin: IOrigin) => Promise<void>;
+  updateStatusOrder: (
+    order: OrdenEntity,
+    previousStatus: StatusOrder,
+    newStatus: StatusOrder,
+    responsible: string
+  ) => Promise<void>;
+  updateOrderTracking: (payload: IUpdateOrderTracking) => Promise<void>;
+  updateOrderHistory: (payload: IUpdateOrderHistory) => Promise<void>;
+  updateAsignarCourier: (payload: IUpdateProviderStatus) => Promise<void>;
+  updateStatusBilling: (payload: IUpdateBillingStatus) => Promise<void>;
+  updateOrderProvider: (payload: IUpdateProvider) => Promise<void>;
+  updateProvisionalStatusOrder: (payload: IUpdateProvisionalStatusOrder) => Promise<void>;
+  uploadPrescriptionFile: (payload: IUploadPrescription) => Promise<void>;
+  updatePrescriptionState: (payload: IUpdatePrescriptionState) => Promise<void>;
+  notificarCambioOrden: (orderId: string) => Promise<void>;
 }
 
 export interface IRespuesta {

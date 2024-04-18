@@ -1,3 +1,5 @@
+import { OrdenEntity, StatusOrder } from 'src/core/modules/order/domain/order.entity';
+
 export interface IEventDetail {
   origin: IOrigin;
   body: any;
@@ -9,7 +11,12 @@ export type IOrigin = 'ecommerce' | 'admin' | 'courier';
 export type IAction =
   | 'crear-order'
   | 'actualizar-order'
+  | 'actualizar-estado'
   | 'actualizar-pago'
+  | 'actualizar-provisional-status-order'
+  | 'cargar-receta'
+  | 'actualizar-estado-receta'
+  //
   | 'actualizar-a-retiro-envio'
   | 'generar-courier'
   | 'actualizar-courier'
@@ -41,4 +48,11 @@ export interface IRechazarOrden {
   responsible: string;
   reason: string;
   toPos: boolean;
+}
+
+export interface IUpdateStatusOrder {
+  order: OrdenEntity;
+  previousStatus: StatusOrder;
+  newStatus: StatusOrder;
+  responsible: string;
 }

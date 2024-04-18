@@ -206,6 +206,7 @@ const DeliveryTransportSchema = new mongoose.Schema(
 const ProviderSchema = new mongoose.Schema(
   {
     status: String,
+    statusDate: Date,
     provider: String,
     orderTransport: String,
     urlLabel: String,
@@ -315,6 +316,8 @@ const BillingSchema = new mongoose.Schema(
     type: { type: String, enum: ['Boleta', 'Factura', 'Despacho', ''] },
     urlBilling: String,
     urlTimbre: String,
+    status: { type: String, enum: ['Pendiente', 'Aprobado', 'Rechazado', ''] },
+    statusDate: Date,
   },
   { _id: false }
 );
@@ -364,6 +367,7 @@ const OrderSchema = new mongoose.Schema({
   responsible: String,
   resumeOrder: ResumeOrderSchema,
   statusOrder: String,
+  provisionalStatusOrder: String,
   tracking: [TrackingSchema],
   urlLabel: String,
   observations: [ObservationsSchema],

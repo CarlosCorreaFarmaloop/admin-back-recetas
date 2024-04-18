@@ -1,16 +1,28 @@
 import { ICotizacionRespository } from '../../cotizacion/domain/cotizacion.repository';
-import { OrdenEntity } from '../domain/order.entity';
 import { IOrdenRepository } from '../domain/order.repository';
-import { IOrdenUseCase, IRespuesta } from './orden.usecase.interface';
+import { IOrdenUseCase } from './orden.usecase.interface';
 import { OrdenOValue } from './orden.vo';
-import { IAsignacionCourier, IOrigin, IRechazarOrden, ITrackingCourier } from '.././../../../interface/event';
-import { crearCourier, ordenSocketEvent } from '../domain/eventos';
+import { IOrigin } from '.././../../../interface/event';
 import { MovementRepository } from '../../../modules/movements/domain/movements.repositoy';
-import { CourierValueObject } from './courier.vo';
 import { EcommerceOrderEntity } from '../../../../interface/ecommerceOrder.entity';
-import { ProductOrder } from '../../../../interface/adminOrder.entity';
-import { validateNumberType, validateStringType } from '../domain/utils/validate';
-import { AdminPayment, OrderFromEcommerce, Status, Wallet } from './updatePayment.interface';
+import Joi from 'joi';
+import { ApiResponse, HttpCodes } from './api.response';
+import {
+  INotificarCambioOrden,
+  IUpdateBillingStatus,
+  IUpdateOrderHistory,
+  IUpdateOrderTracking,
+  IUpdatePaymentOrden,
+  IUpdatePrescriptionState,
+  IUpdateProvider,
+  IUpdateProviderStatus,
+  IUpdateProvisionalStatusOrder,
+  IUploadPrescription,
+} from './interface';
+import { OrdenEntity, StatusOrder } from '../domain/order.entity';
+import { ordenStateMachine } from '../domain/utils/ordenStateMachine';
+import { notificarEstadoDeOrden } from '../domain/eventos';
+import { notificarCambioOrdenSQS } from '../domain/sqs';
 
 export class OrdenUseCase implements IOrdenUseCase {
   constructor(
@@ -19,294 +31,613 @@ export class OrdenUseCase implements IOrdenUseCase {
     private readonly movements: MovementRepository
   ) {}
 
-  async createOrderFromEcommerce(order: EcommerceOrderEntity, origin: IOrigin): Promise<IRespuesta> {
-    const new_order = await this.formatOrderEcommerce(order);
+  async createOrderFromEcommerce(order: EcommerceOrderEntity, origin: IOrigin) {
+    // Pasar a Value Object
+    // const new_order = await this.formatOrderEcommerce(order);
 
-    const nuevaOrden = await this.ordenRepository.createOrderFromEcommerce(new_order);
+    // Create Order From Ecommerce POS
+    const isOrdenCompleta =
+      order.payment &&
+      order?.payment?.payment?.originCode &&
+      order?.payment?.payment?.amount &&
+      order.payment.payment.method;
 
-    if (!nuevaOrden) {
-      return { statusCode: 400, body: JSON.stringify({ message: 'Error al crear la orden.' }) };
+    if (isOrdenCompleta) {
+      // Joi Schema ICreateOrder
+      const createCompleteOrderSchema = Joi.object({
+        id: Joi.string().required(),
+        cotizacion: Joi.string().optional(),
+        payment: Joi.object({
+          payment: Joi.object({
+            amount: Joi.number().required(),
+            method: Joi.string().required(),
+            originCode: Joi.string().required(),
+            status: Joi.string().required(),
+            wallet: Joi.string().required(),
+          }).required(),
+        }).required(),
+        customer: Joi.string().required(),
+        extras: Joi.object({
+          referrer: Joi.string().required().allow(''),
+        }).required(),
+        // Array ProductOrder
+        productsOrder: Joi.array()
+          .items(
+            Joi.object({
+              batchId: Joi.string().required(),
+              bioequivalent: Joi.boolean().required(),
+              cooled: Joi.boolean().required(),
+              ean: Joi.string().required(),
+              modified: Joi.boolean().required(),
+              expiration: Joi.number().required(),
+              laboratoryName: Joi.string().required(),
+              lineNumber: Joi.number().optional(),
+              liquid: Joi.boolean().required(),
+              fullName: Joi.string().required(),
+              normalUnitPrice: Joi.number().required(),
+              originalPrice: Joi.number().required(),
+              pharmaceuticalForm: Joi.string().required().allow(''),
+              photoURL: Joi.string().required(),
+              prescription: Joi.object({
+                file: Joi.string().required().allow(''),
+                state: Joi.string().required().allow(''),
+                validation: Joi.object({
+                  comments: Joi.string().required().allow(''),
+                  rut: Joi.string().required().allow(''),
+                  responsible: Joi.string().required().allow(''),
+                }).required(),
+              }).optional(),
+              prescriptionType: Joi.string().required(),
+              presentation: Joi.string().required(),
+              price: Joi.number().required(),
+              productCategory: Joi.string().required(),
+              productSubCategory: Joi.array().items(Joi.string()).required(),
+              qty: Joi.number().required(),
+              quantityPerContainer: Joi.string().required().allow(''),
+              recommendations: Joi.string().required().allow(''),
+              referenceId: Joi.number().optional(),
+              refundedQuantity: Joi.number().optional(),
+              requirePrescription: Joi.boolean().required(),
+              shortName: Joi.string().optional().allow(''),
+              sku: Joi.string().required(),
+            })
+          )
+          .required(),
+        resumeOrder: Joi.object({
+          canal: Joi.string().optional().allow(''),
+          convenio: Joi.string().optional(),
+          deliveryPrice: Joi.number().required(),
+          discount: Joi.object({
+            details: Joi.array()
+              .items(
+                Joi.object({
+                  descuentos_unitarios: Joi.array()
+                    .items(
+                      Joi.object({
+                        cantidad: Joi.number().required(),
+                        descuento_unitario: Joi.number().required(),
+                        expireDate: Joi.string().required(),
+                        lote_id: Joi.string().required(),
+                        mg: Joi.number().required(),
+                        price: Joi.number().required(),
+                        sku: Joi.string().required(),
+                      })
+                    )
+                    .required(),
+                  discount: Joi.number().required(),
+                  promotionCode: Joi.string().required(),
+                  reference: Joi.string().required(),
+                  type: Joi.string().required(),
+                })
+              )
+              .required(),
+            total: Joi.number().required(),
+          }).required(),
+          nroProducts: Joi.number().required(),
+          subtotal: Joi.number().required(),
+          totalPrice: Joi.number().required(),
+        }).required(),
+        statusOrder: Joi.string().required(),
+        delivery: Joi.object({
+          delivery_address: Joi.object({
+            comuna: Joi.string().required(),
+            dpto: Joi.string().optional().allow(''),
+            firstName: Joi.string().required(),
+            lastName: Joi.string().optional().allow(''),
+            fullAddress: Joi.string().optional().allow(''),
+            homeType: Joi.string().optional().allow(''),
+            phone: Joi.string().required(),
+            region: Joi.string().required(),
+            streetName: Joi.string().optional().allow(''),
+            streetNumber: Joi.string().optional().allow(''),
+          }).required(),
+          method: Joi.string().required(),
+          type: Joi.string().required(),
+          cost: Joi.number().required(),
+          compromiso_entrega: Joi.string().required(),
+        }).required(),
+      });
+
+      const { error } = createCompleteOrderSchema.validate(order);
+
+      if (error) {
+        throw new ApiResponse(HttpCodes.BAD_REQUEST, order, error.message);
+      }
+
+      const ordenCompleta = new OrdenOValue().completeOrderFromEcommerce(order);
+
+      // const nuevaOrdenCompleta = await this.createOrder(new_order, origin);
+      const nuevaOrden = await this.ordenRepository.createOrderFromEcommerce(ordenCompleta);
+
+      if (!nuevaOrden) {
+        throw new ApiResponse(HttpCodes.BAD_REQUEST, nuevaOrden);
+      }
+
+      if (
+        nuevaOrden.productsOrder
+          .filter(({ requirePrescription }) => requirePrescription)
+          .filter(
+            (product) =>
+              product.prescription.file !== '' &&
+              (product.prescription.state === '' || product.prescription.state === 'Pending')
+          ).length !== 0
+      )
+        await this.updateStatusOrder(nuevaOrden, nuevaOrden.statusOrder, 'VALIDANDO_RECETA', 'SISTEMA'); // Llamas Actualiza Estado Usecase (orden, CREADO, VALIDANDO_RECETA)
+
+      if (
+        nuevaOrden.productsOrder.filter((producto) => producto.requirePrescription && producto.prescription.file === '')
+          .length !== 0
+      )
+        await this.updateStatusOrder(nuevaOrden, nuevaOrden.statusOrder, 'OBSERVACIONES_RECETAS', 'SISTEMA'); // Llamas Actualiza Estado Usecase (orden, CREADO, OBSERVACIONES_RECETAS)
+
+      if (
+        !nuevaOrden.productsOrder.some(
+          (producto) =>
+            (producto.requirePrescription && producto.prescription.file === '') ||
+            (producto.requirePrescription &&
+              producto.prescription.state !== 'Approved' &&
+              producto.prescription.state !== 'Approved_With_Comments')
+        )
+      )
+        await this.updateStatusOrder(nuevaOrden, nuevaOrden.statusOrder, 'RECETA_VALIDADA', 'SISTEMA'); // Llamas Actualiza Estado Usecase (orden, CREADO, APROBADA)
     }
 
-    return {
-      statusCode: 200,
-      body: JSON.stringify(nuevaOrden),
-    };
-  }
+    // Create Partial Order
+    if (!isOrdenCompleta) {
+      const createPartialOrderSchema = Joi.object({
+        id: Joi.string().required(),
+        cotizacion: Joi.string().optional(),
+        customer: Joi.string().required(),
+        extras: Joi.object({
+          referrer: Joi.string().required().allow(''),
+        }).required(),
+        payment: Joi.object({
+          payment: Joi.object({
+            amount: Joi.number().optional(),
+            method: Joi.string().optional(),
+            originCode: Joi.string().optional(),
+            status: Joi.string().required(),
+            wallet: Joi.string().required(),
+          }).required(),
+        }).optional(),
+        // Array ProductOrder
+        productsOrder: Joi.array()
+          .items(
+            Joi.object({
+              batchId: Joi.string().required(),
+              bioequivalent: Joi.boolean().required(),
+              cooled: Joi.boolean().required(),
+              ean: Joi.string().required(),
+              expiration: Joi.number().required(),
+              laboratoryName: Joi.string().required(),
+              lineNumber: Joi.number().optional(),
+              liquid: Joi.boolean().required(),
+              modified: Joi.boolean().required(),
+              fullName: Joi.string().required(),
+              normalUnitPrice: Joi.number().required(),
+              originalPrice: Joi.number().required(),
+              pharmaceuticalForm: Joi.string().required().allow(''),
+              photoURL: Joi.string().required(),
+              prescription: Joi.object({
+                file: Joi.string().required().allow(''),
+                state: Joi.string().required().allow(''),
+                validation: Joi.object({
+                  comments: Joi.string().required().allow(''),
+                  rut: Joi.string().required().allow(''),
+                  responsible: Joi.string().required().allow(''),
+                }).required(),
+              }).optional(),
+              prescriptionType: Joi.string().required(),
+              presentation: Joi.string().required(),
+              price: Joi.number().required(),
+              productCategory: Joi.string().required(),
+              productSubCategory: Joi.array().items(Joi.string()).required(),
+              qty: Joi.number().required(),
+              quantityPerContainer: Joi.string().required().allow(''),
+              recommendations: Joi.string().required().allow(''),
+              referenceId: Joi.number().optional(),
+              refundedQuantity: Joi.number().optional(),
+              requirePrescription: Joi.boolean().required(),
+              shortName: Joi.string().optional().allow(''),
+              sku: Joi.string().required(),
+            })
+          )
+          .required(),
+        resumeOrder: Joi.object({
+          canal: Joi.string().optional().allow(''),
+          convenio: Joi.string().optional(),
+          deliveryPrice: Joi.number().required(),
+          discount: Joi.object({
+            details: Joi.array()
+              .items(
+                Joi.object({
+                  descuentos_unitarios: Joi.array()
+                    .items(
+                      Joi.object({
+                        cantidad: Joi.number().required(),
+                        descuento_unitario: Joi.number().required(),
+                        expireDate: Joi.string().required(),
+                        lote_id: Joi.string().required(),
+                        mg: Joi.number().required(),
+                        price: Joi.number().required(),
+                        sku: Joi.string().required(),
+                      })
+                    )
+                    .required(),
+                  discount: Joi.number().required(),
+                  promotionCode: Joi.string().required(),
+                  reference: Joi.string().required(),
+                  type: Joi.string().required(),
+                })
+              )
+              .required(),
+            total: Joi.number().required(),
+          }).required(),
+          nroProducts: Joi.number().required(),
+          subtotal: Joi.number().required(),
+          totalPrice: Joi.number().required(),
+        }).required(),
+        statusOrder: Joi.string().required(),
+        delivery: Joi.object({
+          delivery_address: Joi.object({
+            comuna: Joi.string().required(),
+            dpto: Joi.string().optional().allow(''),
+            firstName: Joi.string().required(),
+            lastName: Joi.string().optional().allow(''),
+            fullAddress: Joi.string().optional().allow(''),
+            homeType: Joi.string().optional().allow(''),
+            phone: Joi.string().required(),
+            region: Joi.string().required(),
+            streetName: Joi.string().optional().allow(''),
+            streetNumber: Joi.string().optional().allow(''),
+          }).required(),
+          method: Joi.string().required(),
+          type: Joi.string().required(),
+          cost: Joi.number().required(),
+          compromiso_entrega: Joi.string().required(),
+        }).required(),
+      });
 
-  async createOrder(order: OrdenEntity, origin: IOrigin) {
-    const nuevaOrden = await this.ordenRepository.createOrder(order);
+      const { error } = createPartialOrderSchema.validate(order);
 
-    if (!nuevaOrden) {
-      // Return Lambda Error
-      return { statusCode: 400, body: JSON.stringify({ message: 'Error al crear la orden.' }) };
-    }
+      if (error) {
+        throw new ApiResponse(HttpCodes.BAD_REQUEST, error.message);
+      }
 
-    return {
-      statusCode: 200,
-      body: JSON.stringify(nuevaOrden),
-    };
-  }
+      const ordenParcial = new OrdenOValue().createPartialOrder(order);
 
-  async updateOrder(order: OrdenEntity, origin: IOrigin): Promise<IRespuesta> {
-    console.log('--- Actualizar Orden: ', order);
-    const ordenActualizada = await this.ordenRepository.updateOrder(order);
+      const nuevaOrden = await this.ordenRepository.createPartialOrder(ordenParcial);
 
-    if (!ordenActualizada) {
-      console.log('--- Error al actualizar la orden: ', order);
-      return {
-        statusCode: 400,
-        body: JSON.stringify({ message: 'Error al actualizar la orden.' }),
-      };
-    }
-
-    console.log('--- Orden Actualizada: ', ordenActualizada);
-
-    await ordenSocketEvent(ordenActualizada);
-
-    return {
-      statusCode: 200,
-      body: JSON.stringify(ordenActualizada),
-    };
-  }
-
-  async updatePayment(order: OrderFromEcommerce, origin: IOrigin): Promise<IRespuesta> {
-    const { id, payment, statusOrder } = order;
-
-    const nuevo_pago: AdminPayment = {
-      payment: {
-        amount: validateNumberType(payment.amount),
-        method: validateStringType(payment.method),
-        originCode: validateStringType(payment.originCode),
-        status: validateStringType(payment.status) as Status,
-        wallet: validateStringType(payment.wallet) as Wallet,
-      },
-    };
-
-    const updateFilter: any = {
-      payment: nuevo_pago,
-      statusOrder,
-    };
-
-    // const ordenFinded = await this.ordenRepository.findOrderById(id);
-
-    // if (ordenFinded.cotizacion) {
-    //   const cotizacion = await this.cotizacionRespository.findCotizacion(ordenFinded.cotizacion);
-
-    //   const documentos = await calcularDocumentos(ordenFinded, cotizacion);
-
-    //   updateFilter.documentos = documentos;
-    // }
-
-    const ordenActualizada = await this.ordenRepository.updatePayment(id, updateFilter);
-
-    if (!ordenActualizada) {
-      return {
-        statusCode: 400,
-        body: JSON.stringify({ message: 'Error al actualizar la orden.' }),
-      };
-    }
-
-    return {
-      statusCode: 200,
-      body: JSON.stringify(ordenActualizada),
-    };
-  }
-
-  updateToEnvio = async (order: OrdenEntity, origin: IOrigin): Promise<IRespuesta> => {
-    const orderVO = new OrdenOValue().actualizarTrackingpayment(
-      {
-        responsible: origin,
-        toStatus: order.statusOrder,
-      },
-      order
-    );
-
-    const ordenActualizada = await this.ordenRepository.updateOrder(orderVO);
-
-    if (!ordenActualizada) {
-      return {
-        statusCode: 400,
-        body: JSON.stringify({ message: 'Error al actualizar la orden.' }),
-      };
-    }
-
-    const courierVO = new CourierValueObject().crearCourier(order);
-
-    await crearCourier(courierVO);
-
-    // TODO: Generar Documento Tributario
-
-    await ordenSocketEvent(ordenActualizada);
-
-    return {
-      statusCode: 200,
-      body: JSON.stringify(ordenActualizada),
-    };
-  };
-
-  updateToRetiro = async (order: OrdenEntity, origin: IOrigin) => {
-    const ordenActualizada = await this.ordenRepository.updateOrder(order);
-
-    if (!ordenActualizada) {
-      return {
-        statusCode: 400,
-        body: JSON.stringify({ message: 'Error al actualizar la orden.' }),
-      };
-    }
-
-    await ordenSocketEvent(ordenActualizada);
-
-    // TODO:  Generar Documento Tributario
-
-    return {
-      statusCode: 200,
-      body: JSON.stringify(ordenActualizada),
-    };
-  };
-
-  confirmarCourier = async (payload: IAsignacionCourier, origin: IOrigin) => {
-    const order = await this.ordenRepository.findOrderById(payload.id);
-
-    if (!order) {
-      return {
-        statusCode: 400,
-        body: JSON.stringify({ message: 'Error al encontrar la orden.' }),
-      };
-    }
-
-    const orderVO = new OrdenOValue().confirmacionCourier(payload, order);
-
-    const ordenActualizada = await this.ordenRepository.updateOrder(orderVO);
-
-    if (!ordenActualizada) {
-      return {
-        statusCode: 400,
-        body: JSON.stringify({ message: 'Error al actualizar la orden.' }),
-      };
-    }
-
-    await ordenSocketEvent(ordenActualizada);
-
-    return {
-      statusCode: 200,
-      body: JSON.stringify(ordenActualizada),
-    };
-  };
-
-  updateTrackingCourier = async (payload: ITrackingCourier, origin: IOrigin) => {
-    const order = await this.ordenRepository.findOrderById(payload.id);
-
-    if (!order) {
-      return {
-        statusCode: 400,
-        body: JSON.stringify({ message: 'Error al encontrar la orden.' }),
-      };
-    }
-
-    const orderVO = new OrdenOValue().actualizarTrackingCourier(payload, order);
-
-    const ordenActualizada = await this.ordenRepository.updateOrder(orderVO);
-
-    if (!ordenActualizada) {
-      return {
-        statusCode: 400,
-        body: JSON.stringify({ message: 'Error al actualizar la orden.' }),
-      };
-    }
-
-    await ordenSocketEvent(ordenActualizada);
-
-    return {
-      statusCode: 200,
-      body: JSON.stringify(ordenActualizada),
-    };
-  };
-
-  rechazarOrder = async (payload: IRechazarOrden, origin: IOrigin) => {
-    const order = await this.ordenRepository.findOrderById(payload.id);
-
-    if (!order) {
-      return {
-        statusCode: 400,
-        body: JSON.stringify({ message: 'Error al encontrar la orden.' }),
-      };
-    }
-
-    const orderVO = new OrdenOValue().rechazarOrden(payload, order);
-
-    const ordenActualizada = await this.ordenRepository.updateOrder(orderVO);
-
-    if (!ordenActualizada) {
-      return {
-        statusCode: 400,
-        body: JSON.stringify({ message: 'Error al actualizar la orden.' }),
-      };
-    }
-
-    await ordenSocketEvent(ordenActualizada);
-
-    return {
-      statusCode: 200,
-      body: JSON.stringify(ordenActualizada),
-    };
-  };
-
-  private readonly formatOrderEcommerce = async (order: EcommerceOrderEntity) => {
-    const fecha_hoy = new Date();
-    const new_order: any = {
-      id: order.id,
-      billing: { type: '', number: '', emitter: '', urlBilling: '' },
-      createdAt: fecha_hoy,
-      customer: order.customer,
-      delivery: { ...order.delivery, provider: { provider: '', orderTransport: '', urlLabel: '' } },
-      extras: order.extras,
-      payment: {
-        payment: order.payment,
-      },
-      productsOrder: order.productsOrder.map((product) => {
-        return {
-          ...product,
-          expiration: new Date(product.expireDate).getTime(),
-          prescription: { state: '', file: product.prescription ?? '', validation: { rut: '', comments: '' } },
-        };
-      }),
-      resumeOrder: order.resumeOrder,
-      statusOrder: order.statusOrder,
-      tracking: [{ date: fecha_hoy, responsible: 'eCommerce', toStatus: order.statusOrder }],
-    };
-    if (order.cotizacion) {
-      const cotizacion_id = order.cotizacion;
-      const cotizacion_db = await this.cotizacionRespository.findCotizacion(cotizacion_id);
-
-      // const cotizaciones_collection = db_connection.collection('cotizaciones');
-      // const cotizacion_db = await cotizaciones_collection.findOne<CotizacionEntity>({ id: cotizacion_id });
-      if (cotizacion_db) {
-        const productos_con_cotizacion: ProductOrder[] = new_order.productsOrder.map((productOrder: any) => {
-          const producto_encontrado = cotizacion_db.productos.find(
-            (cotizacionProduct) =>
-              cotizacionProduct.sku === productOrder.sku && cotizacionProduct.lote === productOrder.batchId
-          );
-          if (!producto_encontrado) return productOrder;
-          return {
-            ...productOrder,
-            seguro_complementario: {
-              beneficio_unitario: producto_encontrado.beneficio_unitario,
-              cantidad: producto_encontrado.cantidad,
-              copago_unitario: producto_encontrado.copago_unitario,
-              deducible_unitario: producto_encontrado.deducible_unitario,
-              observacion: producto_encontrado.observacion,
-              precio_unitario: producto_encontrado.precio_unitario,
-            },
-          };
-        });
-        const { tracking, ...restoCotizacion } = cotizacion_db;
-        new_order.cotizacion = order.cotizacion;
-        new_order.seguro_complementario = restoCotizacion;
-        new_order.productsOrder = productos_con_cotizacion;
+      if (!nuevaOrden) {
+        throw new ApiResponse(HttpCodes.BAD_REQUEST, nuevaOrden);
       }
     }
+  }
 
-    return new_order;
+  async updatePayment(payload: IUpdatePaymentOrden, origin: IOrigin) {
+    const updatePaymentSchema = Joi.object({
+      id: Joi.string().required(),
+      payment: Joi.object({
+        payment: Joi.object({
+          amount: Joi.number().required(),
+          method: Joi.string().required(),
+          originCode: Joi.string().required(),
+          status: Joi.string().required(),
+          wallet: Joi.string().required(),
+        }),
+      }).required(),
+    });
+
+    const { error } = updatePaymentSchema.validate(payload);
+
+    if (error) {
+      throw new ApiResponse(HttpCodes.BAD_REQUEST, updatePaymentSchema, error.message);
+    }
+
+    const ordenActualizada = await this.ordenRepository.updatePayment(payload);
+
+    if (!ordenActualizada) {
+      throw new ApiResponse(HttpCodes.BAD_REQUEST, ordenActualizada, 'Error al actualizar la orden.');
+    }
+
+    if (
+      ordenActualizada.productsOrder
+        .filter(({ requirePrescription }) => requirePrescription)
+        .filter(
+          (product) =>
+            product.prescription.file !== '' &&
+            (product.prescription.state === '' || product.prescription.state === 'Pending')
+        ).length !== 0
+    )
+      await this.updateStatusOrder(ordenActualizada, ordenActualizada.statusOrder, 'VALIDANDO_RECETA', 'SISTEMA'); // Llamas Actualiza Estado Usecase (orden, CREADO, VALIDANDO_RECETA)
+
+    if (
+      ordenActualizada.productsOrder.filter(
+        (producto) => producto.requirePrescription && producto.prescription.file === ''
+      ).length !== 0
+    )
+      await this.updateStatusOrder(ordenActualizada, ordenActualizada.statusOrder, 'OBSERVACIONES_RECETAS', 'SISTEMA'); // Llamas Actualiza Estado Usecase (orden, CREADO, OBSERVACIONES_RECETAS)
+
+    if (
+      !ordenActualizada.productsOrder.some(
+        (producto) =>
+          (producto.requirePrescription && producto.prescription.file === '') ||
+          (producto.requirePrescription &&
+            producto.prescription.state !== 'Approved' &&
+            producto.prescription.state !== 'Approved_With_Comments')
+      )
+    )
+      await this.updateStatusOrder(ordenActualizada, ordenActualizada.statusOrder, 'RECETA_VALIDADA', 'SISTEMA'); // Llamas Actualiza Estado Usecase (orden, CREADO, APROBADA)
+  }
+
+  updateStatusOrder = async (
+    order: OrdenEntity,
+    previousStatus: StatusOrder,
+    newStatus: StatusOrder,
+    responsible: string
+  ) => {
+    try {
+      // Actualizar Provisional Status Order a Pendiente
+      await this.updateProvisionalStatusOrder({
+        id: order.id,
+        provisionalStatusOrder: 'Pendiente',
+      });
+
+      await this.notificarCambioOrden(order.id);
+
+      if (!ordenStateMachine(previousStatus, newStatus, order))
+        throw new ApiResponse(HttpCodes.BAD_REQUEST, order, 'Error en la maquina de estados.');
+
+      console.log('----- Actualizando Orden: ', order.id, ' de ', previousStatus, ' a ', newStatus);
+
+      const ordenStatusActualizada = await this.ordenRepository.updateOrderStatus(order.id, newStatus);
+
+      if (!ordenStatusActualizada)
+        throw new ApiResponse(
+          HttpCodes.BAD_REQUEST,
+          ordenStatusActualizada,
+          'Error al actualizar el estado de la orden.'
+        );
+
+      await this.updateOrderTracking({
+        id: order.id,
+        responsible,
+        statusOrder: newStatus,
+      });
+
+      await this.updateOrderHistory({
+        id: order.id,
+        type: 'status',
+        responsible,
+        changeFrom: previousStatus,
+        changeTo: newStatus,
+        aditionalInfo: {
+          product_sku: '',
+          comments: '',
+        },
+      });
+
+      if (previousStatus === 'PREPARANDO') {
+        await this.updateOrderProvider({
+          id: order.id,
+          providerName: order.delivery.provider.provider,
+          serviceId: order.delivery.provider.service_id,
+        });
+      }
+
+      if (previousStatus === 'PREPARANDO' && newStatus === 'ASIGNAR_A_DELIVERY') {
+        await this.updateAsignarCourier({
+          id: order.id,
+          status: 'Pendiente',
+          statusDate: new Date(),
+        });
+
+        await this.updateStatusBilling({
+          id: order.id,
+          status: 'Pendiente',
+          statusDate: new Date(),
+        });
+
+        // Emitir Documentos Tributarios
+        // Emitir Courier
+      }
+
+      if (previousStatus === 'PREPARANDO' && newStatus === 'LISTO_PARA_RETIRO') {
+        await this.updateStatusBilling({
+          id: order.id,
+          status: 'Pendiente',
+          statusDate: new Date(),
+        });
+
+        // Emitir Documentos Tributarios
+      }
+
+      // Notificar Cliente
+      await notificarEstadoDeOrden(order);
+
+      // Cambiar Provisional Status Order
+      await this.updateProvisionalStatusOrder({
+        id: order.id,
+        provisionalStatusOrder: '',
+      });
+
+      // Notificar Cambio de Orden a SQS
+      await this.notificarCambioOrden(order.id);
+    } catch (error) {
+      await this.updateProvisionalStatusOrder({
+        id: order.id,
+        provisionalStatusOrder: 'Error',
+      });
+
+      await this.notificarCambioOrden(order.id);
+    }
+  };
+
+  updateOrderTracking = async (payload: IUpdateOrderTracking) => {
+    const ordenTrackingActualizado = await this.ordenRepository.updateOrderTracking(payload.id, {
+      date: new Date(),
+      responsible: payload.responsible,
+      toStatus: payload.statusOrder,
+    });
+
+    if (!ordenTrackingActualizado)
+      throw new ApiResponse(
+        HttpCodes.BAD_REQUEST,
+        ordenTrackingActualizado,
+        'Error al actualizar el tracking de la orden.'
+      );
+  };
+
+  updateOrderHistory = async (payload: IUpdateOrderHistory) => {
+    const ordenHistoryActualizado = await this.ordenRepository.updateOrderHistory(payload.id, {
+      type: payload.type,
+      changeDate: new Date(),
+      responsible: payload.responsible,
+      changeFrom: payload.changeFrom,
+      changeTo: payload.changeTo,
+      aditionalInfo: {
+        product_sku: payload?.aditionalInfo?.product_sku ?? '',
+        comments: payload?.aditionalInfo?.comments ?? '',
+      },
+    });
+
+    if (!ordenHistoryActualizado)
+      throw new ApiResponse(
+        HttpCodes.BAD_REQUEST,
+        ordenHistoryActualizado,
+        'Error al actualizar el historial de la orden.'
+      );
+  };
+
+  updateAsignarCourier = async (payload: IUpdateProviderStatus) => {
+    const ordenActualizada = await this.ordenRepository.updateOrderProviderStatus(payload.id, payload);
+
+    if (!ordenActualizada)
+      throw new ApiResponse(HttpCodes.BAD_REQUEST, ordenActualizada, 'Error al actualizar el estado del proveedor.');
+  };
+
+  updateStatusBilling = async (payload: IUpdateBillingStatus) => {
+    const ordenActualizada = await this.ordenRepository.updateOrderBillingStatus(payload.id, payload);
+
+    if (!ordenActualizada)
+      throw new ApiResponse(HttpCodes.BAD_REQUEST, ordenActualizada, 'Error al actualizar el estado de facturación.');
+  };
+
+  updateOrderProvider = async (payload: IUpdateProvider) => {
+    const ordenActualizada = await this.ordenRepository.updateOrderProvider(payload.id, payload);
+
+    if (!ordenActualizada)
+      throw new ApiResponse(HttpCodes.BAD_REQUEST, ordenActualizada, 'Error al actualizar el proveedor.');
+  };
+
+  updateProvisionalStatusOrder = async (payload: IUpdateProvisionalStatusOrder) => {
+    const updateProvisionalStatusOrderSchema = Joi.object({
+      id: Joi.string().required(),
+      provisionalStatusOrder: Joi.string().required().allow(''),
+    });
+
+    const { error } = updateProvisionalStatusOrderSchema.validate(payload);
+
+    if (error) {
+      throw new ApiResponse(HttpCodes.BAD_REQUEST, updateProvisionalStatusOrderSchema, error.message);
+    }
+
+    const ordenActualizada = await this.ordenRepository.updateProvisionalStatusOrder({
+      ...payload,
+      provisionalStatusOrderDate: new Date().getTime(),
+    });
+
+    if (!ordenActualizada)
+      throw new ApiResponse(
+        HttpCodes.BAD_REQUEST,
+        ordenActualizada,
+        'Error al actualizar el estado provisional de la orden.'
+      );
+  };
+
+  uploadPrescriptionFile = async (payload: IUploadPrescription) => {
+    const uploadPrescriptionSchema = Joi.object({
+      id: Joi.string().required(),
+      productOrder: Joi.object({
+        sku: Joi.string().required(),
+        batchId: Joi.string().required(),
+        prescription: Joi.object({
+          file: Joi.string().required(),
+        }).required(),
+      }).required(),
+    });
+
+    const { error } = uploadPrescriptionSchema.validate(payload);
+
+    if (error) {
+      throw new ApiResponse(HttpCodes.BAD_REQUEST, uploadPrescriptionSchema, error.message);
+    }
+
+    const ordenActualizada = await this.ordenRepository.uploadPrescriptionFile(payload);
+
+    if (!ordenActualizada) throw new ApiResponse(HttpCodes.BAD_REQUEST, ordenActualizada, 'Error al subir la receta.');
+
+    await this.notificarCambioOrden(payload.id);
+  };
+
+  updatePrescriptionState = async (payload: IUpdatePrescriptionState) => {
+    const updatePrescriptionStateSchema = Joi.object({
+      id: Joi.string().required(),
+      productOrder: Joi.object({
+        sku: Joi.string().required(),
+        batchId: Joi.string().required(),
+        prescription: Joi.object({
+          state: Joi.string().required(),
+          validation: Joi.object({
+            comments: Joi.string().required().allow(''),
+            responsible: Joi.string().required(),
+            rut: Joi.string().required().allow(''),
+          }).required(),
+        }).required(),
+      }).required(),
+    });
+
+    const { error } = updatePrescriptionStateSchema.validate(payload);
+
+    if (error) {
+      throw new ApiResponse(HttpCodes.BAD_REQUEST, updatePrescriptionStateSchema, error.message);
+    }
+
+    const ordenActualizada = await this.ordenRepository.updatePrescriptionState(payload);
+
+    if (!ordenActualizada)
+      throw new ApiResponse(HttpCodes.BAD_REQUEST, ordenActualizada, 'Error al actualizar el estado de la receta.');
+  };
+
+  notificarCambioOrden = async (orderId: string) => {
+    const detailBody: INotificarCambioOrden = {
+      orden: {
+        id: orderId,
+      },
+      type: 'ORDEN_ACTUALIZADA',
+      connectionId: '',
+    };
+
+    await notificarCambioOrdenSQS(detailBody);
   };
 }

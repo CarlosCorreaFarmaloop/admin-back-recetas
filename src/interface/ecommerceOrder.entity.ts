@@ -3,11 +3,13 @@ export interface EcommerceOrderEntity {
   cotizacion?: string;
   customer: string;
   delivery: Delivery;
-  extras: Extras;
-  payment: Payment;
+  payment?: {
+    payment: Payment;
+  };
   productsOrder: ProductOrder[];
   resumeOrder: ResumeOrder;
-  statusOrder: string;
+  statusOrder: StatusOrder;
+  extras: Extras;
 }
 
 interface Delivery {
@@ -43,9 +45,9 @@ interface Extras {
 }
 
 interface Payment {
-  amount: number;
-  method: string;
   originCode?: string;
+  amount?: number;
+  method?: string;
   status: string;
   wallet: string;
 }
@@ -54,15 +56,16 @@ interface ProductOrder {
   batchId: string;
   bioequivalent: boolean;
   cooled: boolean;
+  modified: boolean;
   ean: string;
-  expireDate: string;
+  expiration: number;
   fullName: string;
   laboratoryName: string;
   liquid: boolean;
   normalUnitPrice: number;
   pharmaceuticalForm: string;
   photoURL: string;
-  prescription?: string;
+  prescription?: Prescription;
   prescriptionType: PrescriptionType;
   presentation: string;
   price: number;
@@ -74,7 +77,22 @@ interface ProductOrder {
   requirePrescription: boolean;
   shortName: string;
   sku: string;
+  originalPrice: number;
 }
+
+export interface Prescription {
+  file: string;
+  state: StatePrescription;
+  validation: PrescriptionValidation;
+}
+
+export interface PrescriptionValidation {
+  comments: string;
+  rut: string;
+  responsible: string;
+}
+
+export type StatePrescription = 'Pending' | 'Rejected' | 'Approved' | 'Approved_With_Comments' | '';
 
 interface ResumeOrder {
   nroProducts: number;
@@ -112,3 +130,16 @@ type PrescriptionType =
   | 'Venta directa (Sin receta)'
   | 'Venta bajo receta cheque'
   | 'Receta médica retenida';
+
+export type StatusOrder =
+  | 'EN_OBSERVACION'
+  | 'CANCELADO'
+  | 'CREADO'
+  | 'VALIDANDO_RECETA'
+  | 'RECETA_VALIDADA'
+  | 'PREPARANDO'
+  | 'EN_DELIVERY'
+  | 'ENTREGADO'
+  | 'LISTO_PARA_RETIRO'
+  | 'ASIGNAR_A_DELIVERY'
+  | 'OBSERVACIONES_RECETAS';
