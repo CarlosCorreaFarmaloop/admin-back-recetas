@@ -31,17 +31,18 @@ export interface Billing {
   number: string;
   type: '' | 'Boleta' | 'Factura' | 'Despacho';
   status: IBillingStatus;
-  statusDate?: Date;
   urlBilling: string;
+
+  urlTimbre?: string;
+  emissionDate?: Date;
+  statusDate?: Date;
 
   creditNotes?: CreditNote[];
   delivery?: BillingDelivery;
   direccion_destino?: DireccionDeDestino;
   direccion_origen?: DireccionDeOrigen;
-  emissionDate?: Date;
   invoiceCustomer?: InvoiceCustomer;
   referenceDocumentId?: string;
-  urlTimbre?: string;
 }
 
 export type IBillingStatus = '' | 'Pendiente' | 'Aprobado' | 'Rechazado';

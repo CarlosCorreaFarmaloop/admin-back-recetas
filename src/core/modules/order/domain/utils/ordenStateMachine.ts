@@ -99,24 +99,50 @@ const validarOrdenPREPARANDO = (orden: OrdenEntity): boolean => {
 };
 
 const validarOrdenRequiereRecetaYEstanAprobadas = ({ productsOrder }: OrdenEntity): boolean => {
-  console.log('productsOrder', JSON.stringify(productsOrder, null, 2));
+  const isInvalid = productsOrder.some((producto) => {
+    if (producto.requirePrescription && producto.prescription.file === '') {
+      console.log('Algun producto requiere receta y no tiene receta cargada', producto);
+      return true;
+    }
 
-  const productosRequierenRecetaYRecetacargada = productsOrder.filter(
-    (producto) =>
+    if (
       producto.requirePrescription &&
-      producto.prescription.file !== '' &&
-      (producto.prescription.state === 'Approved' || producto.prescription.state === 'Approved_With_Comments')
-  );
+      producto.prescription.state !== 'Approved' &&
+      producto.prescription.state !== 'Approved_With_Comments'
+    ) {
+      console.log('Algun producto requiere receta y no tiene receta aprobada', producto);
+      return true;
+    }
 
-  console.log('productosRequierenRecetaYRecetacargada', productosRequierenRecetaYRecetacargada.length);
+    return false;
+  });
 
-  const productoRequiereReceta = productsOrder.filter((producto) => producto.requirePrescription);
+  console.log('isInvalid', isInvalid);
 
-  console.log('productoNoRequiereReceta', productoRequiereReceta.length);
+  return !isInvalid;
 
-  const isValid = productoRequiereReceta.length === 0 || productosRequierenRecetaYRecetacargada.length === 0;
+  // const ningunProductoRequiereReceta = productsOrder.every((producto) => !producto.requirePrescription);
 
-  return isValid;
+  // console.log('productsOrder', JSON.stringify(productsOrder, null, 2));
+
+  // const productosRequierenRecetaYRecetacargada = productsOrder.filter(
+  //   (producto) =>
+  //     producto.requirePrescription &&
+  //     producto.prescription.file !== '' &&
+  //     (producto.prescription.state === 'Approved' || producto.prescription.state === 'Approved_With_Comments')
+  // );
+
+  // console.log('productosRequierenRecetaYRecetacargada', productosRequierenRecetaYRecetacargada.length);
+
+  // const productoRequiereReceta = productsOrder.filter((producto) => producto.requirePrescription);
+
+  // console.log('productoNoRequiereReceta', productoRequiereReceta.length);
+
+  // const isValid = productoRequiereReceta.length === 0 || productosRequierenRecetaYRecetacargada.length === 0;
+
+  // console.log('isValid', isValid)
+
+  // return isValid;
 };
 
 const validaReglaNegocioListoParaRetiro = (orden: OrdenEntity): boolean => {

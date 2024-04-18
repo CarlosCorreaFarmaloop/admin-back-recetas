@@ -1,5 +1,6 @@
 import { EcommerceOrderEntity } from '../../../../interface/ecommerceOrder.entity';
-import { IOrigin } from '.././../../../interface/event';
+import { IAsignarDocumentosTributarios, IOrigin } from '.././../../../interface/event';
+import { IDocumentoTributarioEventInput } from '../domain/documentos_tributarios.interface';
 import { OrdenEntity, StatusOrder } from '../domain/order.entity';
 import {
   IUpdateBillingStatus,
@@ -31,6 +32,8 @@ export interface IOrdenUseCase {
   uploadPrescriptionFile: (payload: IUploadPrescription) => Promise<void>;
   updatePrescriptionState: (payload: IUpdatePrescriptionState) => Promise<void>;
   notificarCambioOrden: (orderId: string) => Promise<void>;
+  generarDocumentosTributarios: (payload: IDocumentoTributarioEventInput) => Promise<void>;
+  asignarDocumentosTributarios: (payload: IAsignarDocumentosTributarios) => Promise<void>;
 }
 
 export interface IRespuesta {

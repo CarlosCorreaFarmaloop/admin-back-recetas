@@ -1,7 +1,9 @@
 import { EcommerceOrderEntity } from 'src/interface/ecommerceOrder.entity';
-import { Payment, StatusOrder } from '../domain/order.entity';
+import { OrdenEntity, Payment, StatusOrder } from '../domain/order.entity';
 import { validateNumberType, validateStringType } from '../domain/utils/validate';
 import { ICrearOrden, ICrearPartialOrden } from './interface';
+import { GenerarBoletaPayload } from '../domain/documentos_tributarios.interface';
+import { TipoPago } from '../domain/utils/diccionario/tipoPago';
 
 export class OrdenOValue {
   completeOrderFromEcommerce = (order: EcommerceOrderEntity): ICrearOrden => {
@@ -209,6 +211,33 @@ export class OrdenOValue {
         },
       },
     };
+  };
+
+  generarDocumentosTributarios = (order: OrdenEntity): GenerarBoletaPayload => {
+    const payload: GenerarBoletaPayload = {
+      comentario: `Orden: ${order.id} Cliente: ${order?.delivery?.delivery_address?.firstName}`,
+      id_interno: order.id,
+      productos: order.productsOrder.map((product) => {
+        return {
+          cantidad: product.qty,
+          descuento: 0,
+          precio_unitario: product.price,
+          titulo: product.fullName,
+        };
+      }),
+      proveedor: 'Bsale',
+      tipo_documento: 'Boleta',
+      tipo_pago: TipoPago[order?.payment?.payment.method ?? 'Venta Débito'] ?? 'Debito',
+    };
+
+    if (order.delivery) {
+      payload.delivery = {
+        precio_unitario: order.delivery.cost,
+        titulo: 'Despacho',
+      };
+    }
+
+    return payload;
   };
 }
 

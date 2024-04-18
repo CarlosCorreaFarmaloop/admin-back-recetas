@@ -2,7 +2,7 @@ import { ICotizacionRespository } from '../../cotizacion/domain/cotizacion.repos
 import { IOrdenRepository } from '../domain/order.repository';
 import { IOrdenUseCase } from './orden.usecase.interface';
 import { OrdenOValue } from './orden.vo';
-import { IOrigin } from '.././../../../interface/event';
+import { IAsignarDocumentosTributarios, IOrigin } from '.././../../../interface/event';
 import { MovementRepository } from '../../../modules/movements/domain/movements.repositoy';
 import { EcommerceOrderEntity } from '../../../../interface/ecommerceOrder.entity';
 import Joi from 'joi';
@@ -21,8 +21,9 @@ import {
 } from './interface';
 import { OrdenEntity, StatusOrder } from '../domain/order.entity';
 import { ordenStateMachine } from '../domain/utils/ordenStateMachine';
-import { notificarEstadoDeOrden } from '../domain/eventos';
+import { emitirDocumentoTributario, notificarEstadoDeOrden } from '../domain/eventos';
 import { notificarCambioOrdenSQS } from '../domain/sqs';
+import { IDocumentoTributarioEventInput } from '../domain/documentos_tributarios.interface';
 
 export class OrdenUseCase implements IOrdenUseCase {
   constructor(
@@ -440,8 +441,8 @@ export class OrdenUseCase implements IOrdenUseCase {
       if (previousStatus === 'PREPARANDO') {
         await this.updateOrderProvider({
           id: order.id,
-          providerName: order.delivery.provider.provider,
-          serviceId: order.delivery.provider.service_id,
+          providerName: order?.delivery?.provider.provider,
+          serviceId: order?.delivery?.provider.service_id,
         });
       }
 
@@ -460,6 +461,19 @@ export class OrdenUseCase implements IOrdenUseCase {
 
         // Emitir Documentos Tributarios
         // Emitir Courier
+
+        // Emitir Documentos Tributarios
+        const documentoVO = new OrdenOValue().generarDocumentosTributarios(order);
+
+        console.log('----- DocumentoVO: ', documentoVO);
+
+        // TODO: Preguntar Documentos
+
+        await this.generarDocumentosTributarios({
+          accion: 'generar-documento-tributario',
+          origen: 'SISTEMA ORDENES',
+          payload: documentoVO,
+        });
       }
 
       if (previousStatus === 'PREPARANDO' && newStatus === 'LISTO_PARA_RETIRO') {
@@ -470,6 +484,15 @@ export class OrdenUseCase implements IOrdenUseCase {
         });
 
         // Emitir Documentos Tributarios
+        const documentoVO = new OrdenOValue().generarDocumentosTributarios(order);
+
+        // TODO: Preguntar Documentos
+
+        await this.generarDocumentosTributarios({
+          accion: 'generar-documento-tributario',
+          origen: 'SISTEMA ORDENES',
+          payload: documentoVO,
+        });
       }
 
       // Notificar Cliente
@@ -484,6 +507,8 @@ export class OrdenUseCase implements IOrdenUseCase {
       // Notificar Cambio de Orden a SQS
       await this.notificarCambioOrden(order.id);
     } catch (error) {
+      console.log('Error en el Usecase Update Status Order: ', error);
+
       await this.updateProvisionalStatusOrder({
         id: order.id,
         provisionalStatusOrder: 'Error',
@@ -641,5 +666,61 @@ export class OrdenUseCase implements IOrdenUseCase {
     };
 
     await notificarCambioOrdenSQS(detailBody);
+  };
+
+  generarDocumentosTributarios = async (payload: IDocumentoTributarioEventInput) => {
+    const generarDocumentosTributariosSchema = Joi.object({
+      accion: Joi.string().required(),
+      origen: Joi.string().required(),
+      payload: Joi.object({
+        comentario: Joi.string().required(),
+        delivery: Joi.object({
+          precio_unitario: Joi.number().required(),
+          titulo: Joi.string().required(),
+        }).optional(),
+        id_interno: Joi.string().required(),
+        productos: Joi.array()
+          .items(
+            Joi.object({
+              cantidad: Joi.number().required(),
+              descuento: Joi.number().required(),
+              precio_unitario: Joi.number().required(),
+              titulo: Joi.string().required(),
+            })
+          )
+          .required(),
+        proveedor: Joi.string().required(),
+        tipo_documento: Joi.string().required(),
+        tipo_pago: Joi.string().required(),
+      }).required(),
+    });
+
+    const { error } = generarDocumentosTributariosSchema.validate(payload);
+
+    if (error) {
+      console.log('Error en el Schema Generar Documento Tributario: ', error.message);
+      throw new ApiResponse(HttpCodes.BAD_REQUEST, generarDocumentosTributariosSchema, error.message);
+    }
+
+    await emitirDocumentoTributario(payload);
+  };
+
+  asignarDocumentosTributarios = async (payload: IAsignarDocumentosTributarios) => {
+    const asignarDocumentosTributariosSchema = Joi.object({
+      orderId: Joi.string().required(),
+      emitter: Joi.string().required(),
+      number: Joi.string().required(),
+      type: Joi.string().required(),
+      urlBilling: Joi.string().required(),
+      urlTimbre: Joi.string().required(),
+      emissionDate: Joi.date().required(),
+      referenceDocumentId: Joi.string().required(),
+    });
+
+    const { error } = asignarDocumentosTributariosSchema.validate(payload);
+
+    if (error) {
+      throw new ApiResponse(HttpCodes.BAD_REQUEST, asignarDocumentosTributariosSchema, error.message);
+    }
   };
 }

@@ -1,4 +1,4 @@
-import { SQSEvent, EventBridgeEvent } from 'aws-lambda';
+// import { SQSEvent, EventBridgeEvent } from 'aws-lambda';
 import { OrdenUseCase } from './core/modules/order/application/orden.usecase';
 import { OrdenMongoRepository } from './infra/repository/orden/orden.mongo.repository';
 import { connectoToMongoDB } from './infra/db/mongo';
@@ -7,7 +7,11 @@ import { MovementMongoRepository } from './infra/repository/movements/movements.
 import { v4 as uuid } from 'uuid';
 import { actualizarStock } from './core/modules/order/domain/eventos';
 import { ApiResponse, HttpCodes } from './core/modules/order/application/api.response';
-import { IEventDetail, IUpdateStatusOrder } from './interface/event';
+import {
+  IAsignarDocumentosTributarios,
+  // IEventDetail,
+  IUpdateStatusOrder,
+} from './interface/event';
 import {
   IUpdatePrescriptionState,
   IUpdateProvisionalStatusOrder,
@@ -15,19 +19,19 @@ import {
 } from './core/modules/order/application/interface';
 
 // event can be event: EventBridgeEvent<string, IEventDetail> or event: EventBridgeEvent<string, IEventDetail>  {body: IEventDetail}
-export const handler = async (event: SQSEvent) => {
+export const handler = async (event: any) => {
   // Connect to Mongo
   try {
     await connectoToMongoDB();
 
     console.log('--- Event: ', event);
 
-    const bodyEvent: EventBridgeEvent<string, IEventDetail> = JSON.parse(event.Records[0].body);
-    const { origin, body, action } = bodyEvent.detail;
+    // const bodyEvent: EventBridgeEvent<string, IEventDetail> = JSON.parse(event.Records[0].body);
+    // const { origin, body, action } = bodyEvent.detail;
 
     // Only Development Environment
-    // const bodyDetail = JSON.parse(event.body);
-    // const { origin, body, action } = bodyDetail;
+    const bodyDetail = JSON.parse(event.body);
+    const { origin, body, action } = bodyDetail;
 
     const orderRespository = new OrdenMongoRepository();
     const cotizacionRespository = new CotizacionRepository();
@@ -142,6 +146,9 @@ export const handler = async (event: SQSEvent) => {
 
     if (origin === 'admin' && action === 'actualizar-estado-receta')
       await orderUseCase.updatePrescriptionState(body as IUpdatePrescriptionState);
+
+    if (origin === 'documento-tributario' && action === 'asignar-documento-tributario')
+      await orderUseCase.asignarDocumentosTributarios(body as IAsignarDocumentosTributarios);
 
     if (
       body?.payment?.payment.status === 'Aprobado' &&

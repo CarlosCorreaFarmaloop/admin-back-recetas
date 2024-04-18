@@ -1,3 +1,4 @@
+import { IAsignarDocumentosTributarios } from 'src/interface/event';
 import {
   ICrearOrden,
   ICrearPartialOrden,
@@ -25,4 +26,5 @@ export interface IOrdenRepository {
   updateProvisionalStatusOrder: (payload: IUpdateProvisionalStatusOrder) => Promise<OrdenEntity>;
   uploadPrescriptionFile: (payload: IUploadPrescription) => Promise<OrdenEntity>;
   updatePrescriptionState: (payload: IUpdatePrescriptionState) => Promise<OrdenEntity>;
+  asignarDocumentosTributarios: (payload: IAsignarDocumentosTributarios) => Promise<OrdenEntity>;
 }

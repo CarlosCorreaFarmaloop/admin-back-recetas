@@ -6,16 +6,17 @@ export interface IEventDetail {
   action: IAction;
 }
 
-export type IOrigin = 'ecommerce' | 'admin' | 'courier';
+export type IOrigin = 'ecommerce' | 'admin' | 'courier' | 'documento-tributario';
 
 export type IAction =
   | 'crear-order'
-  | 'actualizar-order'
   | 'actualizar-estado'
   | 'actualizar-pago'
   | 'actualizar-provisional-status-order'
   | 'cargar-receta'
   | 'actualizar-estado-receta'
+  | 'asignar-documento-tributario'
+
   //
   | 'actualizar-a-retiro-envio'
   | 'generar-courier'
@@ -55,4 +56,15 @@ export interface IUpdateStatusOrder {
   previousStatus: StatusOrder;
   newStatus: StatusOrder;
   responsible: string;
+}
+
+export interface IAsignarDocumentosTributarios {
+  orderId: string;
+  emitter: string;
+  number: string;
+  type: 'Boleta' | 'Factura' | 'Despacho';
+  urlBilling: string;
+  urlTimbre: string;
+  emissionDate: Date;
+  referenceDocumentId: string;
 }

@@ -12,6 +12,118 @@ export interface EcommerceOrderEntity {
   extras: Extras;
 }
 
+//  id: Joi.string().required(),
+//   cotizacion: Joi.string().optional(),
+//   payment: Joi.object({
+//     payment: Joi.object({
+//       amount: Joi.number().required(),
+//       method: Joi.string().required(),
+//       originCode: Joi.string().required(),
+//       status: Joi.string().required(),
+//       wallet: Joi.string().required(),
+//     }).required(),
+//   }).required(),
+//   customer: Joi.string().required(),
+//   extras: Joi.object({
+//     referrer: Joi.string().required().allow(''),
+//   }).required(),
+//   // Array ProductOrder
+//   productsOrder: Joi.array()
+//     .items(
+//       Joi.object({
+//         batchId: Joi.string().required(),
+//         bioequivalent: Joi.boolean().required(),
+//         cooled: Joi.boolean().required(),
+//         ean: Joi.string().required(),
+//         modified: Joi.boolean().required(),
+//         expiration: Joi.number().required(),
+//         laboratoryName: Joi.string().required(),
+//         lineNumber: Joi.number().optional(),
+//         liquid: Joi.boolean().required(),
+//         fullName: Joi.string().required(),
+//         normalUnitPrice: Joi.number().required(),
+//         originalPrice: Joi.number().required(),
+//         pharmaceuticalForm: Joi.string().required().allow(''),
+//         photoURL: Joi.string().required(),
+//         prescription: Joi.object({
+//           file: Joi.string().required().allow(''),
+//           state: Joi.string().required().allow(''),
+//           validation: Joi.object({
+//             comments: Joi.string().required().allow(''),
+//             rut: Joi.string().required().allow(''),
+//             responsible: Joi.string().required().allow(''),
+//           }).required(),
+//         }).optional(),
+//         prescriptionType: Joi.string().required(),
+//         presentation: Joi.string().required(),
+//         price: Joi.number().required(),
+//         productCategory: Joi.string().required(),
+//         productSubCategory: Joi.array().items(Joi.string()).required(),
+//         qty: Joi.number().required(),
+//         quantityPerContainer: Joi.string().required().allow(''),
+//         recommendations: Joi.string().required().allow(''),
+//         referenceId: Joi.number().optional(),
+//         refundedQuantity: Joi.number().optional(),
+//         requirePrescription: Joi.boolean().required(),
+//         shortName: Joi.string().optional().allow(''),
+//         sku: Joi.string().required(),
+//       })
+//     )
+//     .required(),
+//   resumeOrder: Joi.object({
+//     canal: Joi.string().optional().allow(''),
+//     convenio: Joi.string().optional(),
+//     deliveryPrice: Joi.number().required(),
+//     discount: Joi.object({
+//       details: Joi.array()
+//         .items(
+//           Joi.object({
+//             descuentos_unitarios: Joi.array()
+//               .items(
+//                 Joi.object({
+//                   cantidad: Joi.number().required(),
+//                   descuento_unitario: Joi.number().required(),
+//                   expireDate: Joi.string().required(),
+//                   lote_id: Joi.string().required(),
+//                   mg: Joi.number().required(),
+//                   price: Joi.number().required(),
+//                   sku: Joi.string().required(),
+//                 })
+//               )
+//               .required(),
+//             discount: Joi.number().required(),
+//             promotionCode: Joi.string().required(),
+//             reference: Joi.string().required(),
+//             type: Joi.string().required(),
+//           })
+//         )
+//         .required(),
+//       total: Joi.number().required(),
+//     }).required(),
+//     nroProducts: Joi.number().required(),
+//     subtotal: Joi.number().required(),
+//     totalPrice: Joi.number().required(),
+//   }).required(),
+//   statusOrder: Joi.string().required(),
+//   delivery: Joi.object({
+//     delivery_address: Joi.object({
+//       comuna: Joi.string().required(),
+//       dpto: Joi.string().optional().allow(''),
+//       firstName: Joi.string().required(),
+//       lastName: Joi.string().optional().allow(''),
+//       fullAddress: Joi.string().optional().allow(''),
+//       homeType: Joi.string().optional().allow(''),
+//       phone: Joi.string().required(),
+//       region: Joi.string().required(),
+//       streetName: Joi.string().optional().allow(''),
+//       streetNumber: Joi.string().optional().allow(''),
+//     }).required(),
+//     method: Joi.string().required(),
+//     type: Joi.string().required(),
+//     cost: Joi.number().required(),
+//     compromiso_entrega: Joi.string().required(),
+//   }).required(),
+
 interface Delivery {
   compromiso_entrega: string;
   cost: number;

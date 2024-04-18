@@ -19,6 +19,7 @@ custom:
 functions:
   app:
     handler: src/handler.handler
+    timeout: 12
     events:
       - http:
           method: POST

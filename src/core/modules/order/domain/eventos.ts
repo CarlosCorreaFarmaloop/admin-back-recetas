@@ -1,5 +1,6 @@
 import { EventBridgeClient, PutEventsCommand } from '@aws-sdk/client-eventbridge';
 import { OrdenEntity } from './order.entity';
+import { IDocumentoTributarioEventInput } from './documentos_tributarios.interface';
 
 const eventBridgeClient = new EventBridgeClient();
 const env = process.env.ENV?.toLowerCase() ?? '';
@@ -61,6 +62,24 @@ export const ordenSocketEvent = async (orden: OrdenEntity) => {
     })
   );
   console.log('--- EVENTO SOCKET ORDEN --- ', evento);
+};
+
+export const emitirDocumentoTributario = async (payload: IDocumentoTributarioEventInput) => {
+  const evento = await eventBridgeClient.send(
+    new PutEventsCommand({
+      Entries: [
+        {
+          Detail: JSON.stringify(payload),
+          DetailType: 'Emitir documento tributario.',
+          EventBusName: 'arn:aws:events:us-east-1:069526102702:event-bus/default',
+          Source: `generar-documento-tributario-${env}`,
+          Time: new Date(),
+        },
+      ],
+    })
+  );
+
+  console.log('--- EVENTO EMITIR DOCUMENTO TRIBUTARIO --- ', evento);
 };
 
 // export const emitirDocumentoTributario = async (payload: any) => {

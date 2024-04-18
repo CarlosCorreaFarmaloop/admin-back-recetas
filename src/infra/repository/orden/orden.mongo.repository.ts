@@ -12,6 +12,7 @@ import {
 } from '../../../core/modules/order/application/interface';
 import { IOrderHistory, StatusOrder, Tracking } from '../../../core/modules/order/domain/order.entity';
 import { IUpdateProvisionalStatusOrder } from '../../../core/modules/order/domain/order.respository.interface';
+import { IAsignarDocumentosTributarios } from 'src/interface/event';
 
 export class OrdenMongoRepository implements IOrdenRepository {
   createOrderFromEcommerce = async (payload: ICrearOrden) => {
@@ -136,6 +137,26 @@ export class OrdenMongoRepository implements IOrdenRepository {
         $set: {
           'productsOrder.$.prescription.state': payload.productOrder.prescription.state,
           'productsOrder.$.prescription.validation': payload.productOrder.prescription.validation,
+        },
+      },
+      { new: true, upsert: true }
+    );
+  };
+
+  asignarDocumentosTributarios = async (payload: IAsignarDocumentosTributarios) => {
+    console.log('------Order To Asignar Documento Tributario ---- ', payload);
+
+    return await OrderModel.findOneAndUpdate(
+      { id: payload.orderId },
+      {
+        $set: {
+          'billing.emitter': payload.emitter,
+          'billing.number': payload.number,
+          'billing.type': payload.type,
+          'billing.urlBilling': payload.urlBilling,
+          'billing.urlTimbre': payload.urlTimbre,
+          'billing.emissionDate': payload.emissionDate,
+          'billing.referenceDocumentId': payload.referenceDocumentId,
         },
       },
       { new: true, upsert: true }
