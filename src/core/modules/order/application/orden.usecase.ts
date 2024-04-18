@@ -627,6 +627,8 @@ export class OrdenUseCase implements IOrdenUseCase {
 
     if (!ordenActualizada)
       throw new ApiResponse(HttpCodes.BAD_REQUEST, ordenActualizada, 'Error al actualizar el estado de la receta.');
+
+    await this.notificarCambioOrden(ordenActualizada.id);
   };
 
   notificarCambioOrden = async (orderId: string) => {
