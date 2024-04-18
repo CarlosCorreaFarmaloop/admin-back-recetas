@@ -4,6 +4,8 @@ import { INotificarCambioOrden } from '../application/interface';
 export const notificarCambioOrdenSQS = async (payload: INotificarCambioOrden) => {
   const sqsClient = new SQSClient();
 
+  console.log('Enviando mensaje a SQS Socket');
+
   return await sqsClient.send(
     new SendMessageCommand({
       QueueUrl: process.env.SQS_URL_NOTIFICACION_ORDEN,
