@@ -121,6 +121,7 @@ export class OrdenMongoRepository implements IOrdenRepository {
       {
         $set: {
           'productsOrder.$.prescription.file': payload.productOrder.prescription.file,
+          'productsOrder.$.prescription.state': 'Pending',
           'productsOrder.$.prescription.stateDate': new Date().getTime(),
         },
       },
