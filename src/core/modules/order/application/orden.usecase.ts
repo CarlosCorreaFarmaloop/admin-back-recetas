@@ -914,7 +914,7 @@ export class OrdenUseCase implements IOrdenUseCase {
 
     console.log('-------- Courier Asignado: ', ordenConCourier);
 
-    await this.updateStatusOrder(ordenConCourier, ordenConCourier.statusOrder, 'EN_DELIVERY', 'SISTEMA');
+    await this.updateStatusOrder(ordenConCourier, ordenConCourier.statusOrder, 'ASIGNAR_A_DELIVERY', 'SISTEMA');
   };
 
   actualizarOrderStatusWebhook = async (payload: IActualizarOrderStatusWebhook) => {
