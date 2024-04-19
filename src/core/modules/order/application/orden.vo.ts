@@ -44,7 +44,7 @@ export class OrdenOValue {
           streetName: order.delivery.delivery_address.streetName,
         },
         method: order.delivery.method,
-        type: order?.delivery?.type ? order.delivery.type : 'Envío en el día (24 horas hábiles)',
+        type: order.delivery.type,
         cost: order.delivery.cost,
         compromiso_entrega: order.delivery.compromiso_entrega,
         provider: {
@@ -54,8 +54,8 @@ export class OrdenOValue {
           trackingNumber: '',
         },
         deliveryTracking: [],
-        discount: 0,
-        pricePaid: 0,
+        discount: order.delivery.discount,
+        pricePaid: order.delivery.pricePaid,
       },
       productsOrder: order.productsOrder.map((product) => {
         return {
@@ -91,8 +91,8 @@ export class OrdenOValue {
           productSubCategory: product.productSubCategory,
           quantityPerContainer: product.quantityPerContainer,
           recommendations: product.recommendations,
-          discountPerUnit: 0,
-          pricePaidPerUnit: 0,
+          discountPerUnit: product.discountPerUnit,
+          pricePaidPerUnit: product.pricePaidPerUnit,
         };
       }),
       resumeOrder: {
@@ -172,8 +172,8 @@ export class OrdenOValue {
           productSubCategory: product.productSubCategory,
           quantityPerContainer: product.quantityPerContainer,
           recommendations: product.recommendations,
-          discountPerUnit: 0,
-          pricePaidPerUnit: 0,
+          discountPerUnit: product.discountPerUnit,
+          pricePaidPerUnit: product.pricePaidPerUnit,
         };
       }),
       resumeOrder: {
@@ -205,7 +205,7 @@ export class OrdenOValue {
           streetName: order.delivery.delivery_address.streetName,
         },
         method: order.delivery.method,
-        type: order?.delivery?.type ? order.delivery.type : 'Envío en el día (24 horas hábiles)',
+        type: order.delivery.type,
         cost: order.delivery.cost,
         compromiso_entrega: order.delivery.compromiso_entrega,
         provider: {
@@ -215,8 +215,8 @@ export class OrdenOValue {
           trackingNumber: '',
         },
         deliveryTracking: [],
-        discount: 0,
-        pricePaid: 0,
+        discount: order.delivery.discount,
+        pricePaid: order.delivery.discount,
       },
       statusOrder: 'CREADO',
       createdAt: createdDate,
