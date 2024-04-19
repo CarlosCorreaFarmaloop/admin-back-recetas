@@ -4,6 +4,8 @@ import { validateNumberType, validateStringType } from '../domain/utils/validate
 import { ICrearOrden, ICrearPartialOrden } from './interface';
 import { GenerarBoletaPayload } from '../domain/documentos_tributarios.interface';
 import { TipoPago } from '../domain/utils/diccionario/tipoPago';
+import { GenerarOrdenDeCourierPayload } from '../domain/courier.interface';
+import { diccionarioTipoDelivery } from '../domain/utils/diccionario/tipoDelivery';
 
 export class OrdenOValue {
   completeOrderFromEcommerce = (order: EcommerceOrderEntity): ICrearOrden => {
@@ -41,13 +43,12 @@ export class OrdenOValue {
           streetName: order.delivery.delivery_address.streetName,
         },
         method: order.delivery.method,
-        type: order.delivery.type ?? '',
+        type: order?.delivery?.type ? order.delivery.type : 'Envío en el día (24 horas hábiles)',
         cost: order.delivery.cost,
         compromiso_entrega: order.delivery.compromiso_entrega,
         provider: {
           status: '',
           provider: '',
-          orderTransport: '',
           urlLabel: '',
         },
       },
@@ -200,13 +201,12 @@ export class OrdenOValue {
           streetName: order.delivery.delivery_address.streetName,
         },
         method: order.delivery.method,
-        type: order.delivery.type ?? '',
+        type: order?.delivery?.type ? order.delivery.type : 'Envío en el día (24 horas hábiles)',
         cost: order.delivery.cost,
         compromiso_entrega: order.delivery.compromiso_entrega,
         provider: {
           status: '',
           provider: '',
-          orderTransport: '',
           urlLabel: '',
         },
       },
@@ -238,6 +238,37 @@ export class OrdenOValue {
     }
 
     return payload;
+  };
+
+  generarCourier = (order: OrdenEntity): GenerarOrdenDeCourierPayload => {
+    return {
+      courier: 'propio3',
+      direccion_origen: {
+        calle: 'Av. Príncipe de Gales',
+        comuna: 'La Reina',
+        numero_calle: '6273',
+        pais: 'Chile',
+        referencias: '',
+        region: 'Región Metropolitana',
+      },
+      direccion: {
+        calle: order.delivery.delivery_address.streetName ?? '',
+        comuna: order.delivery.delivery_address.comuna,
+        numero_calle: '',
+        pais: 'Chile',
+        referencias: `${order.delivery.delivery_address.homeType} ${order.delivery.delivery_address.dpto}`,
+        region: order.delivery.delivery_address.region,
+      },
+      id_interno: order.id,
+      notas: '',
+      tipo_delivery: diccionarioTipoDelivery[order.delivery.type] ?? 'SMD',
+      usuario: {
+        apellido: order.delivery.delivery_address.firstName,
+        correo_electronico: order.customer,
+        nombre: order.delivery.delivery_address.firstName,
+        telefono: order.delivery.delivery_address.phone,
+      },
+    };
   };
 }
 

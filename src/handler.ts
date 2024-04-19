@@ -7,7 +7,13 @@ import { MovementMongoRepository } from './infra/repository/movements/movements.
 import { v4 as uuid } from 'uuid';
 import { actualizarStock } from './core/modules/order/domain/eventos';
 import { ApiResponse, HttpCodes } from './core/modules/order/application/api.response';
-import { IAsignarDocumentosTributarios, IEventDetail, IUpdateStatusOrder } from './interface/event';
+import {
+  IActualizarOrderStatusWebhook,
+  IAsignarCourier,
+  IAsignarDocumentosTributarios,
+  IEventDetail,
+  IUpdateStatusOrder,
+} from './interface/event';
 import {
   IUpdatePrescriptionState,
   IUpdateProvisionalStatusOrder,
@@ -145,6 +151,14 @@ export const handler = async (event: SQSEvent) => {
 
     if (origin === 'documento-tributario' && action === 'asignar-documento-tributario')
       await orderUseCase.asignarDocumentosTributarios(body as IAsignarDocumentosTributarios);
+
+    if (origin === 'courier' && action === 'asignar-courier') {
+      await orderUseCase.asignarCourier(body as IAsignarCourier);
+    }
+
+    if (origin === 'courier' && action === 'actualizar-order-status-webhook') {
+      await orderUseCase.actualizarOrderStatusWebhook(body as IActualizarOrderStatusWebhook);
+    }
 
     if (
       body?.payment?.payment.status === 'Aprobado' &&

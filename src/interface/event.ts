@@ -1,4 +1,4 @@
-import { OrdenEntity, StatusOrder } from 'src/core/modules/order/domain/order.entity';
+import { DeliveryTracking, OrdenEntity, StatusOrder } from 'src/core/modules/order/domain/order.entity';
 
 export interface IEventDetail {
   origin: IOrigin;
@@ -16,10 +16,11 @@ export type IAction =
   | 'cargar-receta'
   | 'actualizar-estado-receta'
   | 'asignar-documento-tributario'
+  | 'asignar-courier'
+  | 'actualizar-order-status-webhook'
 
   //
   | 'actualizar-a-retiro-envio'
-  | 'generar-courier'
   | 'actualizar-courier'
   | 'actualizar-a-envio'
   | 'actualizar-a-listo-retiro'
@@ -67,4 +68,19 @@ export interface IAsignarDocumentosTributarios {
   urlTimbre: string;
   emissionDate: Date;
   referenceDocumentId: string;
+}
+
+export interface IAsignarCourier {
+  orderId: string;
+  provider: string;
+  urlLabel: string;
+  trackingNumber: string;
+  emmissionDate: number;
+  deliveryTracking: DeliveryTracking;
+}
+
+export interface IActualizarOrderStatusWebhook {
+  orderId: string;
+  status: StatusOrder;
+  deliveryTracking: DeliveryTracking;
 }

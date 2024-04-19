@@ -1,5 +1,11 @@
 import { EcommerceOrderEntity } from '../../../../interface/ecommerceOrder.entity';
-import { IAsignarDocumentosTributarios, IOrigin } from '.././../../../interface/event';
+import {
+  IActualizarOrderStatusWebhook,
+  IAsignarCourier,
+  IAsignarDocumentosTributarios,
+  IOrigin,
+} from '.././../../../interface/event';
+import { ICourierEventInput } from '../domain/courier.interface';
 import { IDocumentoTributarioEventInput } from '../domain/documentos_tributarios.interface';
 import { OrdenEntity, StatusOrder } from '../domain/order.entity';
 import {
@@ -25,7 +31,6 @@ export interface IOrdenUseCase {
   ) => Promise<void>;
   updateOrderTracking: (payload: IUpdateOrderTracking) => Promise<void>;
   updateOrderHistory: (payload: IUpdateOrderHistory) => Promise<void>;
-  updateAsignarCourier: (payload: IUpdateProviderStatus) => Promise<void>;
   updateStatusBilling: (payload: IUpdateBillingStatus) => Promise<void>;
   updateOrderProvider: (payload: IUpdateProvider) => Promise<void>;
   updateProvisionalStatusOrder: (payload: IUpdateProvisionalStatusOrder) => Promise<void>;
@@ -34,6 +39,10 @@ export interface IOrdenUseCase {
   notificarCambioOrden: (orderId: string) => Promise<void>;
   generarDocumentosTributarios: (payload: IDocumentoTributarioEventInput) => Promise<void>;
   asignarDocumentosTributarios: (payload: IAsignarDocumentosTributarios) => Promise<void>;
+  updateStatusCourier: (payload: IUpdateProviderStatus) => Promise<void>;
+  generarCourier: (payload: ICourierEventInput) => Promise<void>;
+  asignarCourier: (payload: IAsignarCourier) => Promise<void>;
+  actualizarOrderStatusWebhook: (payload: IActualizarOrderStatusWebhook) => Promise<void>;
 }
 
 export interface IRespuesta {

@@ -2,7 +2,12 @@ import { ICotizacionRespository } from '../../cotizacion/domain/cotizacion.repos
 import { IOrdenRepository } from '../domain/order.repository';
 import { IOrdenUseCase } from './orden.usecase.interface';
 import { OrdenOValue } from './orden.vo';
-import { IAsignarDocumentosTributarios, IOrigin } from '.././../../../interface/event';
+import {
+  IActualizarOrderStatusWebhook,
+  IAsignarCourier,
+  IAsignarDocumentosTributarios,
+  IOrigin,
+} from '.././../../../interface/event';
 import { MovementRepository } from '../../../modules/movements/domain/movements.repositoy';
 import { EcommerceOrderEntity } from '../../../../interface/ecommerceOrder.entity';
 import Joi from 'joi';
@@ -21,9 +26,10 @@ import {
 } from './interface';
 import { OrdenEntity, StatusOrder } from '../domain/order.entity';
 import { ordenStateMachine } from '../domain/utils/ordenStateMachine';
-import { emitirDocumentoTributario, notificarEstadoDeOrden } from '../domain/eventos';
+import { emitirDocumentoTributario, generarCourierEvent, notificarEstadoDeOrden } from '../domain/eventos';
 import { notificarCambioOrdenSQS } from '../domain/sqs';
 import { IDocumentoTributarioEventInput } from '../domain/documentos_tributarios.interface';
+import { ICourierEventInput } from '../domain/courier.interface';
 
 export class OrdenUseCase implements IOrdenUseCase {
   constructor(
@@ -447,7 +453,7 @@ export class OrdenUseCase implements IOrdenUseCase {
       }
 
       if (previousStatus === 'PREPARANDO' && newStatus === 'ASIGNAR_A_DELIVERY') {
-        await this.updateAsignarCourier({
+        await this.updateStatusCourier({
           id: order.id,
           status: 'Pendiente',
           statusDate: new Date(),
@@ -459,15 +465,19 @@ export class OrdenUseCase implements IOrdenUseCase {
           statusDate: new Date(),
         });
 
-        // Emitir Documentos Tributarios
         // Emitir Courier
+        const courierVO = new OrdenOValue().generarCourier(order);
+
+        await this.generarCourier({
+          accion: 'generar-orden-de-courier',
+          origen: 'SISTEMA ORDENES',
+          payload: courierVO,
+        });
 
         // Emitir Documentos Tributarios
         const documentoVO = new OrdenOValue().generarDocumentosTributarios(order);
 
         console.log('----- DocumentoVO: ', documentoVO);
-
-        // TODO: Preguntar Documentos
 
         await this.generarDocumentosTributarios({
           accion: 'generar-documento-tributario',
@@ -485,8 +495,6 @@ export class OrdenUseCase implements IOrdenUseCase {
 
         // Emitir Documentos Tributarios
         const documentoVO = new OrdenOValue().generarDocumentosTributarios(order);
-
-        // TODO: Preguntar Documentos
 
         await this.generarDocumentosTributarios({
           accion: 'generar-documento-tributario',
@@ -554,7 +562,7 @@ export class OrdenUseCase implements IOrdenUseCase {
       );
   };
 
-  updateAsignarCourier = async (payload: IUpdateProviderStatus) => {
+  updateStatusCourier = async (payload: IUpdateProviderStatus) => {
     const ordenActualizada = await this.ordenRepository.updateOrderProviderStatus(payload.id, payload);
 
     if (!ordenActualizada)
@@ -732,5 +740,110 @@ export class OrdenUseCase implements IOrdenUseCase {
       throw new ApiResponse(HttpCodes.BAD_REQUEST, ordenConBilling, 'Error al asignar documentos tributarios.');
 
     console.log('-------- Documentos Tributarios Asignados: ', ordenConBilling);
+  };
+
+  generarCourier = async (payload: ICourierEventInput) => {
+    const generarCourierSchema = Joi.object({
+      accion: Joi.string().required(),
+      origen: Joi.string().required(),
+      payload: Joi.object({
+        courier: Joi.string().required(),
+        direccion_origen: Joi.object({
+          calle: Joi.string().required(),
+          comuna: Joi.string().required(),
+          numero_calle: Joi.string().required().allow(''),
+          pais: Joi.string().required(),
+          referencias: Joi.string().required().allow(''),
+          region: Joi.string().required(),
+        }).required(),
+        direccion: Joi.object({
+          calle: Joi.string().required(),
+          comuna: Joi.string().required(),
+          numero_calle: Joi.string().required().allow(''),
+          pais: Joi.string().required(),
+          referencias: Joi.string().required().allow(''),
+          region: Joi.string().required(),
+        }).required(),
+        id_interno: Joi.string().required(),
+        notas: Joi.string().required().allow(''),
+        tipo_delivery: Joi.string().required(),
+        usuario: Joi.object({
+          apellido: Joi.string().required().allow(''),
+          correo_electronico: Joi.string().required(),
+          nombre: Joi.string().required(),
+          telefono: Joi.string().required(),
+        }).required(),
+      }).required(),
+    });
+
+    const { error } = generarCourierSchema.validate(payload);
+
+    if (error) {
+      throw new ApiResponse(HttpCodes.BAD_REQUEST, generarCourierSchema, error.message);
+    }
+
+    await generarCourierEvent(payload);
+  };
+
+  asignarCourier = async (payload: IAsignarCourier) => {
+    const asignarCourierSchema = Joi.object({
+      orderId: Joi.string().required(),
+      provider: Joi.string().required(),
+      urlLabel: Joi.string().required(),
+      trackingNumber: Joi.string().required(),
+      emissionDate: Joi.number().required(),
+      deliveryTracking: Joi.object({
+        fecha: Joi.date().required(),
+        estado: Joi.string().required(),
+        comentario: Joi.string().required(),
+        evidencias: Joi.array().items(Joi.string()).required(),
+      }).required(),
+    });
+
+    const { error } = asignarCourierSchema.validate(payload);
+
+    if (error) {
+      throw new ApiResponse(HttpCodes.BAD_REQUEST, asignarCourierSchema, error.message);
+    }
+
+    const ordenConCourier = await this.ordenRepository.asignarCourier(payload);
+
+    if (!ordenConCourier) throw new ApiResponse(HttpCodes.BAD_REQUEST, ordenConCourier, 'Error al asignar courier.');
+
+    await this.updateStatusCourier({
+      id: payload.orderId,
+      status: 'Asignado',
+      statusDate: new Date(),
+    });
+
+    console.log('-------- Courier Asignado: ', ordenConCourier);
+
+    await this.updateStatusOrder(ordenConCourier, ordenConCourier.statusOrder, 'EN_DELIVERY', 'SISTEMA');
+  };
+
+  actualizarOrderStatusWebhook = async (payload: IActualizarOrderStatusWebhook) => {
+    const actualizarOrderStatusWebhookSchema = Joi.object({
+      orderId: Joi.string().required(),
+      status: Joi.string().required(),
+      deliveryTracking: Joi.object({
+        fecha: Joi.date().required(),
+        estado: Joi.string().required(),
+        comentario: Joi.string().required(),
+        evidencias: Joi.array().items(Joi.string()).required(),
+      }).required(),
+    });
+
+    const { error } = actualizarOrderStatusWebhookSchema.validate(payload);
+
+    if (error) {
+      throw new ApiResponse(HttpCodes.BAD_REQUEST, actualizarOrderStatusWebhookSchema, error.message);
+    }
+
+    const ordenActualizada = await this.ordenRepository.actualizarOrderDeliveryTracking(payload);
+
+    if (!ordenActualizada)
+      throw new ApiResponse(HttpCodes.BAD_REQUEST, ordenActualizada, 'Error al actualizar el estado de la orden.');
+
+    await this.updateStatusOrder(ordenActualizada, ordenActualizada.statusOrder, payload.status, 'SISTEMA');
   };
 }

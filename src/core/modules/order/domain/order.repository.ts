@@ -9,7 +9,12 @@ import {
   IUploadPrescription,
 } from '../application/interface';
 import { IOrderHistory, OrdenEntity, StatusOrder, Tracking } from './order.entity';
-import { IAsignarDocumentosTributariosPayload, IUpdateProvisionalStatusOrder } from './order.respository.interface';
+import {
+  IActualizarOrderStatusWebhookPayload,
+  IAsignarCourierPayload,
+  IAsignarDocumentosTributariosPayload,
+  IUpdateProvisionalStatusOrder,
+} from './order.respository.interface';
 
 export interface IOrdenRepository {
   createOrderFromEcommerce: (payload: ICrearOrden) => Promise<OrdenEntity>;
@@ -26,4 +31,6 @@ export interface IOrdenRepository {
   uploadPrescriptionFile: (payload: IUploadPrescription) => Promise<OrdenEntity>;
   updatePrescriptionState: (payload: IUpdatePrescriptionState) => Promise<OrdenEntity>;
   asignarDocumentosTributarios: (payload: IAsignarDocumentosTributariosPayload) => Promise<OrdenEntity>;
+  asignarCourier: (payload: IAsignarCourierPayload) => Promise<OrdenEntity>;
+  actualizarOrderDeliveryTracking: (payload: IActualizarOrderStatusWebhookPayload) => Promise<OrdenEntity>;
 }

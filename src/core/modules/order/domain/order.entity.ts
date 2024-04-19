@@ -1,7 +1,7 @@
 export interface OrdenEntity {
   billing: Billing;
   createdAt: Date;
-  customer?: string;
+  customer: string;
   delivery: Delivery;
   documentos?: Documento[];
   id: string;
@@ -124,30 +124,28 @@ export interface DeliveryAddress {
 }
 
 export type DeliveryType =
-  | ''
   | 'Envío Estándar (48 horas hábiles)'
   | 'Envío Express (4 horas hábiles)'
   | 'Envío en el día (24 horas hábiles)'
   | 'Envío 24 horas hábiles';
 
 export interface DeliveryProvider {
-  status: DeliveryProviderStatus;
   provider: string;
-  orderTransport: string;
   urlLabel: string;
-
-  statusDate?: Date;
   trackingNumber?: string;
-  urlLabelRayo?: string;
+  emmissionDate?: number;
+
+  status: DeliveryProviderStatus;
+  statusDate?: number;
+
   service_id?: string;
-  delivery_transport?: IDeliveryTransport;
-  method?: string;
+  urlLabelRayo?: string;
 }
 
 export type DeliveryProviderStatus = '' | 'Pendiente' | 'Asignado';
 
 export interface DeliveryTracking {
-  fecha: Date;
+  fecha: number;
   estado: string;
   comentario: string;
   evidencias: string[];

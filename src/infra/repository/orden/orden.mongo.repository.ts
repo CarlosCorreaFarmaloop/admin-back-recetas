@@ -12,6 +12,8 @@ import {
 } from '../../../core/modules/order/application/interface';
 import { IOrderHistory, StatusOrder, Tracking } from '../../../core/modules/order/domain/order.entity';
 import {
+  IActualizarOrderStatusWebhookPayload,
+  IAsignarCourierPayload,
   IAsignarDocumentosTributariosPayload,
   IUpdateProvisionalStatusOrder,
 } from '../../../core/modules/order/domain/order.respository.interface';
@@ -160,6 +162,40 @@ export class OrdenMongoRepository implements IOrdenRepository {
           'billing.emissionDate': payload.emissionDate,
           'billing.referenceDocumentId': payload.referenceDocumentId,
           'billing.status': payload.status,
+        },
+      },
+      { new: true, upsert: true }
+    );
+  };
+
+  asignarCourier = async (payload: IAsignarCourierPayload) => {
+    console.log('------Order To Asignar Courier ---- ', payload);
+
+    return await OrderModel.findOneAndUpdate(
+      { id: payload.orderId },
+      {
+        $set: {
+          'delivery.provider.provider': payload.provider,
+          'delivery.provider.urlLabel': payload.urlLabel,
+          'delivery.provider.trackingNumber': payload.trackingNumber,
+          'delivery.provider.emmissionDate': payload.emmissionDate,
+        },
+        $push: {
+          'delivery.deliveryTracking': payload.deliveryTracking,
+        },
+      },
+      { new: true, upsert: true }
+    );
+  };
+
+  actualizarOrderDeliveryTracking = async (payload: IActualizarOrderStatusWebhookPayload) => {
+    console.log('------Order To Actualizar Status Webhook ---- ', payload);
+
+    return await OrderModel.findOneAndUpdate(
+      { id: payload.orderId },
+      {
+        $push: {
+          'delivery.deliveryTracking': payload.deliveryTracking,
         },
       },
       { new: true, upsert: true }
