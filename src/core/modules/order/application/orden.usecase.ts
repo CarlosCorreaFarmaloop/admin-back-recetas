@@ -712,7 +712,7 @@ export class OrdenUseCase implements IOrdenUseCase {
       number: Joi.string().required(),
       type: Joi.string().required(),
       urlBilling: Joi.string().required(),
-      urlTimbre: Joi.string().required(),
+      urlTimbre: Joi.string().required().allow(''),
       emissionDate: Joi.date().required(),
       referenceDocumentId: Joi.string().required(),
     });
