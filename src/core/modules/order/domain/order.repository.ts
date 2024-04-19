@@ -1,4 +1,3 @@
-import { IAsignarDocumentosTributarios } from 'src/interface/event';
 import {
   ICrearOrden,
   ICrearPartialOrden,
@@ -10,7 +9,7 @@ import {
   IUploadPrescription,
 } from '../application/interface';
 import { IOrderHistory, OrdenEntity, StatusOrder, Tracking } from './order.entity';
-import { IUpdateProvisionalStatusOrder } from './order.respository.interface';
+import { IAsignarDocumentosTributariosPayload, IUpdateProvisionalStatusOrder } from './order.respository.interface';
 
 export interface IOrdenRepository {
   createOrderFromEcommerce: (payload: ICrearOrden) => Promise<OrdenEntity>;
@@ -26,5 +25,5 @@ export interface IOrdenRepository {
   updateProvisionalStatusOrder: (payload: IUpdateProvisionalStatusOrder) => Promise<OrdenEntity>;
   uploadPrescriptionFile: (payload: IUploadPrescription) => Promise<OrdenEntity>;
   updatePrescriptionState: (payload: IUpdatePrescriptionState) => Promise<OrdenEntity>;
-  asignarDocumentosTributarios: (payload: IAsignarDocumentosTributarios) => Promise<OrdenEntity>;
+  asignarDocumentosTributarios: (payload: IAsignarDocumentosTributariosPayload) => Promise<OrdenEntity>;
 }

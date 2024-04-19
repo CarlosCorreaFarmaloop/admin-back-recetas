@@ -723,7 +723,10 @@ export class OrdenUseCase implements IOrdenUseCase {
       throw new ApiResponse(HttpCodes.BAD_REQUEST, asignarDocumentosTributariosSchema, error.message);
     }
 
-    const ordenConBilling = await this.ordenRepository.asignarDocumentosTributarios(payload);
+    const ordenConBilling = await this.ordenRepository.asignarDocumentosTributarios({
+      ...payload,
+      status: 'Aprobado',
+    });
 
     if (!ordenConBilling)
       throw new ApiResponse(HttpCodes.BAD_REQUEST, ordenConBilling, 'Error al asignar documentos tributarios.');
