@@ -1,7 +1,7 @@
 import mongoose, { model } from 'mongoose';
-import { OrdenEntity } from '../../core/modules/order/domain/order.entity';
+import { OrdenEntity, ProductOrder, Tracking, InvoiceCustomer } from '../../core/modules/order/domain/order.entity';
 
-const TrackingSchema = new mongoose.Schema(
+const TrackingSchema = new mongoose.Schema<Tracking>(
   {
     date: Number,
     responsible: String,
@@ -11,7 +11,7 @@ const TrackingSchema = new mongoose.Schema(
   { _id: false }
 );
 
-const InvoiceCustomerSchema = new mongoose.Schema(
+const InvoiceCustomerSchema = new mongoose.Schema<InvoiceCustomer>(
   {
     id: String,
     rut: String,
@@ -39,15 +39,13 @@ const PrescriptionSchema = new mongoose.Schema({
   validation: PrescriptionValidationSchema,
 });
 
-const ProductOrderSchema = new mongoose.Schema(
+const ProductOrderSchema = new mongoose.Schema<ProductOrder>(
   {
     batchId: String,
-    expireDate: Date,
     expiration: Number,
     lineNumber: Number,
     modified: Boolean,
-    name: String,
-    laboratory: String,
+    laboratoryName: String,
     normalUnitPrice: Number,
     originalPrice: Number,
     prescription: PrescriptionSchema,
@@ -57,12 +55,10 @@ const ProductOrderSchema = new mongoose.Schema(
     refundedQuantity: Number,
     requirePrescription: Boolean,
     sku: String,
-    batchID: String,
     bioequivalent: Boolean,
     cooled: Boolean,
     ean: String,
     fullName: String,
-    laboratoryName: String,
     liquid: Boolean,
     pharmaceuticalForm: String,
     photoURL: String,

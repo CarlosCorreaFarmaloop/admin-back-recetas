@@ -111,7 +111,7 @@ export class OrdenUseCase implements IOrdenUseCase {
       });
 
       const Prescription = Joi.object({
-        file: Joi.string().required(),
+        file: Joi.string().required().allow(''),
       });
 
       const PrescriptionType = Joi.string().valid(
@@ -308,7 +308,7 @@ export class OrdenUseCase implements IOrdenUseCase {
       });
 
       const Prescription = Joi.object({
-        file: Joi.string().required(),
+        file: Joi.string().required().allow(''),
       });
 
       const PrescriptionType = Joi.string().valid(
@@ -424,6 +424,7 @@ export class OrdenUseCase implements IOrdenUseCase {
         payment: Joi.object({
           amount: Joi.number().required(),
           method: Joi.string().required(),
+          paymentDate: Joi.number().required(),
           originCode: Joi.string().required(),
           status: Joi.string().required(),
           wallet: Joi.string().required(),
