@@ -1,5 +1,6 @@
 import mongoose, { model } from 'mongoose';
 import {
+  CompromisoEntrega,
   IOrderHistory,
   DeliveryTracking,
   Payment,
@@ -14,6 +15,7 @@ import {
   PrescriptionValidation,
   ResumeOrder,
   Documento,
+  Delivery,
 } from '../../core/modules/order/domain/order.entity';
 
 const TrackingSchema = new mongoose.Schema<Tracking>(
@@ -230,6 +232,7 @@ const ProviderSchema = new mongoose.Schema(
     method: String,
     delivery_transport: DeliveryTransportSchema,
     urlLabelRayo: String,
+    emmissionDate: Number,
   },
   { _id: false }
 );
@@ -249,7 +252,15 @@ const DeliveryAddressSchema = new mongoose.Schema(
   { _id: false }
 );
 
-const DeliverySchema = new mongoose.Schema(
+const CompromisoEntregaSchema = new mongoose.Schema<CompromisoEntrega>(
+  {
+    date: Number,
+    dateText: String,
+  },
+  { _id: false }
+);
+
+const DeliverySchema = new mongoose.Schema<Delivery>(
   {
     delivery_address: DeliveryAddressSchema,
     method: { type: String, enum: ['DELIVERY', 'STORE'] },
@@ -257,6 +268,7 @@ const DeliverySchema = new mongoose.Schema(
     cost: Number,
     provider: ProviderSchema,
     deliveryTracking: [DeliveryTrackingSchema],
+    compromiso_entrega: CompromisoEntregaSchema,
   },
   { _id: false }
 );

@@ -695,6 +695,11 @@ export class OrdenUseCase implements IOrdenUseCase {
         batchId: Joi.string().required(),
         prescription: Joi.object({
           file: Joi.string().required(),
+          validation: Joi.object({
+            comments: Joi.string().required().allow(''),
+            responsible: Joi.string().required(),
+            rut: Joi.string().required().allow(''),
+          }),
         }).required(),
       }).required(),
     });
@@ -708,6 +713,18 @@ export class OrdenUseCase implements IOrdenUseCase {
     const ordenActualizada = await this.ordenRepository.uploadPrescriptionFile(payload);
 
     if (!ordenActualizada) throw new ApiResponse(HttpCodes.BAD_REQUEST, ordenActualizada, 'Error al subir la receta.');
+
+    await this.updateOrderHistory({
+      id: payload.id,
+      type: 'receta-cargada',
+      responsible: payload.productOrder.prescription.validation.responsible,
+      changeFrom: '',
+      changeTo: 'Receta subida',
+      aditionalInfo: {
+        product_sku: payload.productOrder.sku,
+        comments: '',
+      },
+    });
 
     await this.notificarCambioOrden(payload.id);
   };
@@ -903,7 +920,6 @@ export class OrdenUseCase implements IOrdenUseCase {
   actualizarOrderStatusWebhook = async (payload: IActualizarOrderStatusWebhook) => {
     const actualizarOrderStatusWebhookSchema = Joi.object({
       orderId: Joi.string().required(),
-      status: Joi.string().required(),
       deliveryTracking: Joi.object({
         fecha: Joi.date().required(),
         estado: Joi.string().required(),

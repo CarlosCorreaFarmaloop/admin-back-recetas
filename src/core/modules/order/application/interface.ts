@@ -79,7 +79,7 @@ export interface IUploadPrescription extends Pick<OrdenEntity, 'id'> {
 }
 
 export interface IUploadPrescriptionProduct extends Pick<ProductOrder, 'sku' | 'batchId'> {
-  prescription: Pick<ProductOrder['prescription'], 'file'>;
+  prescription: Pick<ProductOrder['prescription'], 'file' | 'validation'>;
 }
 
 export interface IUpdatePrescriptionState extends Pick<OrdenEntity, 'id'> {
