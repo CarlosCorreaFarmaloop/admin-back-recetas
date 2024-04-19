@@ -100,3 +100,29 @@ export const generarCourierEvent = async (payload: ICourierEventInput) => {
 
   console.log('--- EVENTO GENERAR COURIER --- ', evento);
 };
+
+export const actualizarOrdenEccomerce = async (orden: OrdenEntity, toPos: boolean) => {
+  const evento = await eventBridgeClient.send(
+    new PutEventsCommand({
+      Entries: [
+        {
+          Detail: JSON.stringify({
+            orderEvento: {
+              id: orden.id,
+              customer: orden.customer,
+              statusOrder: orden.statusOrder,
+              billing: orden.billing,
+              delivery: orden.delivery,
+            },
+            toPos,
+          }),
+          DetailType: 'Actualizar orden ecommerce.',
+          EventBusName: 'arn:aws:events:us-east-1:069526102702:event-bus/default',
+          Source: process.env.ACTUALIZAR_PEDIDO,
+          Time: new Date(),
+        },
+      ],
+    })
+  );
+  console.log('--- EVENTO ACTUALIZAR ORDEN ECOMMERCE --- ', evento);
+};

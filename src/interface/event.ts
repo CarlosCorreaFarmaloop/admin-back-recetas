@@ -81,6 +81,5 @@ export interface IAsignarCourier {
 
 export interface IActualizarOrderStatusWebhook {
   orderId: string;
-  status: StatusOrder;
   deliveryTracking: DeliveryTracking;
 }

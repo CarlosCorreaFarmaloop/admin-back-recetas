@@ -1,3 +1,5 @@
+import { EstadoCourierTracking } from './courier.interface';
+
 export interface OrdenEntity {
   billing: Billing;
   createdAt: Date;
@@ -146,7 +148,7 @@ export type DeliveryProviderStatus = '' | 'Pendiente' | 'Asignado';
 
 export interface DeliveryTracking {
   fecha: number;
-  estado: string;
+  estado: EstadoCourierTracking;
   comentario: string;
   evidencias: string[];
 }

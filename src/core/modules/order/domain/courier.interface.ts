@@ -39,3 +39,12 @@ export interface OrdenDeCourierResponse {
 }
 
 export type Accion = 'generar-orden-de-courier';
+
+export type EstadoCourierTracking =
+  | 'Creado'
+  | 'Confirmado'
+  | 'Recogido'
+  | 'En delivery'
+  | 'Entregado'
+  | 'Cancelado'
+  | 'Observación';

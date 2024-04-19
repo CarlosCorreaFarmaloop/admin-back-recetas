@@ -26,10 +26,16 @@ import {
 } from './interface';
 import { OrdenEntity, StatusOrder } from '../domain/order.entity';
 import { ordenStateMachine } from '../domain/utils/ordenStateMachine';
-import { emitirDocumentoTributario, generarCourierEvent, notificarEstadoDeOrden } from '../domain/eventos';
+import {
+  actualizarOrdenEccomerce,
+  emitirDocumentoTributario,
+  generarCourierEvent,
+  notificarEstadoDeOrden,
+} from '../domain/eventos';
 import { notificarCambioOrdenSQS } from '../domain/sqs';
 import { IDocumentoTributarioEventInput } from '../domain/documentos_tributarios.interface';
 import { ICourierEventInput } from '../domain/courier.interface';
+import { diccionarioStatusCourier } from '../domain/utils/diccionario/tipoStatusCourier';
 
 export class OrdenUseCase implements IOrdenUseCase {
   constructor(
@@ -504,7 +510,9 @@ export class OrdenUseCase implements IOrdenUseCase {
       }
 
       // Notificar Cliente
-      await notificarEstadoDeOrden(order);
+      await notificarEstadoDeOrden(ordenStatusActualizada);
+
+      await actualizarOrdenEccomerce(ordenStatusActualizada, newStatus === 'CANCELADO');
 
       // Cambiar Provisional Status Order
       await this.updateProvisionalStatusOrder({
@@ -844,6 +852,10 @@ export class OrdenUseCase implements IOrdenUseCase {
     if (!ordenActualizada)
       throw new ApiResponse(HttpCodes.BAD_REQUEST, ordenActualizada, 'Error al actualizar el estado de la orden.');
 
-    await this.updateStatusOrder(ordenActualizada, ordenActualizada.statusOrder, payload.status, 'SISTEMA');
+    const statusCourier = diccionarioStatusCourier[payload.deliveryTracking.estado];
+
+    if (statusCourier) {
+      await this.updateStatusOrder(ordenActualizada, ordenActualizada.statusOrder, statusCourier, 'SISTEMA');
+    }
   };
 }
