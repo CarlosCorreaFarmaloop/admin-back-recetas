@@ -1,5 +1,19 @@
 import mongoose, { model } from 'mongoose';
-import { OrdenEntity, ProductOrder, Tracking, InvoiceCustomer } from '../../core/modules/order/domain/order.entity';
+import {
+  DeliveryTracking,
+  Payment,
+  PaymentForm,
+  Details,
+  Discount,
+  Prescription,
+  OrdenEntity,
+  ProductOrder,
+  Tracking,
+  InvoiceCustomer,
+  PrescriptionValidation,
+  ResumeOrder,
+  Documento,
+} from '../../core/modules/order/domain/order.entity';
 
 const TrackingSchema = new mongoose.Schema<Tracking>(
   {
@@ -27,13 +41,13 @@ const InvoiceCustomerSchema = new mongoose.Schema<InvoiceCustomer>(
   { _id: false }
 );
 
-const PrescriptionValidationSchema = new mongoose.Schema({
+const PrescriptionValidationSchema = new mongoose.Schema<PrescriptionValidation>({
   comments: String,
   rut: String,
   responsible: String,
 });
 
-const PrescriptionSchema = new mongoose.Schema({
+const PrescriptionSchema = new mongoose.Schema<Prescription>({
   file: String,
   state: String,
   validation: PrescriptionValidationSchema,
@@ -85,7 +99,7 @@ const DescuentosUnitariosSchema = new mongoose.Schema(
   { _id: false }
 );
 
-const DiscountDetailsSchema = new mongoose.Schema(
+const DiscountDetailsSchema = new mongoose.Schema<Details>(
   {
     descuentos_unitarios: [DescuentosUnitariosSchema],
     discount: Number,
@@ -96,7 +110,7 @@ const DiscountDetailsSchema = new mongoose.Schema(
   { _id: false }
 );
 
-const DiscountSchema = new mongoose.Schema(
+const DiscountSchema = new mongoose.Schema<Discount>(
   {
     details: [DiscountDetailsSchema],
     total: Number,
@@ -104,7 +118,7 @@ const DiscountSchema = new mongoose.Schema(
   { _id: false }
 );
 
-const ResumeOrderSchema = new mongoose.Schema(
+const ResumeOrderSchema = new mongoose.Schema<ResumeOrder>(
   {
     canal: String,
     convenio: String,
@@ -118,7 +132,7 @@ const ResumeOrderSchema = new mongoose.Schema(
   { _id: false }
 );
 
-const PaymentFormsSchema = new mongoose.Schema(
+const PaymentFormsSchema = new mongoose.Schema<PaymentForm>(
   {
     amount: Number,
     method: String,
@@ -127,7 +141,7 @@ const PaymentFormsSchema = new mongoose.Schema(
   { _id: false }
 );
 
-const PaymentSchema = new mongoose.Schema(
+const PaymentSchema = new mongoose.Schema<Payment>(
   {
     payment: {
       amount: Number,
@@ -165,7 +179,7 @@ const DeliveryDocumentoSchema = new mongoose.Schema(
   { _id: false }
 );
 
-const DocumentoSchema = new mongoose.Schema(
+const DocumentoSchema = new mongoose.Schema<Documento>(
   {
     delivery: DeliveryDocumentoSchema,
     documento: String,
@@ -183,7 +197,7 @@ const DocumentoSchema = new mongoose.Schema(
   { _id: false }
 );
 
-const DeliveryTrackingSchema = new mongoose.Schema(
+const DeliveryTrackingSchema = new mongoose.Schema<DeliveryTracking>(
   {
     estado: String,
     fecha: Number,
