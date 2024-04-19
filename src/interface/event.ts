@@ -18,16 +18,7 @@ export type IAction =
   | 'asignar-documento-tributario'
   | 'asignar-courier'
   | 'actualizar-order-status-webhook'
-
-  //
-  | 'actualizar-a-retiro-envio'
-  | 'actualizar-courier'
-  | 'actualizar-a-envio'
-  | 'actualizar-a-listo-retiro'
-  | 'generar-documento-tributario'
-  | 'confirmar-asignacion-courier'
-  | 'actualizar-tracking-courier'
-  | 'rechazar-order';
+  | 'actualizar-order-observacion';
 
 export interface IAsignacionCourier {
   id: string;
