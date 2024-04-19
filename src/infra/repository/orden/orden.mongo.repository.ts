@@ -11,8 +11,10 @@ import {
   IUploadPrescription,
 } from '../../../core/modules/order/application/interface';
 import { IOrderHistory, StatusOrder, Tracking } from '../../../core/modules/order/domain/order.entity';
-import { IUpdateProvisionalStatusOrder } from '../../../core/modules/order/domain/order.respository.interface';
-import { IAsignarDocumentosTributarios } from 'src/interface/event';
+import {
+  IAsignarDocumentosTributariosPayload,
+  IUpdateProvisionalStatusOrder,
+} from '../../../core/modules/order/domain/order.respository.interface';
 
 export class OrdenMongoRepository implements IOrdenRepository {
   createOrderFromEcommerce = async (payload: ICrearOrden) => {
@@ -143,7 +145,7 @@ export class OrdenMongoRepository implements IOrdenRepository {
     );
   };
 
-  asignarDocumentosTributarios = async (payload: IAsignarDocumentosTributarios) => {
+  asignarDocumentosTributarios = async (payload: IAsignarDocumentosTributariosPayload) => {
     console.log('------Order To Asignar Documento Tributario ---- ', payload);
 
     return await OrderModel.findOneAndUpdate(
@@ -157,6 +159,7 @@ export class OrdenMongoRepository implements IOrdenRepository {
           'billing.urlTimbre': payload.urlTimbre,
           'billing.emissionDate': payload.emissionDate,
           'billing.referenceDocumentId': payload.referenceDocumentId,
+          'billing.status': payload.status,
         },
       },
       { new: true, upsert: true }
