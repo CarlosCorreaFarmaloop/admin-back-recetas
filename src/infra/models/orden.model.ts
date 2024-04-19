@@ -147,6 +147,7 @@ const PaymentSchema = new mongoose.Schema<Payment>(
     payment: {
       amount: Number,
       method: String,
+      paymentDate: Number,
       originCode: String,
       status: String,
       wallet: String,
