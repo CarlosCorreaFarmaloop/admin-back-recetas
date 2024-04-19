@@ -109,7 +109,7 @@ export interface Delivery {
   type: DeliveryType;
   cost: number;
   provider: DeliveryProvider;
-  deliveryTracking?: DeliveryTracking[];
+  deliveryTracking: DeliveryTracking[];
   compromiso_entrega: string;
 }
 
@@ -134,7 +134,7 @@ export type DeliveryType =
 export interface DeliveryProvider {
   provider: string;
   urlLabel: string;
-  trackingNumber?: string;
+  trackingNumber: string;
   emmissionDate?: number;
 
   status: DeliveryProviderStatus;

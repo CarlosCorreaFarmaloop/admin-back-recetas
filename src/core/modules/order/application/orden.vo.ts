@@ -50,7 +50,9 @@ export class OrdenOValue {
           status: '',
           provider: '',
           urlLabel: '',
+          trackingNumber: '',
         },
+        deliveryTracking: [],
       },
       productsOrder: order.productsOrder.map((product) => {
         return {
@@ -208,7 +210,9 @@ export class OrdenOValue {
           status: '',
           provider: '',
           urlLabel: '',
+          trackingNumber: '',
         },
+        deliveryTracking: [],
       },
     };
   };

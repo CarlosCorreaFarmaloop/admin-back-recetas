@@ -32,8 +32,8 @@ export const handler = async (event: SQSEvent) => {
     const { origin, body, action } = bodyEvent.detail;
 
     // Only Development Environment
-    // const bodyDetail = JSON.parse(event.body);
-    // const { origin, body, action } = bodyDetail;
+    // // const bodyDetail = JSON.parse(event.body);
+    // // const { origin, body, action } = bodyDetail;
 
     const orderRespository = new OrdenMongoRepository();
     const cotizacionRespository = new CotizacionRepository();
