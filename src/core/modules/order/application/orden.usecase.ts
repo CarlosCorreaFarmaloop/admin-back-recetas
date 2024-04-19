@@ -56,122 +56,159 @@ export class OrdenUseCase implements IOrdenUseCase {
       order.payment.payment.method;
 
     if (isOrdenCompleta) {
-      // Joi Schema ICreateOrder
-      const createCompleteOrderSchema = Joi.object({
+      const Documento = Joi.string().valid('bill', 'dispatch_note');
+
+      const Producto = Joi.object({
+        sku: Joi.string().required(),
+        lote: Joi.string().required(),
+        descuento_unitario: Joi.number().required(),
+        cantidad_afectada: Joi.number().required(),
+        copago_unitario: Joi.number().required(),
+        precio_pagado_por_unidad: Joi.number().required(),
+        deducible_unitario: Joi.number().required(),
+        nombre: Joi.string().required(),
+        observacion: Joi.string().required(),
+      });
+
+      const ISeguroComplementario = Joi.object({
+        nombreBeneficiario: Joi.string().required(),
+        id_externo: Joi.number().required(),
+        credencial_url: Joi.string().required(),
+        deducible_total: Joi.number().required(),
+        descuento_total: Joi.number().required(),
+        tipo_documento_emitir: Documento.required(),
+        fecha_creacion: Joi.number().required(),
         id: Joi.string().required(),
-        cotizacion: Joi.string().optional(),
+        productos: Joi.array().items(Producto).required(),
+        rut: Joi.string().required(),
+        aseguradora_rut: Joi.string().required(),
+        aseguradora_nombre: Joi.string().required(),
+      });
+
+      const IReferrer = Joi.object({
+        referrer: Joi.string().required().allow(''),
+      });
+
+      const Details = Joi.object({
+        discount: Joi.number().required(),
+        promotionCode: Joi.string().required(),
+        reference: Joi.string().required(),
+        type: Joi.string().required(),
+      });
+
+      const Discount = Joi.object({
+        details: Joi.array().items(Details).required(),
+        total: Joi.number().required(),
+      });
+
+      const ResumeOrder = Joi.object({
+        canal: Joi.string().required(),
+        deliveryPrice: Joi.number().required(),
+        discount: Discount.required(),
+        subtotal: Joi.number().required(),
+        totalPrice: Joi.number().required(),
+        nroProducts: Joi.number().required(),
+      });
+
+      const Prescription = Joi.object({
+        file: Joi.string().required(),
+      });
+
+      const PrescriptionType = Joi.string().valid(
+        'Presentación receta médica',
+        'Venta directa (Sin receta)',
+        'Venta bajo receta cheque',
+        'Receta médica retenida'
+      );
+
+      const ProductOrder = Joi.object({
+        batchId: Joi.string().required(),
+        bioequivalent: Joi.boolean().required(),
+        cooled: Joi.boolean().required(),
+        ean: Joi.string().required(),
+        expiration: Joi.number().required(),
+        fullName: Joi.string().required(),
+        laboratoryName: Joi.string().required(),
+        liquid: Joi.boolean().required(),
+        normalUnitPrice: Joi.number().required(),
+        pharmaceuticalForm: Joi.string().required().allow(''),
+        photoURL: Joi.string().required(),
+        prescription: Prescription.required(),
+        prescriptionType: PrescriptionType.required(),
+        presentation: Joi.string().required(),
+        price: Joi.number().required(),
+        productCategory: Joi.string().required(),
+        productSubCategory: Joi.array().items(Joi.string()).required(),
+        qty: Joi.number().required(),
+        quantityPerContainer: Joi.string().required().allow(''),
+        recommendations: Joi.string().required().allow(''),
+        requirePrescription: Joi.boolean().required(),
+        shortName: Joi.string().required(),
+        sku: Joi.string().required(),
+        pricePaidPerUnit: Joi.number().required(),
+        discountPerUnit: Joi.number().required(),
+      });
+
+      const DeliveryAddress = Joi.object({
+        comuna: Joi.string().required().allow(''),
+        dpto: Joi.string().required().allow(''),
+        firstName: Joi.string().required().allow(''),
+        homeType: Joi.string().required().allow(''),
+        lastName: Joi.string().required().allow(''),
+        phone: Joi.string().required().allow(''),
+        region: Joi.string().required().allow(''),
+        streetName: Joi.string().required().allow(''),
+        streetNumber: Joi.string().required().allow(''),
+      });
+
+      const DeliveryMethod = Joi.string().valid('DELIVERY', 'STORE');
+
+      const DeliveryType = Joi.string().valid(
+        '',
+        'Envío Estándar (48 horas hábiles)',
+        'Envío Express (4 horas hábiles)',
+        'Envío en el día (24 horas hábiles)',
+        'Envío 24 horas hábiles'
+      );
+
+      const ICompromisoEntrega = Joi.object({
+        dateText: Joi.string().required(),
+        date: Joi.number().required(),
+      });
+
+      const Delivery = Joi.object({
+        cost: Joi.number().required(),
+        delivery_address: DeliveryAddress.required(),
+        method: DeliveryMethod.required(),
+        type: DeliveryType.required().allow(''),
+        compromiso_entrega: ICompromisoEntrega.required(),
+        discount: Joi.number().required(),
+        pricePaid: Joi.number().required(),
+      });
+
+      const Payment = Joi.object({
         payment: Joi.object({
-          payment: Joi.object({
-            amount: Joi.number().required(),
-            method: Joi.string().required(),
-            originCode: Joi.string().required(),
-            status: Joi.string().required(),
-            wallet: Joi.string().required(),
-          }).required(),
-        }).required(),
-        customer: Joi.string().required(),
-        extras: Joi.object({
-          referrer: Joi.string().required().allow(''),
-        }).required(),
-        // Array ProductOrder
-        productsOrder: Joi.array()
-          .items(
-            Joi.object({
-              batchId: Joi.string().required(),
-              bioequivalent: Joi.boolean().required(),
-              cooled: Joi.boolean().required(),
-              ean: Joi.string().required(),
-              modified: Joi.boolean().required(),
-              expiration: Joi.number().required(),
-              laboratoryName: Joi.string().required(),
-              lineNumber: Joi.number().optional(),
-              liquid: Joi.boolean().required(),
-              fullName: Joi.string().required(),
-              normalUnitPrice: Joi.number().required(),
-              originalPrice: Joi.number().required(),
-              pharmaceuticalForm: Joi.string().required().allow(''),
-              photoURL: Joi.string().required(),
-              prescription: Joi.object({
-                file: Joi.string().required().allow(''),
-                state: Joi.string().required().allow(''),
-                validation: Joi.object({
-                  comments: Joi.string().required().allow(''),
-                  rut: Joi.string().required().allow(''),
-                  responsible: Joi.string().required().allow(''),
-                }).required(),
-              }).optional(),
-              prescriptionType: Joi.string().required(),
-              presentation: Joi.string().required(),
-              price: Joi.number().required(),
-              productCategory: Joi.string().required(),
-              productSubCategory: Joi.array().items(Joi.string()).required(),
-              qty: Joi.number().required(),
-              quantityPerContainer: Joi.string().required().allow(''),
-              recommendations: Joi.string().required().allow(''),
-              referenceId: Joi.number().optional(),
-              refundedQuantity: Joi.number().optional(),
-              requirePrescription: Joi.boolean().required(),
-              shortName: Joi.string().optional().allow(''),
-              sku: Joi.string().required(),
-            })
-          )
-          .required(),
-        resumeOrder: Joi.object({
-          canal: Joi.string().optional().allow(''),
-          convenio: Joi.string().optional(),
-          deliveryPrice: Joi.number().required(),
-          discount: Joi.object({
-            details: Joi.array()
-              .items(
-                Joi.object({
-                  descuentos_unitarios: Joi.array()
-                    .items(
-                      Joi.object({
-                        cantidad: Joi.number().required(),
-                        descuento_unitario: Joi.number().required(),
-                        expireDate: Joi.string().required(),
-                        lote_id: Joi.string().required(),
-                        mg: Joi.number().required(),
-                        price: Joi.number().required(),
-                        sku: Joi.string().required(),
-                      })
-                    )
-                    .required(),
-                  discount: Joi.number().required(),
-                  promotionCode: Joi.string().required(),
-                  reference: Joi.string().required(),
-                  type: Joi.string().required(),
-                })
-              )
-              .required(),
-            total: Joi.number().required(),
-          }).required(),
-          nroProducts: Joi.number().required(),
-          subtotal: Joi.number().required(),
-          totalPrice: Joi.number().required(),
-        }).required(),
-        statusOrder: Joi.string().required(),
-        delivery: Joi.object({
-          delivery_address: Joi.object({
-            comuna: Joi.string().required(),
-            dpto: Joi.string().optional().allow(''),
-            firstName: Joi.string().required(),
-            lastName: Joi.string().optional().allow(''),
-            fullAddress: Joi.string().optional().allow(''),
-            homeType: Joi.string().optional().allow(''),
-            phone: Joi.string().required(),
-            region: Joi.string().required(),
-            streetName: Joi.string().optional().allow(''),
-            streetNumber: Joi.string().optional().allow(''),
-          }).required(),
-          method: Joi.string().required(),
-          type: Joi.string().required(),
-          cost: Joi.number().required(),
-          compromiso_entrega: Joi.string().required(),
+          originCode: Joi.string(),
+          amount: Joi.number(),
+          method: Joi.string(),
+          status: Joi.string().required(),
+          wallet: Joi.string().required(),
+          paymentDate: Joi.number(),
         }).required(),
       });
 
-      const { error } = createCompleteOrderSchema.validate(order);
+      const ecommerceOrderSchema = Joi.object({
+        id: Joi.string().required(),
+        customer: Joi.string().required(),
+        delivery: Delivery.required(),
+        payment: Payment.required(),
+        productsOrder: Joi.array().items(ProductOrder).required(),
+        resumeOrder: ResumeOrder.required(),
+        extras: IReferrer.required(),
+        seguroComplementario: ISeguroComplementario.optional(),
+      });
+
+      const { error } = ecommerceOrderSchema.validate(order);
 
       if (error) {
         throw new ApiResponse(HttpCodes.BAD_REQUEST, order, error.message);
@@ -179,7 +216,6 @@ export class OrdenUseCase implements IOrdenUseCase {
 
       const ordenCompleta = new OrdenOValue().completeOrderFromEcommerce(order);
 
-      // const nuevaOrdenCompleta = await this.createOrder(new_order, origin);
       const nuevaOrden = await this.ordenRepository.createOrderFromEcommerce(ordenCompleta);
 
       if (!nuevaOrden) {
@@ -217,118 +253,152 @@ export class OrdenUseCase implements IOrdenUseCase {
 
     // Create Partial Order
     if (!isOrdenCompleta) {
+      const Documento = Joi.string().valid('bill', 'dispatch_note');
+
+      const Producto = Joi.object({
+        sku: Joi.string().required(),
+        lote: Joi.string().required(),
+        descuento_unitario: Joi.number().required(),
+        cantidad_afectada: Joi.number().required(),
+        copago_unitario: Joi.number().required(),
+        precio_pagado_por_unidad: Joi.number().required(),
+        deducible_unitario: Joi.number().required(),
+        nombre: Joi.string().required(),
+        observacion: Joi.string().required(),
+      });
+
+      const ISeguroComplementario = Joi.object({
+        nombreBeneficiario: Joi.string().required(),
+        id_externo: Joi.number().required(),
+        credencial_url: Joi.string().required(),
+        deducible_total: Joi.number().required(),
+        descuento_total: Joi.number().required(),
+        tipo_documento_emitir: Documento.required(),
+        fecha_creacion: Joi.number().required(),
+        id: Joi.string().required(),
+        productos: Joi.array().items(Producto).required(),
+        rut: Joi.string().required(),
+        aseguradora_rut: Joi.string().required(),
+        aseguradora_nombre: Joi.string().required(),
+      });
+
+      const IReferrer = Joi.object({
+        referrer: Joi.string().required().allow(''),
+      });
+
+      const Details = Joi.object({
+        discount: Joi.number().required(),
+        promotionCode: Joi.string().required(),
+        reference: Joi.string().required(),
+        type: Joi.string().required(),
+      });
+
+      const Discount = Joi.object({
+        details: Joi.array().items(Details).required(),
+        total: Joi.number().required(),
+      });
+
+      const ResumeOrder = Joi.object({
+        canal: Joi.string().required(),
+        deliveryPrice: Joi.number().required(),
+        discount: Discount.required(),
+        subtotal: Joi.number().required(),
+        totalPrice: Joi.number().required(),
+        nroProducts: Joi.number().required(),
+      });
+
+      const Prescription = Joi.object({
+        file: Joi.string().required(),
+      });
+
+      const PrescriptionType = Joi.string().valid(
+        'Presentación receta médica',
+        'Venta directa (Sin receta)',
+        'Venta bajo receta cheque',
+        'Receta médica retenida'
+      );
+
+      const ProductOrder = Joi.object({
+        batchId: Joi.string().required(),
+        bioequivalent: Joi.boolean().required(),
+        cooled: Joi.boolean().required(),
+        ean: Joi.string().required(),
+        expiration: Joi.number().required(),
+        fullName: Joi.string().required(),
+        laboratoryName: Joi.string().required(),
+        liquid: Joi.boolean().required(),
+        normalUnitPrice: Joi.number().required(),
+        pharmaceuticalForm: Joi.string().required().allow(''),
+        photoURL: Joi.string().required(),
+        prescription: Prescription.required(),
+        prescriptionType: PrescriptionType.required(),
+        presentation: Joi.string().required(),
+        price: Joi.number().required(),
+        productCategory: Joi.string().required(),
+        productSubCategory: Joi.array().items(Joi.string()).required(),
+        qty: Joi.number().required(),
+        quantityPerContainer: Joi.string().required().allow(''),
+        recommendations: Joi.string().required().allow(''),
+        requirePrescription: Joi.boolean().required(),
+        shortName: Joi.string().required(),
+        sku: Joi.string().required(),
+        pricePaidPerUnit: Joi.number().required(),
+        discountPerUnit: Joi.number().required(),
+      });
+
+      const DeliveryAddress = Joi.object({
+        comuna: Joi.string().required().allow(''),
+        dpto: Joi.string().required().allow(''),
+        firstName: Joi.string().required().allow(''),
+        homeType: Joi.string().required().allow(''),
+        lastName: Joi.string().required().allow(''),
+        phone: Joi.string().required().allow(''),
+        region: Joi.string().required().allow(''),
+        streetName: Joi.string().required().allow(''),
+        streetNumber: Joi.string().required().allow(''),
+      });
+
+      const DeliveryMethod = Joi.string().valid('DELIVERY', 'STORE');
+
+      const DeliveryType = Joi.string().valid(
+        '',
+        'Envío Estándar (48 horas hábiles)',
+        'Envío Express (4 horas hábiles)',
+        'Envío en el día (24 horas hábiles)',
+        'Envío 24 horas hábiles'
+      );
+
+      const ICompromisoEntrega = Joi.object({
+        dateText: Joi.string().required(),
+        date: Joi.number().required(),
+      });
+
+      const Delivery = Joi.object({
+        cost: Joi.number().required(),
+        delivery_address: DeliveryAddress.required(),
+        method: DeliveryMethod.required(),
+        type: DeliveryType.required().allow(''),
+        compromiso_entrega: ICompromisoEntrega.required(),
+        discount: Joi.number().required(),
+        pricePaid: Joi.number().required(),
+      });
+
+      const Payment = Joi.object({
+        payment: Joi.object({
+          status: Joi.string().required(),
+          wallet: Joi.string().required(),
+        }).required(),
+      });
+
       const createPartialOrderSchema = Joi.object({
         id: Joi.string().required(),
-        cotizacion: Joi.string().optional(),
         customer: Joi.string().required(),
-        extras: Joi.object({
-          referrer: Joi.string().required().allow(''),
-        }).required(),
-        payment: Joi.object({
-          payment: Joi.object({
-            amount: Joi.number().optional(),
-            method: Joi.string().optional(),
-            originCode: Joi.string().optional(),
-            status: Joi.string().required(),
-            wallet: Joi.string().required(),
-          }).required(),
-        }).optional(),
-        // Array ProductOrder
-        productsOrder: Joi.array()
-          .items(
-            Joi.object({
-              batchId: Joi.string().required(),
-              bioequivalent: Joi.boolean().required(),
-              cooled: Joi.boolean().required(),
-              ean: Joi.string().required(),
-              expiration: Joi.number().required(),
-              laboratoryName: Joi.string().required(),
-              lineNumber: Joi.number().optional(),
-              liquid: Joi.boolean().required(),
-              modified: Joi.boolean().required(),
-              fullName: Joi.string().required(),
-              normalUnitPrice: Joi.number().required(),
-              originalPrice: Joi.number().required(),
-              pharmaceuticalForm: Joi.string().required().allow(''),
-              photoURL: Joi.string().required(),
-              prescription: Joi.object({
-                file: Joi.string().required().allow(''),
-                state: Joi.string().required().allow(''),
-                validation: Joi.object({
-                  comments: Joi.string().required().allow(''),
-                  rut: Joi.string().required().allow(''),
-                  responsible: Joi.string().required().allow(''),
-                }).required(),
-              }).optional(),
-              prescriptionType: Joi.string().required(),
-              presentation: Joi.string().required(),
-              price: Joi.number().required(),
-              productCategory: Joi.string().required(),
-              productSubCategory: Joi.array().items(Joi.string()).required(),
-              qty: Joi.number().required(),
-              quantityPerContainer: Joi.string().required().allow(''),
-              recommendations: Joi.string().required().allow(''),
-              referenceId: Joi.number().optional(),
-              refundedQuantity: Joi.number().optional(),
-              requirePrescription: Joi.boolean().required(),
-              shortName: Joi.string().optional().allow(''),
-              sku: Joi.string().required(),
-            })
-          )
-          .required(),
-        resumeOrder: Joi.object({
-          canal: Joi.string().optional().allow(''),
-          convenio: Joi.string().optional(),
-          deliveryPrice: Joi.number().required(),
-          discount: Joi.object({
-            details: Joi.array()
-              .items(
-                Joi.object({
-                  descuentos_unitarios: Joi.array()
-                    .items(
-                      Joi.object({
-                        cantidad: Joi.number().required(),
-                        descuento_unitario: Joi.number().required(),
-                        expireDate: Joi.string().required(),
-                        lote_id: Joi.string().required(),
-                        mg: Joi.number().required(),
-                        price: Joi.number().required(),
-                        sku: Joi.string().required(),
-                      })
-                    )
-                    .required(),
-                  discount: Joi.number().required(),
-                  promotionCode: Joi.string().required(),
-                  reference: Joi.string().required(),
-                  type: Joi.string().required(),
-                })
-              )
-              .required(),
-            total: Joi.number().required(),
-          }).required(),
-          nroProducts: Joi.number().required(),
-          subtotal: Joi.number().required(),
-          totalPrice: Joi.number().required(),
-        }).required(),
-        statusOrder: Joi.string().required(),
-        delivery: Joi.object({
-          delivery_address: Joi.object({
-            comuna: Joi.string().required(),
-            dpto: Joi.string().optional().allow(''),
-            firstName: Joi.string().required(),
-            lastName: Joi.string().optional().allow(''),
-            fullAddress: Joi.string().optional().allow(''),
-            homeType: Joi.string().optional().allow(''),
-            phone: Joi.string().required(),
-            region: Joi.string().required(),
-            streetName: Joi.string().optional().allow(''),
-            streetNumber: Joi.string().optional().allow(''),
-          }).required(),
-          method: Joi.string().required(),
-          type: Joi.string().required(),
-          cost: Joi.number().required(),
-          compromiso_entrega: Joi.string().required(),
-        }).required(),
+        delivery: Delivery.required(),
+        payment: Payment.required(),
+        productsOrder: Joi.array().items(ProductOrder).required(),
+        resumeOrder: ResumeOrder.required(),
+        extras: IReferrer.required(),
+        seguroComplementario: ISeguroComplementario.optional(),
       });
 
       const { error } = createPartialOrderSchema.validate(order);

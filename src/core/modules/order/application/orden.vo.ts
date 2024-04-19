@@ -28,7 +28,6 @@ export class OrdenOValue {
         status: '',
         urlBilling: '',
       },
-      cotizacion: order.cotizacion,
       customer: order.customer,
       extras: order.extras,
       payment: nuevo_pago,
@@ -53,11 +52,12 @@ export class OrdenOValue {
           trackingNumber: '',
         },
         deliveryTracking: [],
+        discount: 0,
+        pricePaid: 0,
       },
       productsOrder: order.productsOrder.map((product) => {
         return {
           batchId: product.batchId,
-          modified: product.modified,
           bioequivalent: product.bioequivalent,
           cooled: product.cooled,
           ean: product.ean,
@@ -70,7 +70,6 @@ export class OrdenOValue {
           shortName: '',
           laboratoryName: product.laboratoryName,
           normalUnitPrice: product.normalUnitPrice,
-          originalPrice: product.originalPrice,
           prescription: {
             file: product?.prescription?.file ?? '',
             state: product.requirePrescription ? 'Pending' : '',
@@ -91,6 +90,8 @@ export class OrdenOValue {
           productSubCategory: product.productSubCategory,
           quantityPerContainer: product.quantityPerContainer,
           recommendations: product.recommendations,
+          discountPerUnit: 0,
+          pricePaidPerUnit: 0,
         };
       }),
       resumeOrder: {
@@ -110,7 +111,7 @@ export class OrdenOValue {
           total: order.resumeOrder.discount.total,
         },
       },
-      statusOrder: order.statusOrder,
+      statusOrder: 'CREADO',
       provisionalStatusOrder: '',
     };
   };
@@ -125,7 +126,6 @@ export class OrdenOValue {
         status: '',
         urlBilling: '',
       },
-      cotizacion: order.cotizacion,
       customer: order.customer,
       extras: order.extras,
       payment: {
@@ -147,10 +147,8 @@ export class OrdenOValue {
           total: product,
           expiration: product.expiration,
           shortName: '',
-          modified: product.modified,
           laboratoryName: product.laboratoryName,
           normalUnitPrice: product.normalUnitPrice,
-          originalPrice: product.originalPrice,
           prescription: {
             file: product?.prescription?.file ?? '',
             state: product.requirePrescription ? 'Pending' : '',
@@ -171,6 +169,8 @@ export class OrdenOValue {
           productSubCategory: product.productSubCategory,
           quantityPerContainer: product.quantityPerContainer,
           recommendations: product.recommendations,
+          discountPerUnit: 0,
+          pricePaidPerUnit: 0,
         };
       }),
       resumeOrder: {
@@ -190,7 +190,6 @@ export class OrdenOValue {
           total: order.resumeOrder.discount.total,
         },
       },
-      statusOrder: order.statusOrder,
       provisionalStatusOrder: '',
       delivery: {
         delivery_address: {
@@ -213,7 +212,10 @@ export class OrdenOValue {
           trackingNumber: '',
         },
         deliveryTracking: [],
+        discount: 0,
+        pricePaid: 0,
       },
+      statusOrder: 'CREADO',
     };
   };
 

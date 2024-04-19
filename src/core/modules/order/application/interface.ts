@@ -10,7 +10,7 @@ import {
 export type ICrearOrden = Pick<
   OrdenEntity,
   | 'id'
-  | 'cotizacion'
+  | 'seguroComplementario'
   | 'payment'
   | 'customer'
   | 'extras'
@@ -25,7 +25,7 @@ export type ICrearOrden = Pick<
 export type ICrearPartialOrden = Pick<
   OrdenEntity,
   | 'id'
-  | 'cotizacion'
+  | 'seguroComplementario'
   | 'customer'
   | 'extras'
   | 'productsOrder'
