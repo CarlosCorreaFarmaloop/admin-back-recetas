@@ -1,5 +1,6 @@
 import mongoose, { model } from 'mongoose';
 import {
+  IOrderHistory,
   DeliveryTracking,
   Payment,
   PaymentForm,
@@ -345,7 +346,7 @@ const ObservationsSchema = new mongoose.Schema(
   { _id: false }
 );
 
-const HistorySchema = new mongoose.Schema(
+const HistorySchema = new mongoose.Schema<IOrderHistory>(
   {
     type: {
       type: String,
