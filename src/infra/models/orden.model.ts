@@ -190,7 +190,9 @@ const DocumentoSchema = new mongoose.Schema(
 const DeliveryTrackingSchema = new mongoose.Schema(
   {
     estado: String,
-    fecha: Date,
+    fecha: Number,
+    comentario: String,
+    evidencias: [String],
   },
   { _id: false }
 );
@@ -205,16 +207,17 @@ const DeliveryTransportSchema = new mongoose.Schema(
 
 const ProviderSchema = new mongoose.Schema(
   {
+    trackingNumber: String,
     status: String,
     statusDate: Date,
     provider: String,
-    orderTransport: String,
     urlLabel: String,
-    trackingNumber: String,
-    urlLabelRayo: String,
+
+    orderTransport: String,
     service_id: String,
-    delivery_transport: DeliveryTransportSchema,
     method: String,
+    delivery_transport: DeliveryTransportSchema,
+    urlLabelRayo: String,
   },
   { _id: false }
 );

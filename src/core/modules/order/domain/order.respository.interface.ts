@@ -13,7 +13,7 @@ export interface IAsignarCourierPayload {
   provider: string;
   urlLabel: string;
   trackingNumber: string;
-  emmissionDate: number;
+  emissionDate: number;
   deliveryTracking: DeliveryTracking;
 }
 

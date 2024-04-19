@@ -801,9 +801,9 @@ export class OrdenUseCase implements IOrdenUseCase {
       trackingNumber: Joi.string().required(),
       emissionDate: Joi.number().required(),
       deliveryTracking: Joi.object({
-        fecha: Joi.date().required(),
+        fecha: Joi.number().required(),
         estado: Joi.string().required(),
-        comentario: Joi.string().required(),
+        comentario: Joi.string().required().allow(''),
         evidencias: Joi.array().items(Joi.string()).required(),
       }).required(),
     });

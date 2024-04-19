@@ -179,7 +179,7 @@ export class OrdenMongoRepository implements IOrdenRepository {
           'delivery.provider.provider': payload.provider,
           'delivery.provider.urlLabel': payload.urlLabel,
           'delivery.provider.trackingNumber': payload.trackingNumber,
-          'delivery.provider.emmissionDate': payload.emmissionDate,
+          'delivery.provider.emissionDate': payload.emissionDate,
         },
         $push: {
           'delivery.deliveryTracking': payload.deliveryTracking,
