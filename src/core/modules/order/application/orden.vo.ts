@@ -9,6 +9,8 @@ import { diccionarioTipoDelivery } from '../domain/utils/diccionario/tipoDeliver
 
 export class OrdenOValue {
   completeOrderFromEcommerce = (order: EcommerceOrderEntity): ICrearOrden => {
+    const createdDate = new Date();
+
     const nuevo_pago: Payment = {
       payment: {
         amount: validateNumberType(order?.payment?.payment.amount),
@@ -112,10 +114,13 @@ export class OrdenOValue {
       },
       statusOrder: 'CREADO',
       provisionalStatusOrder: '',
+      createdAt: createdDate,
     };
   };
 
   createPartialOrder = (order: EcommerceOrderEntity): ICrearPartialOrden => {
+    const createdDate = new Date();
+
     return {
       id: order.id,
       billing: {
@@ -150,7 +155,7 @@ export class OrdenOValue {
           prescription: {
             file: product?.prescription?.file ?? '',
             state: product.requirePrescription ? 'Pending' : '',
-            stateDate: new Date().getTime(),
+            stateDate: createdDate.getTime(),
             validation: {
               comments: '',
               rut: '',
@@ -214,6 +219,7 @@ export class OrdenOValue {
         pricePaid: 0,
       },
       statusOrder: 'CREADO',
+      createdAt: createdDate,
     };
   };
 

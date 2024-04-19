@@ -172,7 +172,7 @@ export class OrdenUseCase implements IOrdenUseCase {
       );
 
       const ICompromisoEntrega = Joi.object({
-        dateText: Joi.string().required(),
+        dateText: Joi.string().required().allow(''),
         date: Joi.number().required(),
       });
 
@@ -369,7 +369,7 @@ export class OrdenUseCase implements IOrdenUseCase {
       );
 
       const ICompromisoEntrega = Joi.object({
-        dateText: Joi.string().required(),
+        dateText: Joi.string().required().allow(''),
         date: Joi.number().required(),
       });
 

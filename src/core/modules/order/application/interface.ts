@@ -20,6 +20,7 @@ export type ICrearOrden = Pick<
   | 'delivery'
   | 'billing'
   | 'provisionalStatusOrder'
+  | 'createdAt'
 >;
 
 export type ICrearPartialOrden = Pick<
@@ -35,6 +36,7 @@ export type ICrearPartialOrden = Pick<
   | 'payment'
   | 'billing'
   | 'provisionalStatusOrder'
+  | 'createdAt'
 >;
 
 export type IUpdatePaymentOrden = Pick<OrdenEntity, 'id' | 'payment'>;
