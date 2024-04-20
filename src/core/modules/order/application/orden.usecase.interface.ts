@@ -3,6 +3,7 @@ import {
   IActualizarOrderStatusWebhook,
   IAsignarCourier,
   IAsignarDocumentosTributarios,
+  ICancelarOrder,
   IOrderBackToFlow,
   IOrigin,
   IUpdateStatusOderObservation,
@@ -41,6 +42,7 @@ export interface IOrdenUseCase {
   notificarCambioOrden: (orderId: string) => Promise<void>;
   updateOrderStatusObservation: (payload: IUpdateStatusOderObservation) => Promise<void>;
   regresarOrderAlFlujo: (payload: IOrderBackToFlow) => Promise<void>;
+  cancelarOrden: (payload: ICancelarOrder) => Promise<void>;
 
   // Documentos Tributarios
   generarDocumentosTributarios: (payload: IDocumentoTributarioEventInput) => Promise<void>;

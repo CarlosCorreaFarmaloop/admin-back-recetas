@@ -6,14 +6,14 @@ import { ICourierEventInput } from './courier.interface';
 const eventBridgeClient = new EventBridgeClient();
 const env = process.env.ENV?.toLowerCase() ?? '';
 
-export const notificarEstadoDeOrden = async (orden: OrdenEntity) => {
+export const notificarEstadoDeOrden = async (orden: OrdenEntity, toPos: boolean) => {
   const { id } = orden;
 
   const evento = await eventBridgeClient.send(
     new PutEventsCommand({
       Entries: [
         {
-          Detail: JSON.stringify({ id }),
+          Detail: JSON.stringify({ id, toPos }),
           DetailType: 'Notificacion de orden.',
           EventBusName: 'arn:aws:events:us-east-1:069526102702:event-bus/default',
           Source: `notify_status_order_${env}`,

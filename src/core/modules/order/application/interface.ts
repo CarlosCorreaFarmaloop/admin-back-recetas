@@ -44,6 +44,7 @@ export type IUpdatePaymentOrden = Pick<OrdenEntity, 'id' | 'payment'>;
 export interface IUpdateOrderTracking extends Pick<OrdenEntity, 'id'> {
   statusOrder: StatusOrder;
   responsible: string;
+  reason: string;
 }
 
 export interface IUpdateOrderHistory extends Pick<OrdenEntity, 'id'> {
@@ -108,4 +109,10 @@ export interface IAddObservation {
     name: string;
     date: Date;
   };
+}
+
+export interface ICancelOrder {
+  id: string;
+  responsible: string;
+  reason: string;
 }

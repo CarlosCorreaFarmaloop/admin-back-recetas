@@ -6,6 +6,7 @@ import {
   IActualizarOrderStatusWebhook,
   IAsignarCourier,
   IAsignarDocumentosTributarios,
+  ICancelarOrder,
   IOrderBackToFlow,
   IOrigin,
   IUpdateStatusOderObservation,
@@ -509,6 +510,7 @@ export class OrdenUseCase implements IOrdenUseCase {
         id: order.id,
         responsible,
         statusOrder: newStatus,
+        reason: 'SISTEMA',
       });
 
       await this.updateOrderHistory({
@@ -583,7 +585,7 @@ export class OrdenUseCase implements IOrdenUseCase {
       }
 
       // Notificar Cliente
-      await notificarEstadoDeOrden(ordenStatusActualizada);
+      await notificarEstadoDeOrden(ordenStatusActualizada, false);
 
       await actualizarOrdenEccomerce(ordenStatusActualizada, newStatus === 'CANCELADO');
 
@@ -612,6 +614,7 @@ export class OrdenUseCase implements IOrdenUseCase {
       date: new Date(),
       responsible: payload.responsible,
       toStatus: payload.statusOrder,
+      reason: payload.reason,
     });
 
     if (!ordenTrackingActualizado)
@@ -909,6 +912,79 @@ export class OrdenUseCase implements IOrdenUseCase {
     if (!orderVo) throw new ApiResponse(HttpCodes.BAD_REQUEST, orderVo, 'Error al regresar la orden al flujo.');
 
     await this.updateStatusOrder(orderVo, payload.order.statusOrder, orderVo.statusOrder, payload.responsible);
+  };
+
+  cancelarOrden = async (payload: ICancelarOrder) => {
+    try {
+      const cancelarOrdenSchema = Joi.object({
+        id: Joi.string().required(),
+        responsible: Joi.string().required(),
+        reason: Joi.string().required(),
+        toPos: Joi.boolean().required(),
+      });
+
+      const { error } = cancelarOrdenSchema.validate(payload);
+
+      if (error) {
+        throw new ApiResponse(HttpCodes.BAD_REQUEST, cancelarOrdenSchema, error.message);
+      }
+
+      // Actualizar Provisional Status Order a Pendiente
+      await this.updateProvisionalStatusOrder({
+        id: payload.id,
+        provisionalStatusOrder: 'Pendiente',
+      });
+
+      await this.notificarCambioOrden(payload.id);
+
+      const ordenACancelar = await this.ordenRepository.findOrderById(payload.id);
+
+      if (!ordenACancelar)
+        throw new ApiResponse(HttpCodes.BAD_REQUEST, ordenACancelar, 'Error al buscar la orden a cancelar.');
+
+      if (!ordenStateMachine(ordenACancelar.statusOrder, 'CANCELADO', ordenACancelar))
+        throw new ApiResponse(HttpCodes.BAD_REQUEST, ordenACancelar, 'Error en la maquina de estados.');
+
+      await this.updateOrderTracking({
+        id: payload.id,
+        responsible: payload.responsible,
+        statusOrder: 'CANCELADO',
+        reason: payload.reason,
+      });
+
+      await this.ordenRepository.updateOrderStatus(payload.id, 'CANCELADO');
+
+      await this.updateOrderHistory({
+        id: payload.id,
+        type: 'status',
+        responsible: payload.responsible,
+        changeFrom: ordenACancelar.statusOrder,
+        changeTo: 'CANCELADO',
+        aditionalInfo: {
+          product_sku: '',
+          comments: '',
+        },
+      });
+
+      await actualizarOrdenEccomerce(ordenACancelar, payload.toPos);
+
+      await notificarEstadoDeOrden(ordenACancelar, payload.toPos);
+
+      await this.notificarCambioOrden(payload.id);
+
+      await this.updateProvisionalStatusOrder({
+        id: payload.id,
+        provisionalStatusOrder: '',
+      });
+    } catch (error) {
+      // Actualizar Provisional Status Order a Pendiente
+      await this.updateProvisionalStatusOrder({
+        id: payload.id,
+        provisionalStatusOrder: '',
+      });
+
+      await this.notificarCambioOrden(payload.id);
+    }
   };
 
   // ------------ Casos de Usos para Documentos Tributarios ------------

@@ -19,7 +19,8 @@ export type IAction =
   | 'asignar-courier'
   | 'actualizar-order-status-webhook'
   | 'actualizar-order-estado-obervacion'
-  | 'regresar-order-al-flujo';
+  | 'regresar-order-al-flujo'
+  | 'cancelar-order';
 
 export interface IAsignacionCourier {
   id: string;
@@ -86,4 +87,11 @@ export interface IActualizarOrderStatusWebhook {
 export interface IOrderBackToFlow {
   order: OrdenEntity;
   responsible: string;
+}
+
+export interface ICancelarOrder {
+  id: string;
+  responsible: string;
+  reason: string;
+  toPos: boolean;
 }

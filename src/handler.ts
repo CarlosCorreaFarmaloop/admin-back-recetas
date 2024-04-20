@@ -11,6 +11,7 @@ import {
   IActualizarOrderStatusWebhook,
   IAsignarCourier,
   IAsignarDocumentosTributarios,
+  ICancelarOrder,
   IEventDetail,
   IOrderBackToFlow,
   IUpdateStatusOderObservation,
@@ -159,8 +160,16 @@ export const handler = async (event: SQSEvent) => {
       await orderUseCase.regresarOrderAlFlujo(body as IOrderBackToFlow);
     }
 
+    if (origin === 'admin' && action === 'cancelar-order') {
+      await orderUseCase.cancelarOrden(body as ICancelarOrder);
+    }
+
+    // ---------- Documentos Tributarios ----------------
+
     if (origin === 'documento-tributario' && action === 'asignar-documento-tributario')
       await orderUseCase.asignarDocumentosTributarios(body as IAsignarDocumentosTributarios);
+
+    // ---------- Courier ----------------
 
     if (origin === 'courier' && action === 'asignar-courier') {
       await orderUseCase.asignarCourier(body as IAsignarCourier);
@@ -193,6 +202,34 @@ export const handler = async (event: SQSEvent) => {
             id: uuid(),
             movementType: 'Salida',
             quantity: producto.qty * -1,
+            sku: producto.sku,
+            documento_referencia: body.id,
+          };
+        })
+      );
+
+      await actualizarStock(ordenEncontrada);
+    }
+
+    if (origin === 'admin' && action === 'cancelar-order') {
+      const ordenEncontrada = await orderRespository.findOrderById(body.id as string);
+
+      if (!ordenEncontrada) {
+        throw new ApiResponse(HttpCodes.NOT_FOUND, 'Order not found');
+      }
+
+      console.log('--- Orden Productos: ', ordenEncontrada.productsOrder);
+
+      await movementsRepository.createMovements(
+        ordenEncontrada.productsOrder.map((producto) => {
+          return {
+            batch: producto.batchId,
+            createAt: new Date(),
+            documentNumber: body.id,
+            documentType: 'Order',
+            id: uuid(),
+            movementType: 'Entrada',
+            quantity: producto.qty,
             sku: producto.sku,
             documento_referencia: body.id,
           };
