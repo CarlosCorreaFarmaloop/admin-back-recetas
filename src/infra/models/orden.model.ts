@@ -44,17 +44,23 @@ const InvoiceCustomerSchema = new mongoose.Schema<InvoiceCustomer>(
   { _id: false }
 );
 
-const PrescriptionValidationSchema = new mongoose.Schema<PrescriptionValidation>({
-  comments: String,
-  rut: String,
-  responsible: String,
-});
+const PrescriptionValidationSchema = new mongoose.Schema<PrescriptionValidation>(
+  {
+    comments: String,
+    rut: String,
+    responsible: String,
+  },
+  { _id: false }
+);
 
-const PrescriptionSchema = new mongoose.Schema<Prescription>({
-  file: String,
-  state: String,
-  validation: PrescriptionValidationSchema,
-});
+const PrescriptionSchema = new mongoose.Schema<Prescription>(
+  {
+    file: String,
+    state: String,
+    validation: PrescriptionValidationSchema,
+  },
+  { _id: false }
+);
 
 const ProductOrderSchema = new mongoose.Schema<ProductOrder>(
   {

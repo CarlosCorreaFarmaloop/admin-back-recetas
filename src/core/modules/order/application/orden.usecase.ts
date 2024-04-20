@@ -825,6 +825,7 @@ export class OrdenUseCase implements IOrdenUseCase {
         comments: Joi.string().required().allow(''),
         responsible: Joi.string().required().allow(''),
         rut: Joi.string().required().allow(''),
+        _id: Joi.string().optional().allow(''),
       }).required(),
     });
 
