@@ -820,7 +820,7 @@ export class OrdenUseCase implements IOrdenUseCase {
 
     const Prescription = Joi.object({
       file: Joi.string().required().allow(''),
-      state: Joi.string().required(),
+      state: Joi.string().required().allow(''),
       validation: Joi.object({
         comments: Joi.string().required().allow(''),
         responsible: Joi.string().required().allow(''),
