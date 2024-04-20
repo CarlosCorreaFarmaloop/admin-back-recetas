@@ -147,8 +147,8 @@ export class OrdenUseCase implements IOrdenUseCase {
         requirePrescription: Joi.boolean().required(),
         shortName: Joi.string().required(),
         sku: Joi.string().required(),
-        pricePaidPerUnit: Joi.number().required(),
-        discountPerUnit: Joi.number().required(),
+        pricePaidPerUnit: Joi.number().optional(),
+        discountPerUnit: Joi.number().optional(),
       });
 
       const DeliveryAddress = Joi.object({
@@ -344,8 +344,8 @@ export class OrdenUseCase implements IOrdenUseCase {
         requirePrescription: Joi.boolean().required(),
         shortName: Joi.string().required(),
         sku: Joi.string().required(),
-        pricePaidPerUnit: Joi.number().required(),
-        discountPerUnit: Joi.number().required(),
+        pricePaidPerUnit: Joi.number().optional(),
+        discountPerUnit: Joi.number().optional(),
       });
 
       const DeliveryAddress = Joi.object({
@@ -860,8 +860,8 @@ export class OrdenUseCase implements IOrdenUseCase {
       requirePrescription: Joi.boolean().required(),
       shortName: Joi.string().required().allow(''),
       sku: Joi.string().required(),
-      pricePaidPerUnit: Joi.number().required(),
-      discountPerUnit: Joi.number().required(),
+      pricePaidPerUnit: Joi.number().optional(),
+      discountPerUnit: Joi.number().optional(),
     });
 
     const Billing = Joi.object({}).optional();
