@@ -779,6 +779,7 @@ export class OrdenUseCase implements IOrdenUseCase {
       id: Joi.string().required(),
       observation: Joi.string().required(),
       responsible: Joi.string().required(),
+      name: Joi.string().required(),
     });
 
     const { error } = updateStatusOderObservationSchema.validate(payload);
