@@ -864,11 +864,32 @@ export class OrdenUseCase implements IOrdenUseCase {
       discountPerUnit: Joi.number().required(),
     });
 
+    const Billing = Joi.object({}).optional();
+
     const orderBackToFlowSchema = Joi.object({
       order: Joi.object({
         id: Joi.string().required(),
+        billing: Billing,
         statusOrder: Joi.string().required(),
         productsOrder: Joi.array().items(ProductOrder).required(),
+        createdAt: Joi.date().optional(),
+        customer: Joi.string().optional(),
+        delivery: Joi.object({}).optional(),
+        documentos: Joi.object({}).optional(),
+        inPharmacy: Joi.string().optional(),
+        modifiedPrice: Joi.boolean().optional(),
+        note: Joi.string().optional(),
+        payment: Joi.object({}).optional(),
+        paymentForms: Joi.object({}).optional(),
+        responsible: Joi.string().optional(),
+        resumeOrder: Joi.object({}).optional(),
+        provisionalStatusOrder: Joi.string().optional(),
+        provisionalStatusOrderDate: Joi.date().optional(),
+        tracking: Joi.array().items(Joi.object({}).optional()).optional(),
+        seguroComplementario: Joi.object({}).optional(),
+        observations: Joi.array().items(Joi.object({}).optional()).optional(),
+        history: Joi.array().items(Joi.object({}).optional()).optional(),
+        extras: Joi.object({}).optional(),
       }).required(),
       responsible: Joi.string().required(),
     });
