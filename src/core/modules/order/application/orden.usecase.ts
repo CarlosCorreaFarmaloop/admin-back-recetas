@@ -858,7 +858,7 @@ export class OrdenUseCase implements IOrdenUseCase {
       quantityPerContainer: Joi.string().required().allow(''),
       recommendations: Joi.string().required().allow(''),
       requirePrescription: Joi.boolean().required(),
-      shortName: Joi.string().required(),
+      shortName: Joi.string().required().allow(''),
       sku: Joi.string().required(),
       pricePaidPerUnit: Joi.number().required(),
       discountPerUnit: Joi.number().required(),
