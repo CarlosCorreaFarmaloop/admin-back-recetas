@@ -131,7 +131,7 @@ export class OrdenUseCase implements IOrdenUseCase {
         expiration: Joi.number().required(),
         fullName: Joi.string().required(),
         laboratoryName: Joi.string().required().allow(''),
-        liquid: Joi.boolean().required(),
+        liquid: Joi.boolean().required().allow(null),
         normalUnitPrice: Joi.number().required(),
         pharmaceuticalForm: Joi.string().required().allow(''),
         photoURL: Joi.string().required().allow(''),
