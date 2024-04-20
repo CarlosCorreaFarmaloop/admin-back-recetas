@@ -823,7 +823,7 @@ export class OrdenUseCase implements IOrdenUseCase {
       state: Joi.string().required().allow(''),
       validation: Joi.object({
         comments: Joi.string().required().allow(''),
-        responsible: Joi.string().required().allow(''),
+        responsible: Joi.string().optional().allow(''),
         rut: Joi.string().required().allow(''),
         _id: Joi.string().optional().allow(''),
       }).required(),
