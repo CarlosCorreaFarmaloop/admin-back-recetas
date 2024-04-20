@@ -1,11 +1,12 @@
 import { EcommerceOrderEntity } from 'src/interface/ecommerceOrder.entity';
 import { OrdenEntity, Payment, StatusOrder } from '../domain/order.entity';
 import { validateNumberType, validateStringType } from '../domain/utils/validate';
-import { ICrearOrden, ICrearPartialOrden } from './interface';
+import { IAddObservation, ICrearOrden, ICrearPartialOrden } from './interface';
 import { GenerarBoletaPayload } from '../domain/documentos_tributarios.interface';
 import { TipoPago } from '../domain/utils/diccionario/tipoPago';
 import { GenerarOrdenDeCourierPayload } from '../domain/courier.interface';
 import { diccionarioTipoDelivery } from '../domain/utils/diccionario/tipoDelivery';
+import { IUpdateStatusOderObservation } from 'src/interface/event';
 
 export class OrdenOValue {
   completeOrderFromEcommerce = (order: EcommerceOrderEntity): ICrearOrden => {
@@ -224,6 +225,8 @@ export class OrdenOValue {
   };
 
   regresarOrderToFlow = (order: OrdenEntity): OrdenEntity | null => {
+    console.log('---- Orden a revisar ----', JSON.stringify(order, null, 2));
+
     // Verificar si algun Producto requirePrescription y no tiene prescription.file
     const requiereRecetaPeroNoEstaCargada = order.productsOrder.some(
       (producto) => producto.requirePrescription && producto.prescription.file === ''
@@ -262,6 +265,18 @@ export class OrdenOValue {
     }
 
     return null;
+  };
+
+  agregarObservacion = (payload: IUpdateStatusOderObservation): IAddObservation => {
+    return {
+      id: payload.id,
+      observation: {
+        observation: payload.observation,
+        responsible: payload.responsible,
+        name: payload.name,
+        date: new Date(),
+      },
+    };
   };
 
   generarDocumentosTributarios = (order: OrdenEntity): GenerarBoletaPayload => {

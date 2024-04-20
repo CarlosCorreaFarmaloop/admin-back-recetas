@@ -99,3 +99,13 @@ export interface INotificarCambioOrden {
 }
 
 export type INotificarCambioOrdenType = 'ORDEN_ACTUALIZADA';
+
+export interface IAddObservation {
+  id: string;
+  observation: {
+    observation: string;
+    responsible: string;
+    name: string;
+    date: Date;
+  };
+}

@@ -53,6 +53,7 @@ export interface IUpdateStatusOrder {
 
 export interface IUpdateStatusOderObservation {
   id: string;
+  name: string;
   observation: string;
   responsible: string;
 }

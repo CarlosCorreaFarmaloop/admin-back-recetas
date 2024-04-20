@@ -778,6 +778,7 @@ export class OrdenUseCase implements IOrdenUseCase {
     const updateStatusOderObservationSchema = Joi.object({
       id: Joi.string().required(),
       observation: Joi.string().required(),
+      responsible: Joi.string().required(),
     });
 
     const { error } = updateStatusOderObservationSchema.validate(payload);
@@ -786,7 +787,9 @@ export class OrdenUseCase implements IOrdenUseCase {
       throw new ApiResponse(HttpCodes.BAD_REQUEST, updateStatusOderObservationSchema, error.message);
     }
 
-    const ordenActualizadaConObservacion = await this.ordenRepository.addOrderObservation(payload);
+    const observationVO = new OrdenOValue().agregarObservacion(payload);
+
+    const ordenActualizadaConObservacion = await this.ordenRepository.addOrderObservation(observationVO);
 
     if (!ordenActualizadaConObservacion)
       throw new ApiResponse(
@@ -823,7 +826,7 @@ export class OrdenUseCase implements IOrdenUseCase {
       state: Joi.string().required().allow(''),
       validation: Joi.object({
         comments: Joi.string().required().allow(''),
-        responsible: Joi.string().optional().allow(''),
+        responsible: Joi.string().optional().allow(''), // Resolver el lunes y pasarlo a requerido y allow ''
         rut: Joi.string().required().allow(''),
         _id: Joi.string().optional().allow(''),
       }).required(),

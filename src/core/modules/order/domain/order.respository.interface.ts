@@ -24,5 +24,10 @@ export interface IActualizarOrderStatusWebhookPayload {
 
 export interface IAddOrderdObservation {
   id: string;
-  observation: string;
+  observation: {
+    name: string;
+    observation: string;
+    responsible: string;
+    date: Date;
+  };
 }
