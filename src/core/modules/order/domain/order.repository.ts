@@ -11,6 +11,7 @@ import {
 import { IOrderHistory, OrdenEntity, StatusOrder, Tracking } from './order.entity';
 import {
   IActualizarOrderStatusWebhookPayload,
+  IAddOrderdObservation,
   IAsignarCourierPayload,
   IAsignarDocumentosTributariosPayload,
   IUpdateProvisionalStatusOrder,
@@ -30,7 +31,11 @@ export interface IOrdenRepository {
   updateProvisionalStatusOrder: (payload: IUpdateProvisionalStatusOrder) => Promise<OrdenEntity>;
   uploadPrescriptionFile: (payload: IUploadPrescription) => Promise<OrdenEntity>;
   updatePrescriptionState: (payload: IUpdatePrescriptionState) => Promise<OrdenEntity>;
+
+  addOrderObservation: (payload: IAddOrderdObservation) => Promise<OrdenEntity>;
+
   asignarDocumentosTributarios: (payload: IAsignarDocumentosTributariosPayload) => Promise<OrdenEntity>;
+
   asignarCourier: (payload: IAsignarCourierPayload) => Promise<OrdenEntity>;
   actualizarOrderDeliveryTracking: (payload: IActualizarOrderStatusWebhookPayload) => Promise<OrdenEntity>;
 }

@@ -6,7 +6,9 @@ import {
   IActualizarOrderStatusWebhook,
   IAsignarCourier,
   IAsignarDocumentosTributarios,
+  IOrderBackToFlow,
   IOrigin,
+  IUpdateStatusOderObservation,
 } from '.././../../../interface/event';
 import { MovementRepository } from '../../../modules/movements/domain/movements.repositoy';
 import { EcommerceOrderEntity } from '../../../../interface/ecommerceOrder.entity';
@@ -771,6 +773,119 @@ export class OrdenUseCase implements IOrdenUseCase {
 
     await notificarCambioOrdenSQS(detailBody);
   };
+
+  updateOrderStatusObservation = async (payload: IUpdateStatusOderObservation) => {
+    const updateStatusOderObservationSchema = Joi.object({
+      id: Joi.string().required(),
+      observation: Joi.string().required(),
+    });
+
+    const { error } = updateStatusOderObservationSchema.validate(payload);
+
+    if (error) {
+      throw new ApiResponse(HttpCodes.BAD_REQUEST, updateStatusOderObservationSchema, error.message);
+    }
+
+    const ordenActualizadaConObservacion = await this.ordenRepository.addOrderObservation(payload);
+
+    if (!ordenActualizadaConObservacion)
+      throw new ApiResponse(
+        HttpCodes.BAD_REQUEST,
+        ordenActualizadaConObservacion,
+        'Error al actualizar la observación de la orden.'
+      );
+
+    await this.updateOrderHistory({
+      id: payload.id,
+      type: 'observacion',
+      responsible: payload.observation,
+      changeFrom: '',
+      changeTo: 'Observación agregada',
+      aditionalInfo: {
+        product_sku: '',
+        comments: payload.observation,
+      },
+    });
+
+    await this.updateStatusOrder(
+      ordenActualizadaConObservacion,
+      ordenActualizadaConObservacion.statusOrder,
+      'EN_OBSERVACION',
+      payload.responsible
+    );
+  };
+
+  regresarOrderAlFlujo = async (payload: IOrderBackToFlow) => {
+    console.log('----- Regresando Orden al Flujo: ', payload.order.id, ' con estado: ', payload.order.statusOrder);
+
+    const Prescription = Joi.object({
+      file: Joi.string().required().allow(''),
+      state: Joi.string().required(),
+      validation: Joi.object({
+        comments: Joi.string().required().allow(''),
+        responsible: Joi.string().required().allow(''),
+        rut: Joi.string().required().allow(''),
+      }).required(),
+    });
+
+    const PrescriptionType = Joi.string().valid(
+      'Presentación receta médica',
+      'Venta directa (Sin receta)',
+      'Venta bajo receta cheque',
+      'Receta médica retenida'
+    );
+
+    const ProductOrder = Joi.object({
+      batchId: Joi.string().required(),
+      bioequivalent: Joi.boolean().required(),
+      cooled: Joi.boolean().required(),
+      ean: Joi.string().required().allow(''),
+      expiration: Joi.number().required(),
+      fullName: Joi.string().required(),
+      laboratoryName: Joi.string().required().allow(''),
+      liquid: Joi.boolean().required(),
+      normalUnitPrice: Joi.number().required(),
+      pharmaceuticalForm: Joi.string().required().allow(''),
+      photoURL: Joi.string().required().allow(''),
+      prescription: Prescription.required(),
+      prescriptionType: PrescriptionType.required(),
+      presentation: Joi.string().required().allow(''),
+      price: Joi.number().required(),
+      productCategory: Joi.string().required().allow(''),
+      productSubCategory: Joi.array().items(Joi.string()).required(),
+      qty: Joi.number().required(),
+      quantityPerContainer: Joi.string().required().allow(''),
+      recommendations: Joi.string().required().allow(''),
+      requirePrescription: Joi.boolean().required(),
+      shortName: Joi.string().required(),
+      sku: Joi.string().required(),
+      pricePaidPerUnit: Joi.number().required(),
+      discountPerUnit: Joi.number().required(),
+    });
+
+    const orderBackToFlowSchema = Joi.object({
+      order: Joi.object({
+        id: Joi.string().required(),
+        statusOrder: Joi.string().required(),
+        productsOrder: Joi.array().items(ProductOrder).required(),
+      }).required(),
+      responsible: Joi.string().required(),
+    });
+
+    const { error } = orderBackToFlowSchema.validate(payload);
+
+    if (error) {
+      throw new ApiResponse(HttpCodes.BAD_REQUEST, orderBackToFlowSchema, error.message);
+    }
+
+    const orderVo = new OrdenOValue().regresarOrderToFlow(payload.order);
+
+    if (!orderVo) throw new ApiResponse(HttpCodes.BAD_REQUEST, orderVo, 'Error al regresar la orden al flujo.');
+
+    await this.updateStatusOrder(orderVo, payload.order.statusOrder, orderVo.statusOrder, payload.responsible);
+  };
+
+  // ------------ Casos de Usos para Documentos Tributarios ------------
 
   generarDocumentosTributarios = async (payload: IDocumentoTributarioEventInput) => {
     const generarDocumentosTributariosSchema = Joi.object({

@@ -13,6 +13,7 @@ import {
 import { IOrderHistory, StatusOrder, Tracking } from '../../../core/modules/order/domain/order.entity';
 import {
   IActualizarOrderStatusWebhookPayload,
+  IAddOrderdObservation,
   IAsignarCourierPayload,
   IAsignarDocumentosTributariosPayload,
   IUpdateProvisionalStatusOrder,
@@ -197,6 +198,20 @@ export class OrdenMongoRepository implements IOrdenRepository {
       {
         $push: {
           'delivery.deliveryTracking': payload.deliveryTracking,
+        },
+      },
+      { new: true, upsert: true }
+    );
+  };
+
+  addOrderObservation = async (payload: IAddOrderdObservation) => {
+    console.log('------Order To Add Observation ---- ', payload);
+
+    return await OrderModel.findOneAndUpdate(
+      { id: payload.id },
+      {
+        $push: {
+          observations: payload.observation,
         },
       },
       { new: true, upsert: true }

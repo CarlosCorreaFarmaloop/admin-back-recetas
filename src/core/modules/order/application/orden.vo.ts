@@ -223,6 +223,47 @@ export class OrdenOValue {
     };
   };
 
+  regresarOrderToFlow = (order: OrdenEntity): OrdenEntity | null => {
+    // Verificar si algun Producto requirePrescription y no tiene prescription.file
+    const requiereRecetaPeroNoEstaCargada = order.productsOrder.some(
+      (producto) => producto.requirePrescription && producto.prescription.file === ''
+    );
+
+    if (requiereRecetaPeroNoEstaCargada) {
+      return {
+        ...order,
+        statusOrder: 'OBSERVACIONES_RECETAS',
+      };
+    }
+
+    // Verificar si algun Producto requirePrescription y no tiene prescription.state aprobado
+
+    const requiereRecetaPeroNoEstaAprobada = order.productsOrder.some(
+      (producto) =>
+        producto.requirePrescription &&
+        producto.prescription.state !== 'Approved' &&
+        producto.prescription.state !== 'Approved_With_Comments'
+    );
+
+    if (requiereRecetaPeroNoEstaAprobada) {
+      return {
+        ...order,
+        statusOrder: 'VALIDANDO_RECETA',
+      };
+    }
+
+    const ningunProductoRequiereReceta = order.productsOrder.every((producto) => !producto.requirePrescription);
+
+    if (ningunProductoRequiereReceta) {
+      return {
+        ...order,
+        statusOrder: 'RECETA_VALIDADA',
+      };
+    }
+
+    return null;
+  };
+
   generarDocumentosTributarios = (order: OrdenEntity): GenerarBoletaPayload => {
     const payload: GenerarBoletaPayload = {
       comentario: `Orden: ${order.id} Cliente: ${order?.delivery?.delivery_address?.firstName}`,

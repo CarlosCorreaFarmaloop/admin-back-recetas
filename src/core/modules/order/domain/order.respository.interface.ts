@@ -21,3 +21,8 @@ export interface IActualizarOrderStatusWebhookPayload {
   orderId: string;
   deliveryTracking: DeliveryTracking;
 }
+
+export interface IAddOrderdObservation {
+  id: string;
+  observation: string;
+}

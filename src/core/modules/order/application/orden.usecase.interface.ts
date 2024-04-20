@@ -3,7 +3,9 @@ import {
   IActualizarOrderStatusWebhook,
   IAsignarCourier,
   IAsignarDocumentosTributarios,
+  IOrderBackToFlow,
   IOrigin,
+  IUpdateStatusOderObservation,
 } from '.././../../../interface/event';
 import { ICourierEventInput } from '../domain/courier.interface';
 import { IDocumentoTributarioEventInput } from '../domain/documentos_tributarios.interface';
@@ -37,8 +39,14 @@ export interface IOrdenUseCase {
   uploadPrescriptionFile: (payload: IUploadPrescription) => Promise<void>;
   updatePrescriptionState: (payload: IUpdatePrescriptionState) => Promise<void>;
   notificarCambioOrden: (orderId: string) => Promise<void>;
+  updateOrderStatusObservation: (payload: IUpdateStatusOderObservation) => Promise<void>;
+  regresarOrderAlFlujo: (payload: IOrderBackToFlow) => Promise<void>;
+
+  // Documentos Tributarios
   generarDocumentosTributarios: (payload: IDocumentoTributarioEventInput) => Promise<void>;
   asignarDocumentosTributarios: (payload: IAsignarDocumentosTributarios) => Promise<void>;
+
+  // Courier
   updateStatusCourier: (payload: IUpdateProviderStatus) => Promise<void>;
   generarCourier: (payload: ICourierEventInput) => Promise<void>;
   asignarCourier: (payload: IAsignarCourier) => Promise<void>;

@@ -2,7 +2,7 @@ export const validateStatusChange = (currentStatus: string, toStatus: string) =>
   const statusChangeMap: Record<string, string[]> = {
     VALIDANDO_RECETA: ['EN_OBSERVACION', 'OBSERVACIONES_RECETAS', 'CREADO'],
     RECETA_VALIDADA: ['VALIDANDO_RECETA', 'CREADO', 'EN_OBSERVACION'],
-    OBSERVACIONES_RECETAS: ['CREADO'],
+    OBSERVACIONES_RECETAS: ['CREADO', 'EN_OBSERVACION'],
     PREPARANDO: ['RECETA_VALIDADA'],
     LISTO_PARA_RETIRO: ['PREPARANDO'],
     ASIGNAR_A_DELIVERY: ['PREPARANDO'],

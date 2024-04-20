@@ -18,7 +18,8 @@ export type IAction =
   | 'asignar-documento-tributario'
   | 'asignar-courier'
   | 'actualizar-order-status-webhook'
-  | 'actualizar-order-observacion';
+  | 'actualizar-order-estado-obervacion'
+  | 'regresar-order-al-flujo';
 
 export interface IAsignacionCourier {
   id: string;
@@ -50,6 +51,12 @@ export interface IUpdateStatusOrder {
   responsible: string;
 }
 
+export interface IUpdateStatusOderObservation {
+  id: string;
+  observation: string;
+  responsible: string;
+}
+
 export interface IAsignarDocumentosTributarios {
   orderId: string;
   emitter: string;
@@ -73,4 +80,9 @@ export interface IAsignarCourier {
 export interface IActualizarOrderStatusWebhook {
   orderId: string;
   deliveryTracking: DeliveryTracking;
+}
+
+export interface IOrderBackToFlow {
+  order: OrdenEntity;
+  responsible: string;
 }

@@ -12,6 +12,8 @@ import {
   IAsignarCourier,
   IAsignarDocumentosTributarios,
   IEventDetail,
+  IOrderBackToFlow,
+  IUpdateStatusOderObservation,
   IUpdateStatusOrder,
 } from './interface/event';
 import {
@@ -148,6 +150,14 @@ export const handler = async (event: SQSEvent) => {
 
     if (origin === 'admin' && action === 'actualizar-estado-receta')
       await orderUseCase.updatePrescriptionState(body as IUpdatePrescriptionState);
+
+    if (origin === 'admin' && action === 'actualizar-order-estado-obervacion') {
+      await orderUseCase.updateOrderStatusObservation(body as IUpdateStatusOderObservation);
+    }
+
+    if (origin === 'admin' && action === 'regresar-order-al-flujo') {
+      await orderUseCase.regresarOrderAlFlujo(body as IOrderBackToFlow);
+    }
 
     if (origin === 'documento-tributario' && action === 'asignar-documento-tributario')
       await orderUseCase.asignarDocumentosTributarios(body as IAsignarDocumentosTributarios);

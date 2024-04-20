@@ -83,6 +83,7 @@ const validaReglaNegocioRecetaValidada = (orden: OrdenEntity): boolean => {
 
 const validaReglaNegocioObservacionesReceta = (orden: OrdenEntity): boolean => {
   // Para que sea valido una observacion receta debe ser una orden que tenga productos que requieran receta y que no tengan receta
+  console.log('Validando Regla Negocio de observaciones receta');
   if (
     orden.productsOrder.filter((producto) => producto.requirePrescription && producto.prescription.file === '')
       .length === 0
@@ -120,29 +121,6 @@ const validarOrdenRequiereRecetaYEstanAprobadas = ({ productsOrder }: OrdenEntit
   console.log('isInvalid', isInvalid);
 
   return !isInvalid;
-
-  // const ningunProductoRequiereReceta = productsOrder.every((producto) => !producto.requirePrescription);
-
-  // console.log('productsOrder', JSON.stringify(productsOrder, null, 2));
-
-  // const productosRequierenRecetaYRecetacargada = productsOrder.filter(
-  //   (producto) =>
-  //     producto.requirePrescription &&
-  //     producto.prescription.file !== '' &&
-  //     (producto.prescription.state === 'Approved' || producto.prescription.state === 'Approved_With_Comments')
-  // );
-
-  // console.log('productosRequierenRecetaYRecetacargada', productosRequierenRecetaYRecetacargada.length);
-
-  // const productoRequiereReceta = productsOrder.filter((producto) => producto.requirePrescription);
-
-  // console.log('productoNoRequiereReceta', productoRequiereReceta.length);
-
-  // const isValid = productoRequiereReceta.length === 0 || productosRequierenRecetaYRecetacargada.length === 0;
-
-  // console.log('isValid', isValid)
-
-  // return isValid;
 };
 
 const validaReglaNegocioListoParaRetiro = (orden: OrdenEntity): boolean => {
@@ -168,13 +146,6 @@ const validaReglaNegocioAsignarADelivery = (orden: OrdenEntity): boolean => {
 };
 
 const validarFacturacionOrden = (orden: OrdenEntity): boolean => {
-  console.log(orden.billing.number, orden.billing.urlBilling, orden.billing.urlTimbre);
-  if (!orden.billing.number) return false;
-
-  if (!orden.billing.urlBilling || orden.billing.urlBilling === '') return false;
-
-  if (!orden.billing.urlTimbre || orden.billing.urlTimbre === '') return false;
-
   return true;
 };
 
