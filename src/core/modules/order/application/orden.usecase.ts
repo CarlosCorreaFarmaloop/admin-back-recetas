@@ -577,6 +577,8 @@ export class OrdenUseCase implements IOrdenUseCase {
         // Emitir Documentos Tributarios
         const documentoVO = new OrdenOValue().generarDocumentosTributarios(order);
 
+        console.log('----- Generar Documento Tributario: ', documentoVO);
+
         await this.generarDocumentosTributarios({
           accion: 'generar-documento-tributario',
           origen: 'SISTEMA ORDENES',
