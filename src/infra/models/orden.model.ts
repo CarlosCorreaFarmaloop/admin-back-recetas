@@ -401,6 +401,7 @@ const OrderSchema = new mongoose.Schema({
   resumeOrder: ResumeOrderSchema,
   statusOrder: String,
   provisionalStatusOrder: String,
+  provisionalStatusOrderDate: Number,
   tracking: [TrackingSchema],
   urlLabel: String,
   observations: [ObservationsSchema],
