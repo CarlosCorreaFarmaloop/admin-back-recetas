@@ -592,7 +592,7 @@ export class OrdenUseCase implements IOrdenUseCase {
       // Cambiar Provisional Status Order
       await this.updateProvisionalStatusOrder({
         id: order.id,
-        provisionalStatusOrder: '',
+        provisionalStatusOrder: 'Aprobado',
       });
 
       // Notificar Cambio de Orden a SQS
@@ -974,13 +974,13 @@ export class OrdenUseCase implements IOrdenUseCase {
 
       await this.updateProvisionalStatusOrder({
         id: payload.id,
-        provisionalStatusOrder: '',
+        provisionalStatusOrder: 'Aprobado',
       });
     } catch (error) {
       // Actualizar Provisional Status Order a Pendiente
       await this.updateProvisionalStatusOrder({
         id: payload.id,
-        provisionalStatusOrder: '',
+        provisionalStatusOrder: 'Error',
       });
 
       await this.notificarCambioOrden(payload.id);

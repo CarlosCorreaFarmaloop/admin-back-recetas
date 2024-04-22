@@ -25,7 +25,7 @@ export interface OrdenEntity {
   extras: { referrer: string };
 }
 
-export type IProvisionalStatusOrder = '' | 'Pendiente' | 'Error';
+export type IProvisionalStatusOrder = '' | 'Pendiente' | 'Error' | 'Aprobado';
 
 export interface Billing {
   emitter: string;
@@ -152,7 +152,7 @@ export interface DeliveryProvider {
   urlLabelRayo?: string;
 }
 
-export type DeliveryProviderStatus = '' | 'Pendiente' | 'Asignado';
+export type DeliveryProviderStatus = '' | 'Pendiente' | 'Asignado' | 'Error';
 
 export interface DeliveryTracking {
   fecha: number;
