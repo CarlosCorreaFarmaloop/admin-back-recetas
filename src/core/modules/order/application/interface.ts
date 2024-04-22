@@ -5,6 +5,7 @@ import {
   DeliveryProviderStatus,
   IBillingStatus,
   ProductOrder,
+  StatePrescription,
 } from '../domain/order.entity';
 
 export type ICrearOrden = Pick<
@@ -89,6 +90,7 @@ export interface IUpdatePrescriptionState extends Pick<OrdenEntity, 'id'> {
 
 export interface IUpdatePrescriptionStateProduct extends Pick<ProductOrder, 'sku' | 'batchId'> {
   prescription: Pick<ProductOrder['prescription'], 'state' | 'validation'>;
+  previousState: StatePrescription;
 }
 
 export interface INotificarCambioOrden {

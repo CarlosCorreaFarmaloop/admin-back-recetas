@@ -255,7 +255,12 @@ export class OrdenOValue {
       };
     }
 
-    const ningunProductoRequiereReceta = order.productsOrder.every((producto) => !producto.requirePrescription);
+    const ningunProductoRequiereReceta = order.productsOrder.every(
+      (producto) =>
+        !producto.requirePrescription ||
+        (producto.requirePrescription &&
+          (producto.prescription.state === 'Approved' || producto.prescription.state === 'Approved_With_Comments'))
+    );
 
     if (ningunProductoRequiereReceta) {
       return {

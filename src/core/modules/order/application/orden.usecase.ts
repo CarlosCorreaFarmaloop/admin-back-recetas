@@ -750,6 +750,7 @@ export class OrdenUseCase implements IOrdenUseCase {
             rut: Joi.string().required().allow(''),
           }).required(),
         }).required(),
+        previousState: Joi.string().required().allow(''),
       }).required(),
     });
 
@@ -763,6 +764,18 @@ export class OrdenUseCase implements IOrdenUseCase {
 
     if (!ordenActualizada)
       throw new ApiResponse(HttpCodes.BAD_REQUEST, ordenActualizada, 'Error al actualizar el estado de la receta.');
+
+    await this.updateOrderHistory({
+      id: payload.id,
+      type: 'receta-estado',
+      responsible: payload.productOrder.prescription.validation.responsible,
+      changeFrom: payload.productOrder.previousState,
+      changeTo: payload.productOrder.prescription.state,
+      aditionalInfo: {
+        product_sku: payload.productOrder.sku,
+        comments: '',
+      },
+    });
 
     await this.notificarCambioOrden(ordenActualizada.id);
   };
