@@ -773,7 +773,7 @@ export class OrdenUseCase implements IOrdenUseCase {
       changeTo: payload.productOrder.prescription.state,
       aditionalInfo: {
         product_sku: payload.productOrder.sku,
-        comments: '',
+        comments: payload.productOrder.prescription.validation.comments,
       },
     });
 
@@ -820,7 +820,7 @@ export class OrdenUseCase implements IOrdenUseCase {
     await this.updateOrderHistory({
       id: payload.id,
       type: 'observacion',
-      responsible: payload.observation,
+      responsible: payload.responsible,
       changeFrom: '',
       changeTo: 'Observación agregada',
       aditionalInfo: {
