@@ -726,7 +726,7 @@ export class OrdenUseCase implements IOrdenUseCase {
       type: 'receta-cargada',
       responsible: payload.productOrder.prescription.validation.responsible,
       changeFrom: '',
-      changeTo: 'Receta subida',
+      changeTo: payload.productOrder.prescription.file,
       aditionalInfo: {
         product_sku: payload.productOrder.sku,
         comments: '',
