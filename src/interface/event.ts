@@ -111,5 +111,5 @@ export interface IDocumentoSeguroComplementario {
   urlTimbre: string;
   emissionDate: Date;
   referenceDocumentId: string;
-  destinario: string;
+  destinatario: string;
 }

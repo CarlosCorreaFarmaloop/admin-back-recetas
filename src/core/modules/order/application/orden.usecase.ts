@@ -1329,7 +1329,7 @@ export class OrdenUseCase implements IOrdenUseCase {
             urlTimbre: Joi.string().required(),
             emissionDate: Joi.date().required(),
             referenceDocumentId: Joi.string().required(),
-            destinario: Joi.string().required(),
+            destinatario: Joi.string().required(),
           })
         )
         .required(),
