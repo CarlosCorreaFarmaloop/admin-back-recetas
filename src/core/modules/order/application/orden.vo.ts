@@ -1,5 +1,5 @@
 import { EcommerceOrderEntity } from 'src/interface/ecommerceOrder.entity';
-import { OrdenEntity, Payment, StatusOrder } from '../domain/order.entity';
+import { ISeguroComplementario, OrdenEntity, Payment, StatusOrder } from '../domain/order.entity';
 import { validateNumberType, validateStringType } from '../domain/utils/validate';
 import { IAddObservation, ICrearOrden, ICrearPartialOrden } from './interface';
 import { GenerarBoletaPayload } from '../domain/documentos_tributarios.interface';
@@ -23,7 +23,7 @@ export class OrdenOValue {
       },
     };
 
-    return {
+    const ordenCompleta: ICrearOrden = {
       id: order.id,
       billing: {
         emitter: '',
@@ -118,12 +118,51 @@ export class OrdenOValue {
       provisionalStatusOrder: '',
       createdAt: createdDate,
     };
+
+    if (order.seguroComplementario) {
+      ordenCompleta.seguroComplementario = {
+        id_externo: order.seguroComplementario.id_externo,
+        nombreBeneficiario: order.seguroComplementario.nombreBeneficiario,
+        productos: order.seguroComplementario.productos.map((product) => {
+          return {
+            cantidad_afectada: product.cantidad_afectada,
+            copago_unitario: product.copago_unitario,
+            deducible_unitario: product.deducible_unitario,
+            descuento_unitario: product.descuento_unitario,
+            lote: product.lote,
+            nombre: product.nombre,
+            precio_pagado_por_unidad: product.precio_pagado_por_unidad,
+            sku: product.sku,
+            observacion: product.observacion,
+          };
+        }),
+        tipo_documento_emitir: order.seguroComplementario.tipo_documento_emitir,
+        aseguradora_nombre: order.seguroComplementario.aseguradora_nombre,
+        aseguradora_rut: order.seguroComplementario.aseguradora_rut,
+        credencial_url: order.seguroComplementario.credencial_url,
+        deducible_total: order.seguroComplementario.deducible_total,
+        descuento_total: order.seguroComplementario.descuento_total,
+        fecha_creacion: order.seguroComplementario.fecha_creacion,
+        id: order.seguroComplementario.id,
+        rut: order.seguroComplementario.rut,
+        vouchers_url: [],
+        billing: {
+          emitter: '',
+          number: '',
+          type: '',
+          status: '',
+          urlBilling: '',
+        },
+      };
+    }
+
+    return ordenCompleta;
   };
 
   createPartialOrder = (order: EcommerceOrderEntity): ICrearPartialOrden => {
     const createdDate = new Date();
 
-    return {
+    const ordenParcial: ICrearPartialOrden = {
       id: order.id,
       billing: {
         emitter: '',
@@ -223,6 +262,45 @@ export class OrdenOValue {
       statusOrder: 'CREADO',
       createdAt: createdDate,
     };
+
+    if (order.seguroComplementario) {
+      ordenParcial.seguroComplementario = {
+        id_externo: order.seguroComplementario.id_externo,
+        nombreBeneficiario: order.seguroComplementario.nombreBeneficiario,
+        productos: order.seguroComplementario.productos.map((product) => {
+          return {
+            cantidad_afectada: product.cantidad_afectada,
+            copago_unitario: product.copago_unitario,
+            deducible_unitario: product.deducible_unitario,
+            descuento_unitario: product.descuento_unitario,
+            lote: product.lote,
+            nombre: product.nombre,
+            precio_pagado_por_unidad: product.precio_pagado_por_unidad,
+            sku: product.sku,
+            observacion: product.observacion,
+          };
+        }),
+        tipo_documento_emitir: order.seguroComplementario.tipo_documento_emitir,
+        aseguradora_nombre: order.seguroComplementario.aseguradora_nombre,
+        aseguradora_rut: order.seguroComplementario.aseguradora_rut,
+        credencial_url: order.seguroComplementario.credencial_url,
+        deducible_total: order.seguroComplementario.deducible_total,
+        descuento_total: order.seguroComplementario.descuento_total,
+        fecha_creacion: order.seguroComplementario.fecha_creacion,
+        id: order.seguroComplementario.id,
+        rut: order.seguroComplementario.rut,
+        vouchers_url: [],
+        billing: {
+          emitter: '',
+          number: '',
+          type: '',
+          status: '',
+          urlBilling: '',
+        },
+      };
+    }
+
+    return ordenParcial;
   };
 
   regresarOrderToFlow = (order: OrdenEntity): OrdenEntity | null => {
@@ -340,6 +418,44 @@ export class OrdenOValue {
         nombre: order.delivery.delivery_address.firstName,
         telefono: order.delivery.delivery_address.phone,
       },
+    };
+  };
+
+  guardarSeguroComplementario = (order: EcommerceOrderEntity): ISeguroComplementario => {
+    return {
+      nombreBeneficiario: order?.seguroComplementario?.nombreBeneficiario ?? '',
+      id_externo: order?.seguroComplementario?.id_externo ?? 0,
+      id: order.seguroComplementario?.id ?? '',
+      credencial_url: order?.seguroComplementario?.credencial_url ?? '',
+      deducible_total: order?.seguroComplementario?.deducible_total ?? 0,
+      descuento_total: order?.seguroComplementario?.descuento_total ?? 0,
+      tipo_documento_emitir: order?.seguroComplementario?.tipo_documento_emitir ?? 'bill',
+      fecha_creacion: order?.seguroComplementario?.fecha_creacion ?? 0,
+      productos:
+        order?.seguroComplementario?.productos.map((product) => {
+          return {
+            sku: product.sku,
+            lote: product.lote,
+            descuento_unitario: product.descuento_unitario,
+            cantidad_afectada: product.cantidad_afectada,
+            copago_unitario: product.copago_unitario,
+            precio_pagado_por_unidad: product.precio_pagado_por_unidad,
+            deducible_unitario: product.deducible_unitario,
+            nombre: product.nombre,
+            observacion: product.observacion,
+          };
+        }) ?? [],
+      rut: order?.seguroComplementario?.rut ?? '',
+      aseguradora_rut: order?.seguroComplementario?.aseguradora_rut ?? '',
+      aseguradora_nombre: order?.seguroComplementario?.aseguradora_nombre ?? '',
+      billing: {
+        emitter: '',
+        number: '',
+        type: '',
+        status: '',
+        urlBilling: '',
+      },
+      vouchers_url: [],
     };
   };
 

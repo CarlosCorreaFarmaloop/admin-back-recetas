@@ -73,18 +73,18 @@ export class OrdenUseCase implements IOrdenUseCase {
         precio_pagado_por_unidad: Joi.number().required(),
         deducible_unitario: Joi.number().required(),
         nombre: Joi.string().required(),
-        observacion: Joi.string().required(),
+        observacion: Joi.string().required().allow(''),
       });
 
       const ISeguroComplementario = Joi.object({
         nombreBeneficiario: Joi.string().required(),
         id_externo: Joi.number().required(),
+        id: Joi.string().required(),
         credencial_url: Joi.string().required(),
         deducible_total: Joi.number().required(),
         descuento_total: Joi.number().required(),
         tipo_documento_emitir: Documento.required(),
         fecha_creacion: Joi.number().required(),
-        id: Joi.string().required(),
         productos: Joi.array().items(Producto).required(),
         rut: Joi.string().required(),
         aseguradora_rut: Joi.string().required(),
@@ -228,6 +228,11 @@ export class OrdenUseCase implements IOrdenUseCase {
         throw new ApiResponse(HttpCodes.BAD_REQUEST, nuevaOrden);
       }
 
+      if (order.seguroComplementario) {
+        const seguroComplementarioVO = new OrdenOValue().guardarSeguroComplementario(order);
+        await this.guardarSeguroComplementario(seguroComplementarioVO);
+      }
+
       if (
         nuevaOrden.productsOrder
           .filter(({ requirePrescription }) => requirePrescription)
@@ -260,7 +265,6 @@ export class OrdenUseCase implements IOrdenUseCase {
     // Create Partial Order
     if (!isOrdenCompleta) {
       const Documento = Joi.string().valid('bill', 'dispatch_note');
-
       const Producto = Joi.object({
         sku: Joi.string().required(),
         lote: Joi.string().required(),
@@ -270,18 +274,18 @@ export class OrdenUseCase implements IOrdenUseCase {
         precio_pagado_por_unidad: Joi.number().required(),
         deducible_unitario: Joi.number().required(),
         nombre: Joi.string().required(),
-        observacion: Joi.string().required(),
+        observacion: Joi.string().required().allow(''),
       });
 
       const ISeguroComplementario = Joi.object({
         nombreBeneficiario: Joi.string().required(),
         id_externo: Joi.number().required(),
+        id: Joi.string().required(),
         credencial_url: Joi.string().required(),
         deducible_total: Joi.number().required(),
         descuento_total: Joi.number().required(),
         tipo_documento_emitir: Documento.required(),
         fecha_creacion: Joi.number().required(),
-        id: Joi.string().required(),
         productos: Joi.array().items(Producto).required(),
         rut: Joi.string().required(),
         aseguradora_rut: Joi.string().required(),
@@ -416,6 +420,11 @@ export class OrdenUseCase implements IOrdenUseCase {
       const ordenParcial = new OrdenOValue().createPartialOrder(order);
 
       const nuevaOrden = await this.ordenRepository.createPartialOrder(ordenParcial);
+
+      if (order.seguroComplementario) {
+        const seguroComplementarioVO = new OrdenOValue().guardarSeguroComplementario(order);
+        await this.guardarSeguroComplementario(seguroComplementarioVO);
+      }
 
       if (!nuevaOrden) {
         throw new ApiResponse(HttpCodes.BAD_REQUEST, nuevaOrden);
@@ -569,7 +578,11 @@ export class OrdenUseCase implements IOrdenUseCase {
 
         // Generar Seguro Complementario
         if (order.seguroComplementario) {
-          await this.guardarSeguroComplementario(order.seguroComplementario);
+          const seguroComplementarioVO = new OrdenOValue().generarSeguroComplementario(order);
+
+          console.log('----- Generar Seguro Complementario: ', seguroComplementarioVO);
+
+          await this.generarSeguroComplementario(seguroComplementarioVO);
         }
       }
 
@@ -590,6 +603,15 @@ export class OrdenUseCase implements IOrdenUseCase {
           origen: 'SISTEMA ORDENES',
           payload: documentoVO,
         });
+
+        // Generar Seguro Complementario
+        if (order.seguroComplementario) {
+          const seguroComplementarioVO = new OrdenOValue().generarSeguroComplementario(order);
+
+          console.log('----- Generar Seguro Complementario: ', seguroComplementarioVO);
+
+          await this.generarSeguroComplementario(seguroComplementarioVO);
+        }
       }
 
       // Notificar Cliente
