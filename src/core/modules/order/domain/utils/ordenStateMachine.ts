@@ -124,10 +124,41 @@ const validarOrdenRequiereRecetaYEstanAprobadas = ({ productsOrder }: OrdenEntit
 };
 
 const validaReglaNegocioListoParaRetiro = (orden: OrdenEntity): boolean => {
+  if (validarSiTieneSeguroComplementario(orden)) {
+    return validarSeguroComplementarioConfirmado(orden);
+  }
+
   return true;
 };
 
+const validarSiTieneSeguroComplementario = (orden: OrdenEntity): boolean => {
+  if (!orden.seguroComplementario) return false;
+
+  return true;
+};
+
+const validarSeguroComplementarioConfirmado = (orden: OrdenEntity): boolean => {
+  if (!orden.seguroComplementario) return false;
+
+  if (orden?.seguroComplementario?.vouchers_url?.length > 0 && orden?.seguroComplementario?.billing.length > 0)
+    return true;
+
+  return false;
+};
+
 const validaReglaNegocioAsignarADelivery = (orden: OrdenEntity): boolean => {
+  if (validarSiTieneSeguroComplementario(orden)) {
+    const seguroConfirmado = validarSeguroComplementarioConfirmado(orden);
+
+    if (!seguroConfirmado) return false;
+
+    console.log('orden.delivery.provider.provider', orden?.delivery?.provider);
+
+    if (!orden.delivery?.provider || orden.delivery.provider.provider === '') return false;
+
+    return true;
+  }
+
   // Debe tener su courier asignado
 
   console.log('orden.delivery.provider.provider', orden?.delivery?.provider);

@@ -185,6 +185,12 @@ export const handler = async (event: SQSEvent) => {
       await orderUseCase.actualizarOrderStatusWebhook(body as IActualizarOrderStatusWebhook);
     }
 
+    // ---------- Seguro Complementario ----------------
+
+    if (origin === 'seguro-complementario' && action === 'confirmar-seguro-complementario') {
+      await orderUseCase.confirmarSeguroComplementario(body as IAsignarSeguroComplementario);
+    }
+
     if (
       body?.payment?.payment.status === 'Aprobado' &&
       origin === 'ecommerce' &&
@@ -243,10 +249,6 @@ export const handler = async (event: SQSEvent) => {
       );
 
       await actualizarStock(ordenEncontrada);
-    }
-
-    if (origin === 'seguro-complementario' && action === 'confirmar-seguro-complementario') {
-      await orderUseCase.confirmarSeguroComplementario(body as IAsignarSeguroComplementario);
     }
 
     return { statusCode: 200, body: JSON.stringify(event) };

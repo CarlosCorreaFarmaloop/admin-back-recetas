@@ -369,10 +369,14 @@ export interface ISeguroComplementario {
   aseguradora_rut: string;
   aseguradora_nombre: string;
 
-  billing: Billing;
+  billing: ISeguroComplementarioBilling[];
   vouchers_url: string[];
   estado_credencial: EstadoCredencial;
   historial: ISeguroComplementarioHistorial[];
+}
+
+export interface ISeguroComplementarioBilling extends Billing {
+  destinatario: string;
 }
 
 export type EstadoCredencial = 'Pendiente' | 'Aprobado' | 'Cancelado';
