@@ -69,7 +69,7 @@ export class OrdenMongoRepository implements IOrdenRepository {
     return await OrderModel.findOneAndUpdate(
       { id },
       { $set: { 'delivery.provider.status': payload.status, 'delivery.provider.statusDate': payload.statusDate } },
-      { new: true, upsert: true }
+      { new: true }
     );
   };
 
@@ -79,7 +79,7 @@ export class OrdenMongoRepository implements IOrdenRepository {
     return await OrderModel.findOneAndUpdate(
       { id },
       { $set: { 'billing.status': payload.status, 'billing.statusDate': payload.statusDate } },
-      { new: true, upsert: true }
+      { new: true }
     );
   };
 
@@ -106,7 +106,7 @@ export class OrdenMongoRepository implements IOrdenRepository {
           provisionalStatusOrderDate: payload.provisionalStatusOrderDate,
         },
       },
-      { new: true, upsert: true }
+      { new: true }
     );
   };
 
@@ -124,6 +124,9 @@ export class OrdenMongoRepository implements IOrdenRepository {
           'productsOrder.$.prescription.file': payload.productOrder.prescription.file,
           'productsOrder.$.prescription.state': 'Pending',
           'productsOrder.$.prescription.stateDate': new Date().getTime(),
+          'productsOrder.$.prescription.validation.comments': '',
+          'productsOrder.$.prescription.validation.responsible': '',
+          'productsOrder.$.prescription.validation.rut': '',
         },
       },
       { new: true, upsert: true }

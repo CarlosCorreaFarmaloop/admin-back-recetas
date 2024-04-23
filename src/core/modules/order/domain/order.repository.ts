@@ -25,10 +25,10 @@ export interface IOrdenRepository {
   updateOrderStatus: (id: string, status: StatusOrder) => Promise<OrdenEntity>;
   updateOrderTracking: (id: string, payload: Tracking) => Promise<OrdenEntity>;
   updateOrderHistory: (id: string, payload: IOrderHistory) => Promise<OrdenEntity>;
-  updateOrderProviderStatus: (id: string, providerStatus: IUpdateProviderStatus) => Promise<OrdenEntity>;
-  updateOrderBillingStatus: (id: string, payload: IUpdateBillingStatus) => Promise<OrdenEntity>;
+  updateOrderProviderStatus: (id: string, providerStatus: IUpdateProviderStatus) => Promise<OrdenEntity | null>;
+  updateOrderBillingStatus: (id: string, payload: IUpdateBillingStatus) => Promise<OrdenEntity | null>;
   updateOrderProvider: (id: string, payload: IUpdateProvider) => Promise<OrdenEntity>;
-  updateProvisionalStatusOrder: (payload: IUpdateProvisionalStatusOrder) => Promise<OrdenEntity>;
+  updateProvisionalStatusOrder: (payload: IUpdateProvisionalStatusOrder) => Promise<OrdenEntity | null>;
   uploadPrescriptionFile: (payload: IUploadPrescription) => Promise<OrdenEntity>;
   updatePrescriptionState: (payload: IUpdatePrescriptionState) => Promise<OrdenEntity>;
 
