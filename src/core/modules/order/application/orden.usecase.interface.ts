@@ -11,6 +11,7 @@ import {
   ICancelarOrder,
   IOrderBackToFlow,
   IOrigin,
+  IUpdateEstadoCedulaIdentidad,
   IUpdateStatusOderObservation,
 } from '.././../../../interface/event';
 import { ICourierEventInput } from '../domain/courier.interface';
@@ -48,6 +49,7 @@ export interface IOrdenUseCase {
   updateOrderStatusObservation: (payload: IUpdateStatusOderObservation) => Promise<void>;
   regresarOrderAlFlujo: (payload: IOrderBackToFlow) => Promise<void>;
   cancelarOrden: (payload: ICancelarOrder) => Promise<void>;
+  updateEstadoCedulaIdentidad: (payload: IUpdateEstadoCedulaIdentidad) => Promise<void>;
 
   // Documentos Tributarios
   generarDocumentosTributarios: (payload: IDocumentoTributarioEventInput) => Promise<void>;

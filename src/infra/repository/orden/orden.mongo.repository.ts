@@ -17,6 +17,7 @@ import {
   IAsignarCourierPayload,
   IAsignarDocumentosTributariosPayload,
   IAsignarSeguroComplementarioPayload,
+  IUpdateEstadoCedulaIdentidadPayload,
   IUpdateProvisionalStatusOrder,
 } from '../../../core/modules/order/domain/order.respository.interface';
 import { IGuardarSeguroComplementario } from 'src/interface/seguroComplementario.interface';
@@ -148,6 +149,20 @@ export class OrdenMongoRepository implements IOrdenRepository {
         $set: {
           'productsOrder.$.prescription.state': payload.productOrder.prescription.state,
           'productsOrder.$.prescription.validation': payload.productOrder.prescription.validation,
+        },
+      },
+      { new: true, upsert: true }
+    );
+  };
+
+  updateEstadoCedulaIdentidad = async (payload: IUpdateEstadoCedulaIdentidadPayload) => {
+    console.log('------Order To Update Estado Cedula Identidad ---- ', payload);
+
+    return await OrderModel.findOneAndUpdate(
+      { id: payload.orderId },
+      {
+        $set: {
+          'seguroComplementario.estado_credencial': payload.estado,
         },
       },
       { new: true, upsert: true }

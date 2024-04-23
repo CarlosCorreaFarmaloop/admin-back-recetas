@@ -1,4 +1,10 @@
-import { DeliveryTracking, IBillingType, OrdenEntity, StatusOrder } from '../core/modules/order/domain/order.entity';
+import {
+  DeliveryTracking,
+  EstadoCredencial,
+  IBillingType,
+  OrdenEntity,
+  StatusOrder,
+} from '../core/modules/order/domain/order.entity';
 
 export interface IEventDetail {
   origin: IOrigin;
@@ -21,7 +27,8 @@ export type IAction =
   | 'actualizar-order-estado-obervacion'
   | 'regresar-order-al-flujo'
   | 'cancelar-order'
-  | 'confirmar-seguro-complementario';
+  | 'confirmar-seguro-complementario'
+  | 'actualizar-estado-cedula-identidad';
 
 export interface IAsignacionCourier {
   id: string;
@@ -112,4 +119,10 @@ export interface IDocumentoSeguroComplementario {
   emissionDate: Date;
   referenceDocumentId: string;
   destinatario: string;
+}
+
+export interface IUpdateEstadoCedulaIdentidad {
+  responsible: string;
+  orderId: string;
+  estado: EstadoCredencial;
 }

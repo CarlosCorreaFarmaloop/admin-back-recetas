@@ -15,6 +15,7 @@ import {
   ICancelarOrder,
   IEventDetail,
   IOrderBackToFlow,
+  IUpdateEstadoCedulaIdentidad,
   IUpdateStatusOderObservation,
   IUpdateStatusOrder,
 } from './interface/event';
@@ -159,6 +160,10 @@ export const handler = async (event: SQSEvent) => {
 
     if (origin === 'admin' && action === 'regresar-order-al-flujo') {
       await orderUseCase.regresarOrderAlFlujo(body as IOrderBackToFlow);
+    }
+
+    if (origin === 'admin' && action === 'actualizar-estado-cedula-identidad') {
+      await orderUseCase.updateEstadoCedulaIdentidad(body as IUpdateEstadoCedulaIdentidad);
     }
 
     if (origin === 'admin' && action === 'cancelar-order') {

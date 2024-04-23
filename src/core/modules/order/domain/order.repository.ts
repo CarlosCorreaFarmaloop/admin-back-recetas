@@ -16,6 +16,7 @@ import {
   IAsignarCourierPayload,
   IAsignarDocumentosTributariosPayload,
   IAsignarSeguroComplementarioPayload,
+  IUpdateEstadoCedulaIdentidadPayload,
   IUpdateProvisionalStatusOrder,
 } from './order.respository.interface';
 
@@ -33,7 +34,7 @@ export interface IOrdenRepository {
   updateProvisionalStatusOrder: (payload: IUpdateProvisionalStatusOrder) => Promise<OrdenEntity | null>;
   uploadPrescriptionFile: (payload: IUploadPrescription) => Promise<OrdenEntity>;
   updatePrescriptionState: (payload: IUpdatePrescriptionState) => Promise<OrdenEntity>;
-
+  updateEstadoCedulaIdentidad: (payload: IUpdateEstadoCedulaIdentidadPayload) => Promise<OrdenEntity>;
   addOrderObservation: (payload: IAddOrderdObservation) => Promise<OrdenEntity>;
 
   asignarDocumentosTributarios: (payload: IAsignarDocumentosTributariosPayload) => Promise<OrdenEntity>;

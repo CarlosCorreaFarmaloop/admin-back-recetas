@@ -10,6 +10,7 @@ import {
   ICancelarOrder,
   IOrderBackToFlow,
   IOrigin,
+  IUpdateEstadoCedulaIdentidad,
   IUpdateStatusOderObservation,
 } from '.././../../../interface/event';
 import { MovementRepository } from '../../../modules/movements/domain/movements.repositoy';
@@ -1031,6 +1032,25 @@ export class OrdenUseCase implements IOrdenUseCase {
 
       await this.notificarCambioOrden(payload.id);
     }
+  };
+
+  updateEstadoCedulaIdentidad = async (payload: IUpdateEstadoCedulaIdentidad) => {
+    const updateEstadoCedulaIdentidadSchema = Joi.object({
+      orderId: Joi.string().required(),
+      estado: Joi.string().required(),
+      responsible: Joi.string().required(),
+    });
+
+    const { error } = updateEstadoCedulaIdentidadSchema.validate(payload);
+
+    if (error) {
+      throw new ApiResponse(HttpCodes.BAD_REQUEST, updateEstadoCedulaIdentidadSchema, error.message);
+    }
+
+    const ordenActualizada = await this.ordenRepository.updateEstadoCedulaIdentidad(payload);
+
+    if (!ordenActualizada)
+      throw new ApiResponse(HttpCodes.BAD_REQUEST, ordenActualizada, 'Error al actualizar el estado de la cédula.');
   };
 
   // ------------ Casos de Usos para Documentos Tributarios ------------

@@ -1,5 +1,5 @@
 import { IAsignarDocumentosTributarios } from '../../../../interface/event';
-import { Billing, DeliveryTracking, IBillingStatus, IBillingType, OrdenEntity } from './order.entity';
+import { Billing, DeliveryTracking, EstadoCredencial, IBillingStatus, IBillingType, OrdenEntity } from './order.entity';
 
 export interface IUpdateProvisionalStatusOrder
   extends Pick<OrdenEntity, 'id' | 'provisionalStatusOrder' | 'provisionalStatusOrderDate'> {}
@@ -78,4 +78,10 @@ export interface IDocumentoSeguroComplementario {
   emissionDate: Date;
   referenceDocumentId: string;
   destinatario: string;
+}
+
+export interface IUpdateEstadoCedulaIdentidadPayload {
+  orderId: string;
+  estado: EstadoCredencial;
+  responsible: string;
 }
