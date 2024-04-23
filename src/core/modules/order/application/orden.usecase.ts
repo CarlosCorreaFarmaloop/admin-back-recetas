@@ -1372,5 +1372,15 @@ export class OrdenUseCase implements IOrdenUseCase {
       );
 
     console.log('-------- Seguro Complementario Confirmado: ', ordenConSeguroComplementario);
+
+    const isOrderDelivery =
+      ordenConSeguroComplementario.delivery.method === 'DELIVERY' && ordenConSeguroComplementario.delivery.type !== '';
+
+    await this.updateStatusOrder(
+      ordenConSeguroComplementario,
+      ordenConSeguroComplementario.statusOrder,
+      isOrderDelivery ? 'ASIGNAR_A_DELIVERY' : 'LISTO_PARA_RETIRO',
+      'SISTEMA'
+    );
   };
 }
