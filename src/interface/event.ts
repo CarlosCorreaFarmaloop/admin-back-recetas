@@ -1,4 +1,4 @@
-import { DeliveryTracking, IBillingType, OrdenEntity, StatusOrder } from 'src/core/modules/order/domain/order.entity';
+import { DeliveryTracking, IBillingType, OrdenEntity, StatusOrder } from '../core/modules/order/domain/order.entity';
 
 export interface IEventDetail {
   origin: IOrigin;

@@ -41,7 +41,7 @@ import { notificarCambioOrdenSQS } from '../domain/sqs';
 import { IDocumentoTributarioEventInput } from '../domain/documentos_tributarios.interface';
 import { ICourierEventInput } from '../domain/courier.interface';
 import { diccionarioStatusCourier } from '../domain/utils/diccionario/tipoStatusCourier';
-import { IGenerarSeguroComplementario } from 'src/interface/seguroComplementario.interface';
+import { IGenerarSeguroComplementario } from '../../../../interface/seguroComplementario.interface';
 
 export class OrdenUseCase implements IOrdenUseCase {
   constructor(
