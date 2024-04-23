@@ -1268,7 +1268,7 @@ export class OrdenUseCase implements IOrdenUseCase {
     const generarSeguroComplementarioSchema = Joi.object({
       cliente: Joi.object({
         apellido: Joi.string().required(),
-        correoElectronico: Joi.string().required(),
+        correo_electronico: Joi.string().required(),
         nombre: Joi.string().required(),
         telefono: Joi.string().required(),
       }).required(),
@@ -1278,28 +1278,28 @@ export class OrdenUseCase implements IOrdenUseCase {
           .items(
             Joi.object({
               cantidad: Joi.number().required(),
-              copagoUnitario: Joi.number().required(),
-              deducibleUnitario: Joi.number().required(),
-              descuentoUnitario: Joi.number().required(),
+              copago_unitario: Joi.number().required(),
+              deducible_unitario: Joi.number().required(),
+              descuento_unitario: Joi.number().required(),
               lote: Joi.string().required(),
               nombre: Joi.string().required(),
-              precioUnitario: Joi.number().required(),
+              precio_unitario: Joi.number().required(),
               sku: Joi.string().required(),
             })
           )
           .required(),
-        tipoDocumento: Joi.string().required(),
+        tipo_documento: Joi.string().required(),
       }).required(),
-      idInterno: Joi.string().required(),
+      id_interno: Joi.string().required(),
       orden: Joi.object({
-        precioDelivery: Joi.number().required(),
+        precio_delivery: Joi.number().required(),
         productos: Joi.array()
           .items(
             Joi.object({
               cantidad: Joi.number().required(),
               lote: Joi.string().required(),
               nombre: Joi.string().required(),
-              precioUnitario: Joi.number().required(),
+              precio_unitario: Joi.number().required(),
               sku: Joi.string().required(),
             })
           )
