@@ -11,6 +11,7 @@ import {
   IActualizarOrderStatusWebhook,
   IAsignarCourier,
   IAsignarDocumentosTributarios,
+  IAsignarSeguroComplementario,
   ICancelarOrder,
   IEventDetail,
   IOrderBackToFlow,
@@ -237,6 +238,10 @@ export const handler = async (event: SQSEvent) => {
       );
 
       await actualizarStock(ordenEncontrada);
+    }
+
+    if (origin === 'seguro-complementario' && action === 'confirmar-seguro-complementario') {
+      await orderUseCase.confirmarSeguroComplementario(body as IAsignarSeguroComplementario);
     }
 
     return { statusCode: 200, body: JSON.stringify(event) };

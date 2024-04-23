@@ -16,6 +16,8 @@ import {
   IAddOrderdObservation,
   IAsignarCourierPayload,
   IAsignarDocumentosTributariosPayload,
+  IAsignarSeguroComplementarioPayload,
+  ISeguroComplementarioPayload,
   IUpdateProvisionalStatusOrder,
 } from '../../../core/modules/order/domain/order.respository.interface';
 
@@ -218,6 +220,52 @@ export class OrdenMongoRepository implements IOrdenRepository {
         },
       },
       { new: true, upsert: true }
+    );
+  };
+
+  // -------------------------------- Seguro Complemetario  --------------------------------
+
+  guardarSeguroComplementario = async (payload: ISeguroComplementarioPayload) => {
+    console.log('------Order To Guardar Seguro Complemenatrio ---- ', payload);
+
+    return await OrderModel.findOneAndUpdate(
+      { id: payload.id },
+      {
+        $set: {
+          seguroComplementario: {
+            nombreBeneficiario: payload.nombreBeneficiario,
+            id_externo: payload.id_externo,
+            credencial_url: payload.credencial_url,
+            deducible_total: payload.deducible_total,
+            descuento_total: payload.descuento_total,
+            tipo_documento_emitir: payload.tipo_documento_emitir,
+            fecha_creacion: payload.fecha_creacion,
+            id: payload.id,
+            productos: payload.productos,
+            rut: payload.rut,
+            aseguradora_rut: payload.aseguradora_rut,
+            aseguradora_nombre: payload.aseguradora_nombre,
+          },
+        },
+      },
+      { new: true }
+    );
+  };
+
+  confirmarSeguroComplementario = async (payload: IAsignarSeguroComplementarioPayload) => {
+    console.log('------Order To Confirmar Seguro Complemenatrio ---- ', payload);
+
+    return await OrderModel.findOneAndUpdate(
+      { id: payload.internal_id },
+      {
+        $set: {
+          seguroComplementario: {
+            vouchers_url: payload.vouchers_url,
+            billing: payload.documents,
+          },
+        },
+      },
+      { new: true }
     );
   };
 }

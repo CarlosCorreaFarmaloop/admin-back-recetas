@@ -7,6 +7,7 @@ import { TipoPago } from '../domain/utils/diccionario/tipoPago';
 import { GenerarOrdenDeCourierPayload } from '../domain/courier.interface';
 import { diccionarioTipoDelivery } from '../domain/utils/diccionario/tipoDelivery';
 import { IUpdateStatusOderObservation } from 'src/interface/event';
+import { IGenerarSeguroComplementario } from 'src/interface/seguroComplementario.interface';
 
 export class OrdenOValue {
   completeOrderFromEcommerce = (order: EcommerceOrderEntity): ICrearOrden => {
@@ -339,6 +340,48 @@ export class OrdenOValue {
         nombre: order.delivery.delivery_address.firstName,
         telefono: order.delivery.delivery_address.phone,
       },
+    };
+  };
+
+  generarSeguroComplementario = (order: OrdenEntity): IGenerarSeguroComplementario => {
+    return {
+      cliente: {
+        apellido: order?.seguroComplementario?.nombreBeneficiario ?? order.delivery.delivery_address.firstName,
+        correoElectronico: order.customer,
+        nombre: order.delivery.delivery_address.firstName,
+        telefono: order.delivery.delivery_address.phone,
+      },
+      cotizacion: {
+        id: String(order?.seguroComplementario?.id_externo) ?? '',
+        productos:
+          order?.seguroComplementario?.productos.map((product) => {
+            return {
+              cantidad: product.cantidad_afectada,
+              copagoUnitario: product.copago_unitario,
+              deducibleUnitario: product.deducible_unitario,
+              descuentoUnitario: product.descuento_unitario,
+              lote: product.lote,
+              nombre: product.nombre,
+              precioUnitario: product.precio_pagado_por_unidad,
+              sku: product.sku,
+            };
+          }) ?? [],
+        tipoDocumento: order.seguroComplementario?.tipo_documento_emitir ?? '',
+      },
+      idInterno: order.id,
+      orden: {
+        precioDelivery: order.delivery.cost,
+        productos: order.productsOrder.map((product) => {
+          return {
+            cantidad: product.qty,
+            lote: product.batchId,
+            nombre: product.fullName,
+            precioUnitario: product.price,
+            sku: product.sku,
+          };
+        }),
+      },
+      proveedor: 'Bsale',
     };
   };
 }

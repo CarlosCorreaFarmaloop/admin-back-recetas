@@ -1,4 +1,4 @@
-import { DeliveryTracking, OrdenEntity, StatusOrder } from 'src/core/modules/order/domain/order.entity';
+import { DeliveryTracking, IBillingType, OrdenEntity, StatusOrder } from 'src/core/modules/order/domain/order.entity';
 
 export interface IEventDetail {
   origin: IOrigin;
@@ -6,7 +6,7 @@ export interface IEventDetail {
   action: IAction;
 }
 
-export type IOrigin = 'ecommerce' | 'admin' | 'courier' | 'documento-tributario';
+export type IOrigin = 'ecommerce' | 'admin' | 'courier' | 'documento-tributario' | 'seguro-complementario';
 
 export type IAction =
   | 'crear-order'
@@ -20,7 +20,8 @@ export type IAction =
   | 'actualizar-order-status-webhook'
   | 'actualizar-order-estado-obervacion'
   | 'regresar-order-al-flujo'
-  | 'cancelar-order';
+  | 'cancelar-order'
+  | 'confirmar-seguro-complementario';
 
 export interface IAsignacionCourier {
   id: string;
@@ -94,4 +95,21 @@ export interface ICancelarOrder {
   responsible: string;
   reason: string;
   toPos: boolean;
+}
+
+export interface IAsignarSeguroComplementario {
+  internal_id: string;
+  vouchers_url: string[];
+  documents: IDocumentoSeguroComplementario[];
+}
+
+export interface IDocumentoSeguroComplementario {
+  emitter: string;
+  number: string;
+  type: IBillingType;
+  urlBilling: string;
+  urlTimbre: string;
+  emissionDate: Date;
+  referenceDocumentId: string;
+  destinario: string;
 }

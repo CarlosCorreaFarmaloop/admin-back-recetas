@@ -6,6 +6,7 @@ import {
   IActualizarOrderStatusWebhook,
   IAsignarCourier,
   IAsignarDocumentosTributarios,
+  IAsignarSeguroComplementario,
   ICancelarOrder,
   IOrderBackToFlow,
   IOrigin,
@@ -27,18 +28,20 @@ import {
   IUpdateProvisionalStatusOrder,
   IUploadPrescription,
 } from './interface';
-import { OrdenEntity, StatusOrder } from '../domain/order.entity';
+import { ISeguroComplementario, OrdenEntity, StatusOrder } from '../domain/order.entity';
 import { ordenStateMachine } from '../domain/utils/ordenStateMachine';
 import {
   actualizarOrdenEccomerce,
   emitirDocumentoTributario,
   generarCourierEvent,
+  generarSeguroComplementarioEvent,
   notificarEstadoDeOrden,
 } from '../domain/eventos';
 import { notificarCambioOrdenSQS } from '../domain/sqs';
 import { IDocumentoTributarioEventInput } from '../domain/documentos_tributarios.interface';
 import { ICourierEventInput } from '../domain/courier.interface';
 import { diccionarioStatusCourier } from '../domain/utils/diccionario/tipoStatusCourier';
+import { IGenerarSeguroComplementario } from 'src/interface/seguroComplementario.interface';
 
 export class OrdenUseCase implements IOrdenUseCase {
   constructor(
@@ -525,15 +528,13 @@ export class OrdenUseCase implements IOrdenUseCase {
         },
       });
 
-      if (previousStatus === 'PREPARANDO') {
+      if (previousStatus === 'PREPARANDO' && newStatus === 'ASIGNAR_A_DELIVERY') {
         await this.updateOrderProvider({
           id: order.id,
           providerName: order?.delivery?.provider.provider,
           serviceId: order?.delivery?.provider.service_id,
         });
-      }
 
-      if (previousStatus === 'PREPARANDO' && newStatus === 'ASIGNAR_A_DELIVERY') {
         await this.updateStatusCourier({
           id: order.id,
           status: 'Pendiente',
@@ -565,6 +566,11 @@ export class OrdenUseCase implements IOrdenUseCase {
           origen: 'SISTEMA ORDENES',
           payload: documentoVO,
         });
+
+        // Generar Seguro Complementario
+        if (order.seguroComplementario) {
+          await this.guardarSeguroComplementario(order.seguroComplementario);
+        }
       }
 
       if (previousStatus === 'PREPARANDO' && newStatus === 'LISTO_PARA_RETIRO') {
@@ -1176,5 +1182,154 @@ export class OrdenUseCase implements IOrdenUseCase {
     if (statusCourier) {
       await this.updateStatusOrder(ordenActualizada, ordenActualizada.statusOrder, statusCourier, 'SISTEMA');
     }
+  };
+
+  guardarSeguroComplementario = async (payload: ISeguroComplementario) => {
+    const guardarSeguroComplementarioSchema = Joi.object({
+      nombreBeneficiario: Joi.string().required(),
+      id_externo: Joi.number().required(),
+      credencial_url: Joi.string().required(),
+      deducible_total: Joi.number().required(),
+      descuento_total: Joi.number().required(),
+      tipo_documento_emitir: Joi.string().valid('bill', 'dispatch_note').required(),
+      fecha_creacion: Joi.number().required(),
+      id: Joi.string().required(),
+      productos: Joi.array()
+        .items(
+          Joi.object({
+            sku: Joi.string().required(),
+            lote: Joi.string().required(),
+            descuento_unitario: Joi.number().required(),
+            cantidad_afectada: Joi.number().required(),
+            copago_unitario: Joi.number().required(),
+            precio_pagado_por_unidad: Joi.number().required(),
+            deducible_unitario: Joi.number().required(),
+            nombre: Joi.string().required(),
+            observacion: Joi.string().required(),
+          })
+        )
+        .required(),
+      rut: Joi.string().required(),
+      aseguradora_rut: Joi.string().required(),
+      aseguradora_nombre: Joi.string().required(),
+    });
+
+    const { error } = guardarSeguroComplementarioSchema.validate(payload);
+
+    if (error) {
+      throw new ApiResponse(HttpCodes.BAD_REQUEST, guardarSeguroComplementarioSchema, error.message);
+    }
+
+    const ordenConSeguroComplementario = await this.ordenRepository.guardarSeguroComplementario(payload);
+
+    if (!ordenConSeguroComplementario)
+      throw new ApiResponse(
+        HttpCodes.BAD_REQUEST,
+        ordenConSeguroComplementario,
+        'Error al guardar el seguro complementario.'
+      );
+
+    console.log('-------- Seguro Complementario Guardado: ', ordenConSeguroComplementario);
+
+    const seguroComplementarioVO = new OrdenOValue().generarSeguroComplementario(ordenConSeguroComplementario);
+
+    console.log('----- Generar Seguro Complementario: ', seguroComplementarioVO);
+
+    await this.generarSeguroComplementario(seguroComplementarioVO);
+  };
+
+  generarSeguroComplementario = async (payload: IGenerarSeguroComplementario) => {
+    const generarSeguroComplementarioSchema = Joi.object({
+      cliente: Joi.object({
+        apellido: Joi.string().required(),
+        correoElectronico: Joi.string().required(),
+        nombre: Joi.string().required(),
+        telefono: Joi.string().required(),
+      }).required(),
+      cotizacion: Joi.object({
+        id: Joi.string().required(),
+        productos: Joi.array()
+          .items(
+            Joi.object({
+              cantidad: Joi.number().required(),
+              copagoUnitario: Joi.number().required(),
+              deducibleUnitario: Joi.number().required(),
+              descuentoUnitario: Joi.number().required(),
+              lote: Joi.string().required(),
+              nombre: Joi.string().required(),
+              precioUnitario: Joi.number().required(),
+              sku: Joi.string().required(),
+            })
+          )
+          .required(),
+        tipoDocumento: Joi.string().required(),
+      }).required(),
+      idInterno: Joi.string().required(),
+      orden: Joi.object({
+        precioDelivery: Joi.number().required(),
+        productos: Joi.array()
+          .items(
+            Joi.object({
+              cantidad: Joi.number().required(),
+              lote: Joi.string().required(),
+              nombre: Joi.string().required(),
+              precioUnitario: Joi.number().required(),
+              sku: Joi.string().required(),
+            })
+          )
+          .required(),
+      }).required(),
+      proveedor: Joi.string().required(),
+    });
+
+    const { error } = generarSeguroComplementarioSchema.validate(payload);
+
+    if (error) {
+      throw new ApiResponse(HttpCodes.BAD_REQUEST, generarSeguroComplementarioSchema, error.message);
+    }
+
+    await generarSeguroComplementarioEvent({
+      accion: 'confirmar-seguro-complementario',
+      origen: 'SISTEMA ORDENES',
+      payload,
+    });
+  };
+
+  confirmarSeguroComplementario = async (payload: IAsignarSeguroComplementario) => {
+    const asignarSeguroComplementarioSchema = Joi.object({
+      internal_id: Joi.string().required(),
+      vouchers_url: Joi.array().items(Joi.string()).required(),
+      documents: Joi.array()
+        .items(
+          Joi.object({
+            emitter: Joi.string().required(),
+            number: Joi.string().required(),
+            type: Joi.string().required(),
+            urlBilling: Joi.string().required(),
+            urlTimbre: Joi.string().required(),
+            emissionDate: Joi.date().required(),
+            referenceDocumentId: Joi.string().required(),
+            destinario: Joi.string().required(),
+          })
+        )
+        .required(),
+    });
+
+    const { error } = asignarSeguroComplementarioSchema.validate(payload);
+
+    if (error) {
+      throw new ApiResponse(HttpCodes.BAD_REQUEST, asignarSeguroComplementarioSchema, error.message);
+    }
+
+    const ordenConSeguroComplementario = await this.ordenRepository.confirmarSeguroComplementario(payload);
+
+    if (!ordenConSeguroComplementario)
+      throw new ApiResponse(
+        HttpCodes.BAD_REQUEST,
+        ordenConSeguroComplementario,
+        'Error al confirmar el seguro complementario.'
+      );
+
+    console.log('-------- Seguro Complementario Confirmado: ', ordenConSeguroComplementario);
   };
 }

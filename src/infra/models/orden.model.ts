@@ -1,5 +1,6 @@
 import mongoose, { model } from 'mongoose';
 import {
+  ISeguroComplementarioProducto,
   CompromisoEntrega,
   IOrderHistory,
   DeliveryTracking,
@@ -16,6 +17,7 @@ import {
   ResumeOrder,
   Documento,
   Delivery,
+  ISeguroComplementario,
 } from '../../core/modules/order/domain/order.entity';
 
 const TrackingSchema = new mongoose.Schema<Tracking>(
@@ -383,6 +385,42 @@ const HistorySchema = new mongoose.Schema<IOrderHistory>(
   { _id: false }
 );
 
+const SeguroComplementarioProductoSchema = new mongoose.Schema<ISeguroComplementarioProducto>(
+  {
+    sku: String,
+    lote: String,
+    cantidad_afectada: Number,
+    descuento_unitario: Number,
+    copago_unitario: Number,
+    precio_pagado_por_unidad: Number,
+    deducible_unitario: Number,
+    nombre: String,
+    observacion: String,
+  },
+  { _id: false }
+);
+
+const SeguroComplementarioSchema = new mongoose.Schema<ISeguroComplementario>(
+  {
+    nombreBeneficiario: String,
+    id: String,
+    id_externo: Number,
+    credencial_url: String,
+    deducible_total: Number,
+    descuento_total: Number,
+    tipo_documento_emitir: String,
+    fecha_creacion: Number,
+    rut: String,
+    aseguradora_nombre: String,
+    aseguradora_rut: String,
+
+    productos: [SeguroComplementarioProductoSchema],
+    vouchers_url: [String],
+    billing: BillingSchema,
+  },
+  { _id: false }
+);
+
 const OrderSchema = new mongoose.Schema({
   billing: BillingSchema,
   cotizacion: String,
@@ -407,6 +445,7 @@ const OrderSchema = new mongoose.Schema({
   observations: [ObservationsSchema],
   history: [HistorySchema],
   extras: { referrer: String },
+  seguroComplementario: SeguroComplementarioSchema,
 });
 
 const OrderModel = model<OrdenEntity>('orders', OrderSchema);

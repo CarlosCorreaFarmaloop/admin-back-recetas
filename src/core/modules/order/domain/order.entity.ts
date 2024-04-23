@@ -30,7 +30,7 @@ export type IProvisionalStatusOrder = '' | 'Pendiente' | 'Error' | 'Aprobado';
 export interface Billing {
   emitter: string;
   number: string;
-  type: '' | 'Boleta' | 'Factura' | 'Despacho';
+  type: IBillingType;
   status: IBillingStatus;
   urlBilling: string;
 
@@ -47,6 +47,8 @@ export interface Billing {
 }
 
 export type IBillingStatus = '' | 'Pendiente' | 'Aprobado' | 'Rechazado';
+
+export type IBillingType = 'Boleta' | 'Factura' | 'Despacho' | '';
 
 export interface CreditNote {
   createdAt: Date;
@@ -356,18 +358,21 @@ export interface IDeliveryTransport {
 export interface ISeguroComplementario {
   nombreBeneficiario: string;
   id_externo: number;
+  id: string;
   credencial_url: string;
   deducible_total: number;
   descuento_total: number;
   tipo_documento_emitir: ISeguroDocumento;
   fecha_creacion: number;
-  id: string;
-  productos: Producto[];
+  productos: ISeguroComplementarioProducto[];
   rut: string;
   aseguradora_rut: string;
   aseguradora_nombre: string;
+
+  billing: Billing;
+  vouchers_url: string[];
 }
-export interface Producto {
+export interface ISeguroComplementarioProducto {
   sku: string;
   lote: string;
   descuento_unitario: number;

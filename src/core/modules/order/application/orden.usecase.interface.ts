@@ -1,8 +1,10 @@
+import { IGenerarSeguroComplementario } from 'src/interface/seguroComplementario.interface';
 import { EcommerceOrderEntity } from '../../../../interface/ecommerceOrder.entity';
 import {
   IActualizarOrderStatusWebhook,
   IAsignarCourier,
   IAsignarDocumentosTributarios,
+  IAsignarSeguroComplementario,
   ICancelarOrder,
   IOrderBackToFlow,
   IOrigin,
@@ -10,7 +12,7 @@ import {
 } from '.././../../../interface/event';
 import { ICourierEventInput } from '../domain/courier.interface';
 import { IDocumentoTributarioEventInput } from '../domain/documentos_tributarios.interface';
-import { OrdenEntity, StatusOrder } from '../domain/order.entity';
+import { ISeguroComplementario, OrdenEntity, StatusOrder } from '../domain/order.entity';
 import {
   IUpdateBillingStatus,
   IUpdateOrderHistory,
@@ -53,6 +55,11 @@ export interface IOrdenUseCase {
   generarCourier: (payload: ICourierEventInput) => Promise<void>;
   asignarCourier: (payload: IAsignarCourier) => Promise<void>;
   actualizarOrderStatusWebhook: (payload: IActualizarOrderStatusWebhook) => Promise<void>;
+
+  // Seguro Complemetario
+  guardarSeguroComplementario: (payload: ISeguroComplementario) => Promise<void>;
+  generarSeguroComplementario: (payload: IGenerarSeguroComplementario) => Promise<void>;
+  confirmarSeguroComplementario: (payload: IAsignarSeguroComplementario) => Promise<void>;
 }
 
 export interface IRespuesta {

@@ -2,6 +2,7 @@ import { EventBridgeClient, PutEventsCommand } from '@aws-sdk/client-eventbridge
 import { OrdenEntity } from './order.entity';
 import { IDocumentoTributarioEventInput } from './documentos_tributarios.interface';
 import { ICourierEventInput } from './courier.interface';
+import { IGenerarSeguroComplementarioEvent } from 'src/interface/seguroComplementario.interface';
 
 const eventBridgeClient = new EventBridgeClient();
 const env = process.env.ENV?.toLowerCase() ?? '';
@@ -108,4 +109,22 @@ export const actualizarOrdenEccomerce = async (orden: OrdenEntity, toPos: boolea
     })
   );
   console.log('--- EVENTO ACTUALIZAR ORDEN ECOMMERCE --- ', evento);
+};
+
+export const generarSeguroComplementarioEvent = async (payload: IGenerarSeguroComplementarioEvent) => {
+  const evento = await eventBridgeClient.send(
+    new PutEventsCommand({
+      Entries: [
+        {
+          Detail: JSON.stringify(payload),
+          DetailType: 'Generar seguro complementario.',
+          EventBusName: 'arn:aws:events:us-east-1:069526102702:event-bus/default',
+          Source: `seguro-complementario-${env}`,
+          Time: new Date(),
+        },
+      ],
+    })
+  );
+
+  console.log('--- EVENTO GENERAR SEGURO COMPLEMENTARIO --- ', evento);
 };
