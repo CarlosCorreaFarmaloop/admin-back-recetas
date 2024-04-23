@@ -419,7 +419,7 @@ export class OrdenOValue {
           };
         }),
       },
-      proveedor: 'Bsale',
+      proveedor: 'Yapp',
     };
   };
 }

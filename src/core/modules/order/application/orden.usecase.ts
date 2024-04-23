@@ -568,17 +568,6 @@ export class OrdenUseCase implements IOrdenUseCase {
           payload: courierVO,
         });
 
-        // Emitir Documentos Tributarios
-        const documentoVO = new OrdenOValue().generarDocumentosTributarios(order);
-
-        console.log('----- Generar Documento Tributario: ', documentoVO);
-
-        await this.generarDocumentosTributarios({
-          accion: 'generar-documento-tributario',
-          origen: 'SISTEMA ORDENES',
-          payload: documentoVO,
-        });
-
         // Generar Seguro Complementario
         if (order.seguroComplementario) {
           const seguroComplementarioVO = new OrdenOValue().generarSeguroComplementario(order);
@@ -586,6 +575,17 @@ export class OrdenUseCase implements IOrdenUseCase {
           console.log('----- Generar Seguro Complementario: ', seguroComplementarioVO);
 
           await this.generarSeguroComplementario(seguroComplementarioVO);
+        } else {
+          // Emitir Documentos Tributarios
+          const documentoVO = new OrdenOValue().generarDocumentosTributarios(order);
+
+          console.log('----- Generar Documento Tributario: ', documentoVO);
+
+          await this.generarDocumentosTributarios({
+            accion: 'generar-documento-tributario',
+            origen: 'SISTEMA ORDENES',
+            payload: documentoVO,
+          });
         }
       }
 
@@ -596,17 +596,6 @@ export class OrdenUseCase implements IOrdenUseCase {
           statusDate: new Date(),
         });
 
-        // Emitir Documentos Tributarios
-        const documentoVO = new OrdenOValue().generarDocumentosTributarios(order);
-
-        console.log('----- Generar Documento Tributario: ', documentoVO);
-
-        await this.generarDocumentosTributarios({
-          accion: 'generar-documento-tributario',
-          origen: 'SISTEMA ORDENES',
-          payload: documentoVO,
-        });
-
         // Generar Seguro Complementario
         if (order.seguroComplementario) {
           const seguroComplementarioVO = new OrdenOValue().generarSeguroComplementario(order);
@@ -614,6 +603,17 @@ export class OrdenUseCase implements IOrdenUseCase {
           console.log('----- Generar Seguro Complementario: ', seguroComplementarioVO);
 
           await this.generarSeguroComplementario(seguroComplementarioVO);
+        } else {
+          // Emitir Documentos Tributarios
+          const documentoVO = new OrdenOValue().generarDocumentosTributarios(order);
+
+          console.log('----- Generar Documento Tributario: ', documentoVO);
+
+          await this.generarDocumentosTributarios({
+            accion: 'generar-documento-tributario',
+            origen: 'SISTEMA ORDENES',
+            payload: documentoVO,
+          });
         }
       }
 
@@ -1256,12 +1256,6 @@ export class OrdenUseCase implements IOrdenUseCase {
       );
 
     console.log('-------- Seguro Complementario Guardado: ', ordenConSeguroComplementario);
-
-    const seguroComplementarioVO = new OrdenOValue().generarSeguroComplementario(ordenConSeguroComplementario);
-
-    console.log('----- Generar Seguro Complementario: ', seguroComplementarioVO);
-
-    await this.generarSeguroComplementario(seguroComplementarioVO);
   };
 
   generarSeguroComplementario = async (payload: IGenerarSeguroComplementario) => {
