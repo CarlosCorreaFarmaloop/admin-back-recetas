@@ -416,7 +416,7 @@ const SeguroComplementarioSchema = new mongoose.Schema<ISeguroComplementario>(
 
     productos: [SeguroComplementarioProductoSchema],
     vouchers_url: [String],
-    billing: BillingSchema,
+    billing: [BillingSchema],
   },
   { _id: false }
 );

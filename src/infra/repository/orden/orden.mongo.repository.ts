@@ -259,10 +259,8 @@ export class OrdenMongoRepository implements IOrdenRepository {
       { id: payload.internal_id },
       {
         $set: {
-          seguroComplementario: {
-            vouchers_url: payload.vouchers_url,
-            billing: payload.documents,
-          },
+          'seguroComplementario.vouchers_url': payload.vouchers_url,
+          'seguroComplementario.billing': payload.documents,
         },
       },
       { new: true }
