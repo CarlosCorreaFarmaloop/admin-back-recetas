@@ -25,19 +25,19 @@ import {
 } from './core/modules/order/application/interface';
 
 // event can be event: EventBridgeEvent<string, IEventDetail> or event: EventBridgeEvent<string, IEventDetail>  {body: IEventDetail}
-export const handler = async (event: any) => {
+export const handler = async (event: SQSEvent) => {
   // Connect to Mongo
   try {
     await connectoToMongoDB();
 
     console.log('--- Event: ', event);
 
-    // const bodyEvent: EventBridgeEvent<string, IEventDetail> = JSON.parse(event.Records[0].body);
-    // const { origin, body, action } = bodyEvent.detail;
+    const bodyEvent: EventBridgeEvent<string, IEventDetail> = JSON.parse(event.Records[0].body);
+    const { origin, body, action } = bodyEvent.detail;
 
     // Only Development Environment
-    const bodyDetail = JSON.parse(event.body);
-    const { origin, body, action } = bodyDetail;
+    // const bodyDetail = JSON.parse(event.body);
+    // const { origin, body, action } = bodyDetail;
 
     const orderRespository = new OrdenMongoRepository();
     const cotizacionRespository = new CotizacionRepository();
