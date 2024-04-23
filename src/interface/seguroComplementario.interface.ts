@@ -9,14 +9,14 @@ export interface IGenerarSeguroComplementarioEvent {
 export interface IGenerarSeguroComplementario {
   cliente: Cliente;
   cotizacion: Cotizacion;
-  idInterno: string;
+  id_interno: string;
   orden: Orden;
   proveedor: string;
 }
 
 export interface Cliente {
   apellido: string;
-  correoElectronico: string;
+  correo_electronico: string;
   nombre: string;
   telefono: string;
 }
@@ -24,22 +24,22 @@ export interface Cliente {
 export interface Cotizacion {
   id: string;
   productos: CotizacionProducto[];
-  tipoDocumento: string;
+  tipo_documento: string;
 }
 
 export interface CotizacionProducto {
   cantidad: number;
-  copagoUnitario: number;
-  deducibleUnitario: number;
-  descuentoUnitario: number;
+  copago_unitario: number;
+  deducible_unitario: number;
+  descuento_unitario: number;
   lote: string;
   nombre: string;
-  precioUnitario: number;
+  precio_unitario: number;
   sku: string;
 }
 
 export interface Orden {
-  precioDelivery: number;
+  precio_delivery: number;
   productos: OrdenProducto[];
 }
 
@@ -47,7 +47,7 @@ export interface OrdenProducto {
   cantidad: number;
   lote: string;
   nombre: string;
-  precioUnitario: number;
+  precio_unitario: number;
   sku: string;
 }
 

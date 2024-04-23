@@ -385,7 +385,7 @@ export class OrdenOValue {
     return {
       cliente: {
         apellido: order?.seguroComplementario?.nombreBeneficiario ?? order.delivery.delivery_address.firstName,
-        correoElectronico: order.customer,
+        correo_electronico: order.customer,
         nombre: order.delivery.delivery_address.firstName,
         telefono: order.delivery.delivery_address.phone,
       },
@@ -395,26 +395,26 @@ export class OrdenOValue {
           order?.seguroComplementario?.productos.map((product) => {
             return {
               cantidad: product.cantidad_afectada,
-              copagoUnitario: product.copago_unitario,
-              deducibleUnitario: product.deducible_unitario,
-              descuentoUnitario: product.descuento_unitario,
+              copago_unitario: product.copago_unitario,
+              deducible_unitario: product.deducible_unitario,
+              descuento_unitario: product.descuento_unitario,
               lote: product.lote,
               nombre: product.nombre,
-              precioUnitario: product.precio_pagado_por_unidad,
+              precio_unitario: product.precio_pagado_por_unidad,
               sku: product.sku,
             };
           }) ?? [],
-        tipoDocumento: order.seguroComplementario?.tipo_documento_emitir ?? '',
+        tipo_documento: order.seguroComplementario?.tipo_documento_emitir ?? '',
       },
-      idInterno: order.id,
+      id_interno: order.id,
       orden: {
-        precioDelivery: order.delivery.cost,
+        precio_delivery: order.delivery.cost,
         productos: order.productsOrder.map((product) => {
           return {
             cantidad: product.qty,
             lote: product.batchId,
             nombre: product.fullName,
-            precioUnitario: product.price,
+            precio_unitario: product.price,
             sku: product.sku,
           };
         }),
