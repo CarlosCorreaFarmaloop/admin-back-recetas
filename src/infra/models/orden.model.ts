@@ -400,10 +400,22 @@ const SeguroComplementarioProductoSchema = new mongoose.Schema<ISeguroComplement
   { _id: false }
 );
 
-const SeguroComplementarioBillingSchema = new mongoose.Schema({
-  ...BillingSchema.obj,
-  destinatario: String,
-});
+const SeguroComplementarioBillingSchema = new mongoose.Schema(
+  {
+    ...BillingSchema.obj,
+    destinatario: String,
+  },
+  { _id: false }
+);
+
+const SeguroComplementarioHistorialSchema = new mongoose.Schema(
+  {
+    fecha: Date,
+    responsible: String,
+    historia: String,
+  },
+  { _id: false }
+);
 
 const SeguroComplementarioSchema = new mongoose.Schema<ISeguroComplementario>(
   {
@@ -422,6 +434,8 @@ const SeguroComplementarioSchema = new mongoose.Schema<ISeguroComplementario>(
     productos: [SeguroComplementarioProductoSchema],
     vouchers_url: [String],
     billing: [SeguroComplementarioBillingSchema],
+    estado_credencial: String,
+    historial: [SeguroComplementarioHistorialSchema],
   },
   { _id: false }
 );

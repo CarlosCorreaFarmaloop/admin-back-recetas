@@ -371,6 +371,14 @@ export interface ISeguroComplementario {
 
   billing: Billing;
   vouchers_url: string[];
+  estado_credencial: string;
+  historial: ISeguroComplementarioHistorial[];
+}
+
+export interface ISeguroComplementarioHistorial {
+  fecha: Date;
+  responsible: string;
+  historia: string;
 }
 export interface ISeguroComplementarioProducto {
   sku: string;
