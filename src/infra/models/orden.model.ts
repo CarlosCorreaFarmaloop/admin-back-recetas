@@ -422,6 +422,7 @@ const SeguroComplementarioSchema = new mongoose.Schema<ISeguroComplementario>(
     nombreBeneficiario: String,
     id: String,
     id_externo: Number,
+    estado_credencial: String,
     credencial_url: String,
     deducible_total: Number,
     descuento_total: Number,
@@ -434,7 +435,6 @@ const SeguroComplementarioSchema = new mongoose.Schema<ISeguroComplementario>(
     productos: [SeguroComplementarioProductoSchema],
     vouchers_url: [String],
     billing: [SeguroComplementarioBillingSchema],
-    estado_credencial: String,
     historial: [SeguroComplementarioHistorialSchema],
   },
   { _id: false }

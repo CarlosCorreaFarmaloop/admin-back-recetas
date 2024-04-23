@@ -356,6 +356,7 @@ export class OrdenOValue {
       nombreBeneficiario: order?.seguroComplementario?.nombreBeneficiario ?? '',
       id_externo: order?.seguroComplementario?.id_externo ?? 0,
       id: order.seguroComplementario?.id ?? '',
+      estado_credencial: 'Pendiente',
       credencial_url: order?.seguroComplementario?.credencial_url ?? '',
       deducible_total: order?.seguroComplementario?.deducible_total ?? 0,
       descuento_total: order?.seguroComplementario?.descuento_total ?? 0,

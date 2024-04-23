@@ -235,6 +235,7 @@ export class OrdenMongoRepository implements IOrdenRepository {
           seguroComplementario: {
             nombreBeneficiario: payload.nombreBeneficiario,
             id_externo: payload.id_externo,
+            estado_credencial: payload.estado_credencial,
             credencial_url: payload.credencial_url,
             deducible_total: payload.deducible_total,
             descuento_total: payload.descuento_total,

@@ -371,9 +371,11 @@ export interface ISeguroComplementario {
 
   billing: Billing;
   vouchers_url: string[];
-  estado_credencial: string;
+  estado_credencial: EstadoCredencial;
   historial: ISeguroComplementarioHistorial[];
 }
+
+export type EstadoCredencial = 'Pendiente' | 'Aprobado' | 'Cancelado';
 
 export interface ISeguroComplementarioHistorial {
   fecha: Date;

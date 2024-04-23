@@ -1214,6 +1214,7 @@ export class OrdenUseCase implements IOrdenUseCase {
       orderId: Joi.string().required(),
       nombreBeneficiario: Joi.string().required(),
       id_externo: Joi.number().required(),
+      estado_credencial: Joi.string().required(),
       credencial_url: Joi.string().required(),
       deducible_total: Joi.number().required(),
       descuento_total: Joi.number().required(),

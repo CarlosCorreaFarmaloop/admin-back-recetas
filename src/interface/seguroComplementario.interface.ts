@@ -1,4 +1,8 @@
-import { ISeguroDocumento, ISeguroComplementarioProducto } from '../core/modules/order/domain/order.entity';
+import {
+  ISeguroDocumento,
+  ISeguroComplementarioProducto,
+  EstadoCredencial,
+} from '../core/modules/order/domain/order.entity';
 
 export interface IGenerarSeguroComplementarioEvent {
   accion: string;
@@ -65,4 +69,5 @@ export interface IGuardarSeguroComplementario {
   rut: string;
   aseguradora_rut: string;
   aseguradora_nombre: string;
+  estado_credencial: EstadoCredencial;
 }
