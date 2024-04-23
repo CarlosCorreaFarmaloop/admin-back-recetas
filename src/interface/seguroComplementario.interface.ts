@@ -1,3 +1,5 @@
+import { ISeguroDocumento, ISeguroComplementarioProducto } from '../core/modules/order/domain/order.entity';
+
 export interface IGenerarSeguroComplementarioEvent {
   accion: string;
   payload: IGenerarSeguroComplementario;
@@ -47,4 +49,20 @@ export interface OrdenProducto {
   nombre: string;
   precioUnitario: number;
   sku: string;
+}
+
+export interface IGuardarSeguroComplementario {
+  orderId: string;
+  nombreBeneficiario: string;
+  id_externo: number;
+  id: string;
+  credencial_url: string;
+  deducible_total: number;
+  descuento_total: number;
+  tipo_documento_emitir: ISeguroDocumento;
+  fecha_creacion: number;
+  productos: ISeguroComplementarioProducto[];
+  rut: string;
+  aseguradora_rut: string;
+  aseguradora_nombre: string;
 }

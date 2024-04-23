@@ -1,5 +1,5 @@
 import { EcommerceOrderEntity } from 'src/interface/ecommerceOrder.entity';
-import { ISeguroComplementario, OrdenEntity, Payment, StatusOrder } from '../domain/order.entity';
+import { OrdenEntity, Payment, StatusOrder } from '../domain/order.entity';
 import { validateNumberType, validateStringType } from '../domain/utils/validate';
 import { IAddObservation, ICrearOrden, ICrearPartialOrden } from './interface';
 import { GenerarBoletaPayload } from '../domain/documentos_tributarios.interface';
@@ -7,7 +7,10 @@ import { TipoPago } from '../domain/utils/diccionario/tipoPago';
 import { GenerarOrdenDeCourierPayload } from '../domain/courier.interface';
 import { diccionarioTipoDelivery } from '../domain/utils/diccionario/tipoDelivery';
 import { IUpdateStatusOderObservation } from 'src/interface/event';
-import { IGenerarSeguroComplementario } from 'src/interface/seguroComplementario.interface';
+import {
+  IGenerarSeguroComplementario,
+  IGuardarSeguroComplementario,
+} from 'src/interface/seguroComplementario.interface';
 
 export class OrdenOValue {
   completeOrderFromEcommerce = (order: EcommerceOrderEntity): ICrearOrden => {
@@ -119,43 +122,6 @@ export class OrdenOValue {
       createdAt: createdDate,
     };
 
-    if (order.seguroComplementario) {
-      ordenCompleta.seguroComplementario = {
-        id_externo: order.seguroComplementario.id_externo,
-        nombreBeneficiario: order.seguroComplementario.nombreBeneficiario,
-        productos: order.seguroComplementario.productos.map((product) => {
-          return {
-            cantidad_afectada: product.cantidad_afectada,
-            copago_unitario: product.copago_unitario,
-            deducible_unitario: product.deducible_unitario,
-            descuento_unitario: product.descuento_unitario,
-            lote: product.lote,
-            nombre: product.nombre,
-            precio_pagado_por_unidad: product.precio_pagado_por_unidad,
-            sku: product.sku,
-            observacion: product.observacion,
-          };
-        }),
-        tipo_documento_emitir: order.seguroComplementario.tipo_documento_emitir,
-        aseguradora_nombre: order.seguroComplementario.aseguradora_nombre,
-        aseguradora_rut: order.seguroComplementario.aseguradora_rut,
-        credencial_url: order.seguroComplementario.credencial_url,
-        deducible_total: order.seguroComplementario.deducible_total,
-        descuento_total: order.seguroComplementario.descuento_total,
-        fecha_creacion: order.seguroComplementario.fecha_creacion,
-        id: order.seguroComplementario.id,
-        rut: order.seguroComplementario.rut,
-        vouchers_url: [],
-        billing: {
-          emitter: '',
-          number: '',
-          type: '',
-          status: '',
-          urlBilling: '',
-        },
-      };
-    }
-
     return ordenCompleta;
   };
 
@@ -262,43 +228,6 @@ export class OrdenOValue {
       statusOrder: 'CREADO',
       createdAt: createdDate,
     };
-
-    if (order.seguroComplementario) {
-      ordenParcial.seguroComplementario = {
-        id_externo: order.seguroComplementario.id_externo,
-        nombreBeneficiario: order.seguroComplementario.nombreBeneficiario,
-        productos: order.seguroComplementario.productos.map((product) => {
-          return {
-            cantidad_afectada: product.cantidad_afectada,
-            copago_unitario: product.copago_unitario,
-            deducible_unitario: product.deducible_unitario,
-            descuento_unitario: product.descuento_unitario,
-            lote: product.lote,
-            nombre: product.nombre,
-            precio_pagado_por_unidad: product.precio_pagado_por_unidad,
-            sku: product.sku,
-            observacion: product.observacion,
-          };
-        }),
-        tipo_documento_emitir: order.seguroComplementario.tipo_documento_emitir,
-        aseguradora_nombre: order.seguroComplementario.aseguradora_nombre,
-        aseguradora_rut: order.seguroComplementario.aseguradora_rut,
-        credencial_url: order.seguroComplementario.credencial_url,
-        deducible_total: order.seguroComplementario.deducible_total,
-        descuento_total: order.seguroComplementario.descuento_total,
-        fecha_creacion: order.seguroComplementario.fecha_creacion,
-        id: order.seguroComplementario.id,
-        rut: order.seguroComplementario.rut,
-        vouchers_url: [],
-        billing: {
-          emitter: '',
-          number: '',
-          type: '',
-          status: '',
-          urlBilling: '',
-        },
-      };
-    }
 
     return ordenParcial;
   };
@@ -421,8 +350,9 @@ export class OrdenOValue {
     };
   };
 
-  guardarSeguroComplementario = (order: EcommerceOrderEntity): ISeguroComplementario => {
+  guardarSeguroComplementario = (order: EcommerceOrderEntity): IGuardarSeguroComplementario => {
     return {
+      orderId: order.id,
       nombreBeneficiario: order?.seguroComplementario?.nombreBeneficiario ?? '',
       id_externo: order?.seguroComplementario?.id_externo ?? 0,
       id: order.seguroComplementario?.id ?? '',
@@ -448,14 +378,6 @@ export class OrdenOValue {
       rut: order?.seguroComplementario?.rut ?? '',
       aseguradora_rut: order?.seguroComplementario?.aseguradora_rut ?? '',
       aseguradora_nombre: order?.seguroComplementario?.aseguradora_nombre ?? '',
-      billing: {
-        emitter: '',
-        number: '',
-        type: '',
-        status: '',
-        urlBilling: '',
-      },
-      vouchers_url: [],
     };
   };
 

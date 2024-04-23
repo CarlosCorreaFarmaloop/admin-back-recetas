@@ -28,7 +28,7 @@ import {
   IUpdateProvisionalStatusOrder,
   IUploadPrescription,
 } from './interface';
-import { ISeguroComplementario, OrdenEntity, StatusOrder } from '../domain/order.entity';
+import { OrdenEntity, StatusOrder } from '../domain/order.entity';
 import { ordenStateMachine } from '../domain/utils/ordenStateMachine';
 import {
   actualizarOrdenEccomerce,
@@ -41,7 +41,10 @@ import { notificarCambioOrdenSQS } from '../domain/sqs';
 import { IDocumentoTributarioEventInput } from '../domain/documentos_tributarios.interface';
 import { ICourierEventInput } from '../domain/courier.interface';
 import { diccionarioStatusCourier } from '../domain/utils/diccionario/tipoStatusCourier';
-import { IGenerarSeguroComplementario } from '../../../../interface/seguroComplementario.interface';
+import {
+  IGenerarSeguroComplementario,
+  IGuardarSeguroComplementario,
+} from '../../../../interface/seguroComplementario.interface';
 
 export class OrdenUseCase implements IOrdenUseCase {
   constructor(
@@ -421,13 +424,13 @@ export class OrdenUseCase implements IOrdenUseCase {
 
       const nuevaOrden = await this.ordenRepository.createPartialOrder(ordenParcial);
 
+      if (!nuevaOrden) {
+        throw new ApiResponse(HttpCodes.BAD_REQUEST, nuevaOrden);
+      }
+
       if (order.seguroComplementario) {
         const seguroComplementarioVO = new OrdenOValue().guardarSeguroComplementario(order);
         await this.guardarSeguroComplementario(seguroComplementarioVO);
-      }
-
-      if (!nuevaOrden) {
-        throw new ApiResponse(HttpCodes.BAD_REQUEST, nuevaOrden);
       }
     }
   }
@@ -1206,8 +1209,9 @@ export class OrdenUseCase implements IOrdenUseCase {
     }
   };
 
-  guardarSeguroComplementario = async (payload: ISeguroComplementario) => {
+  guardarSeguroComplementario = async (payload: IGuardarSeguroComplementario) => {
     const guardarSeguroComplementarioSchema = Joi.object({
+      orderId: Joi.string().required(),
       nombreBeneficiario: Joi.string().required(),
       id_externo: Joi.number().required(),
       credencial_url: Joi.string().required(),
@@ -1227,7 +1231,7 @@ export class OrdenUseCase implements IOrdenUseCase {
             precio_pagado_por_unidad: Joi.number().required(),
             deducible_unitario: Joi.number().required(),
             nombre: Joi.string().required(),
-            observacion: Joi.string().required(),
+            observacion: Joi.string().required().allow(''),
           })
         )
         .required(),

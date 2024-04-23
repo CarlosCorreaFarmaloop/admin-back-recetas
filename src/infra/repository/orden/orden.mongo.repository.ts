@@ -17,9 +17,9 @@ import {
   IAsignarCourierPayload,
   IAsignarDocumentosTributariosPayload,
   IAsignarSeguroComplementarioPayload,
-  ISeguroComplementarioPayload,
   IUpdateProvisionalStatusOrder,
 } from '../../../core/modules/order/domain/order.respository.interface';
+import { IGuardarSeguroComplementario } from 'src/interface/seguroComplementario.interface';
 
 export class OrdenMongoRepository implements IOrdenRepository {
   createOrderFromEcommerce = async (payload: ICrearOrden) => {
@@ -225,11 +225,11 @@ export class OrdenMongoRepository implements IOrdenRepository {
 
   // -------------------------------- Seguro Complemetario  --------------------------------
 
-  guardarSeguroComplementario = async (payload: ISeguroComplementarioPayload) => {
+  guardarSeguroComplementario = async (payload: IGuardarSeguroComplementario) => {
     console.log('------Order To Guardar Seguro Complemenatrio ---- ', payload);
 
     return await OrderModel.findOneAndUpdate(
-      { id: payload.id },
+      { id: payload.orderId },
       {
         $set: {
           seguroComplementario: {

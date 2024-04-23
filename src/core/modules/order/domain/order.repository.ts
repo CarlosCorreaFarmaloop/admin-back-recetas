@@ -1,3 +1,4 @@
+import { IGuardarSeguroComplementario } from 'src/interface/seguroComplementario.interface';
 import {
   ICrearOrden,
   ICrearPartialOrden,
@@ -15,7 +16,6 @@ import {
   IAsignarCourierPayload,
   IAsignarDocumentosTributariosPayload,
   IAsignarSeguroComplementarioPayload,
-  ISeguroComplementarioPayload,
   IUpdateProvisionalStatusOrder,
 } from './order.respository.interface';
 
@@ -41,6 +41,6 @@ export interface IOrdenRepository {
   asignarCourier: (payload: IAsignarCourierPayload) => Promise<OrdenEntity>;
   actualizarOrderDeliveryTracking: (payload: IActualizarOrderStatusWebhookPayload) => Promise<OrdenEntity>;
 
-  guardarSeguroComplementario: (payload: ISeguroComplementarioPayload) => Promise<OrdenEntity | null>;
+  guardarSeguroComplementario: (payload: IGuardarSeguroComplementario) => Promise<OrdenEntity | null>;
   confirmarSeguroComplementario: (payload: IAsignarSeguroComplementarioPayload) => Promise<OrdenEntity | null>;
 }
