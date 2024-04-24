@@ -12,6 +12,8 @@ import {
   IOrderBackToFlow,
   IOrigin,
   IUpdateEstadoCedulaIdentidad,
+  IUpdatePreparandoToDelivery,
+  IUpdatePreparandoToRetiro,
   IUpdateStatusOderObservation,
 } from '.././../../../interface/event';
 import { ICourierEventInput } from '../domain/courier.interface';
@@ -50,6 +52,14 @@ export interface IOrdenUseCase {
   regresarOrderAlFlujo: (payload: IOrderBackToFlow) => Promise<void>;
   cancelarOrden: (payload: ICancelarOrder) => Promise<void>;
   updateEstadoCedulaIdentidad: (payload: IUpdateEstadoCedulaIdentidad) => Promise<void>;
+  updatePreparandoToDelivery: (payload: IUpdatePreparandoToDelivery) => Promise<void>;
+  preparandoToDelivery: (payload: IUpdatePreparandoToDelivery) => Promise<void>;
+  preparandoToDeliverySeguroComplementario: (payload: IUpdatePreparandoToDelivery) => Promise<void>;
+  updatePreparandoToRetiro: (payload: IUpdatePreparandoToRetiro) => Promise<void>;
+  preparandoToRetiro: (payload: IUpdatePreparandoToRetiro) => Promise<void>;
+  preparandoToRetiroSeguroComplementario: (payload: IUpdatePreparandoToRetiro) => Promise<void>;
+
+  orderSeguroComplementario: (order: OrdenEntity) => Promise<void>;
 
   // Documentos Tributarios
   generarDocumentosTributarios: (payload: IDocumentoTributarioEventInput) => Promise<void>;

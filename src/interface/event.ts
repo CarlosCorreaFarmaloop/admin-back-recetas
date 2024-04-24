@@ -126,3 +126,13 @@ export interface IUpdateEstadoCedulaIdentidad {
   orderId: string;
   estado: EstadoCredencial;
 }
+
+export interface IUpdatePreparandoToDelivery {
+  order: OrdenEntity;
+  responsible: string;
+}
+
+export interface IUpdatePreparandoToRetiro {
+  order: OrdenEntity;
+  responsible: string;
+}

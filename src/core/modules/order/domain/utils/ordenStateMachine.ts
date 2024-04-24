@@ -148,30 +148,17 @@ const validarSeguroComplementarioConfirmado = (orden: OrdenEntity): boolean => {
 
 const validaReglaNegocioAsignarADelivery = (orden: OrdenEntity): boolean => {
   if (validarSiTieneSeguroComplementario(orden)) {
-    const seguroConfirmado = validarSeguroComplementarioConfirmado(orden);
+    if (!validarSeguroComplementarioConfirmado(orden)) return false;
 
-    if (!seguroConfirmado) return false;
+    if (!(orden.billing.urlBilling.length > 0 && orden.billing.number.length > 0)) return false;
 
-    console.log('orden.delivery.provider.provider', orden?.delivery?.provider);
-
-    if (!orden.delivery?.provider || orden.delivery.provider.provider === '') return false;
+    if (!(orden.delivery.provider.urlLabel.length > 0 && orden.delivery.provider.trackingNumber.length > 0))
+      return false;
 
     return true;
   }
 
-  // Debe tener su courier asignado
-
-  console.log('orden.delivery.provider.provider', orden?.delivery?.provider);
-
-  if (!orden.delivery?.provider || orden.delivery.provider.provider === '') return false;
-
-  // if (
-  //   orden.delivery.provider.provider === 'Propio2' &&
-  //   (!orden.delivery.provider.service_id || orden.delivery.provider.service_id === '')
-  // )
-  //   return false;
-
-  // if (orden.delivery.provider.provider === 'Propio Integracion' && !orden.delivery.provider.service_id) return false;
+  if (!(orden.delivery.provider.urlLabel.length > 0 && orden.delivery.provider.trackingNumber.length > 0)) return false;
 
   return true;
 };

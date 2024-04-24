@@ -11,6 +11,8 @@ import {
   IOrderBackToFlow,
   IOrigin,
   IUpdateEstadoCedulaIdentidad,
+  IUpdatePreparandoToDelivery,
+  IUpdatePreparandoToRetiro,
   IUpdateStatusOderObservation,
 } from '.././../../../interface/event';
 import { MovementRepository } from '../../../modules/movements/domain/movements.repositoy';
@@ -541,106 +543,212 @@ export class OrdenUseCase implements IOrdenUseCase {
         },
       });
 
+      // Hasta Aqui termina
+
       if (previousStatus === 'PREPARANDO' && newStatus === 'ASIGNAR_A_DELIVERY') {
-        await this.updateOrderProvider({
-          id: order.id,
-          providerName: order?.delivery?.provider.provider,
-          serviceId: order?.delivery?.provider.service_id,
-        });
-
-        await this.updateStatusCourier({
-          id: order.id,
-          status: 'Pendiente',
-          statusDate: new Date(),
-        });
-
-        await this.updateStatusBilling({
-          id: order.id,
-          status: 'Pendiente',
-          statusDate: new Date(),
-        });
-
-        // Emitir Courier
-        const courierVO = new OrdenOValue().generarCourier(order);
-
-        await this.generarCourier({
-          accion: 'generar-orden-de-courier',
-          origen: 'SISTEMA ORDENES',
-          payload: courierVO,
-        });
-
-        // Generar Seguro Complementario
-        if (order.seguroComplementario) {
-          const seguroComplementarioVO = new OrdenOValue().generarSeguroComplementario(order);
-
-          console.log('----- Generar Seguro Complementario: ', seguroComplementarioVO);
-
-          await this.generarSeguroComplementario(seguroComplementarioVO);
-        } else {
-          // Emitir Documentos Tributarios
-          const documentoVO = new OrdenOValue().generarDocumentosTributarios(order);
-
-          console.log('----- Generar Documento Tributario: ', documentoVO);
-
-          await this.generarDocumentosTributarios({
-            accion: 'generar-documento-tributario',
-            origen: 'SISTEMA ORDENES',
-            payload: documentoVO,
-          });
-        }
+        // Caso de uso Generado updatePreparandoToDelivery
       }
 
       if (previousStatus === 'PREPARANDO' && newStatus === 'LISTO_PARA_RETIRO') {
-        await this.updateStatusBilling({
-          id: order.id,
-          status: 'Pendiente',
-          statusDate: new Date(),
-        });
-
-        // Generar Seguro Complementario
-        if (order.seguroComplementario) {
-          const seguroComplementarioVO = new OrdenOValue().generarSeguroComplementario(order);
-
-          console.log('----- Generar Seguro Complementario: ', seguroComplementarioVO);
-
-          await this.generarSeguroComplementario(seguroComplementarioVO);
-        } else {
-          // Emitir Documentos Tributarios
-          const documentoVO = new OrdenOValue().generarDocumentosTributarios(order);
-
-          console.log('----- Generar Documento Tributario: ', documentoVO);
-
-          await this.generarDocumentosTributarios({
-            accion: 'generar-documento-tributario',
-            origen: 'SISTEMA ORDENES',
-            payload: documentoVO,
-          });
-        }
+        // Caso de use Generado updatePreparandoToRetiro
       }
 
-      // Notificar Cliente
+      // Notificar Cliente Email
       await notificarEstadoDeOrden(ordenStatusActualizada, false);
 
-      await actualizarOrdenEccomerce(ordenStatusActualizada, newStatus === 'CANCELADO');
+      await actualizarOrdenEccomerce(ordenStatusActualizada);
 
       // Cambiar Provisional Status Order
       await this.updateProvisionalStatusOrder({
         id: order.id,
-        provisionalStatusOrder: '',
+        provisionalStatusOrder: 'Aprobado',
       });
 
       // Notificar Cambio de Orden a SQS
       await this.notificarCambioOrden(order.id);
     } catch (error) {
       console.log('Error en el Usecase Update Status Order: ', error);
+    }
+  };
 
-      await this.updateProvisionalStatusOrder({
-        id: order.id,
-        provisionalStatusOrder: 'Error',
+  updatePreparandoToDelivery = async (payload: IUpdatePreparandoToDelivery) => {
+    if (!payload.order.seguroComplementario) {
+      await this.preparandoToDelivery(payload);
+      return;
+    }
+
+    const isSeguroConfirmado =
+      payload.order.seguroComplementario.vouchers_url.length > 0 &&
+      payload.order.seguroComplementario.billing.length > 0;
+
+    if (!isSeguroConfirmado) {
+      await this.preparandoToDeliverySeguroComplementario(payload);
+      return;
+    }
+
+    await this.updateStatusOrder(payload.order, payload.order.statusOrder, 'ASIGNAR_A_DELIVERY', payload.responsible);
+  };
+
+  preparandoToDelivery = async (payload: IUpdatePreparandoToDelivery) => {
+    await this.updateProvisionalStatusOrder({
+      id: payload.order.id,
+      provisionalStatusOrder: 'Pendiente',
+    });
+
+    await this.updateOrderProvider({
+      id: payload.order.id,
+      providerName: payload.order?.delivery?.provider.provider,
+      serviceId: payload.order?.delivery?.provider.service_id,
+    });
+
+    const isDocumentoTributarioAsignado =
+      payload.order.billing.urlBilling.length > 0 && payload.order.billing.number.length > 0;
+
+    if (!isDocumentoTributarioAsignado) {
+      await this.updateStatusBilling({
+        id: payload.order.id,
+        status: 'Pendiente',
+        statusDate: new Date(),
       });
 
-      await this.notificarCambioOrden(order.id);
+      // Emitir Documentos Tributarios
+      const documentoVO = new OrdenOValue().generarDocumentosTributarios(payload.order);
+
+      console.log('----- Generar Documento Tributario: ', documentoVO);
+
+      await this.generarDocumentosTributarios({
+        accion: 'generar-documento-tributario',
+        origen: 'SISTEMA ORDENES',
+        payload: documentoVO,
+      });
     }
+
+    const isCourierAsignado =
+      payload.order.delivery.provider.urlLabel.length > 0 && payload.order.delivery.provider.trackingNumber.length > 0;
+
+    if (!isCourierAsignado) {
+      await this.updateStatusCourier({
+        id: payload.order.id,
+        status: 'Pendiente',
+        statusDate: new Date(),
+      });
+
+      // Emitir Courier
+      const courierVO = new OrdenOValue().generarCourier(payload.order);
+
+      await this.generarCourier({
+        accion: 'generar-orden-de-courier',
+        origen: 'SISTEMA ORDENES',
+        payload: courierVO,
+      });
+    }
+
+    await this.updateStatusOrder(payload.order, payload.order.statusOrder, 'ASIGNAR_A_DELIVERY', payload.responsible);
+  };
+
+  preparandoToDeliverySeguroComplementario = async (payload: IUpdatePreparandoToDelivery) => {
+    await this.updateProvisionalStatusOrder({
+      id: payload.order.id,
+      provisionalStatusOrder: 'Pendiente',
+    });
+
+    await this.updateOrderProvider({
+      id: payload.order.id,
+      providerName: payload.order?.delivery?.provider.provider,
+      serviceId: payload.order?.delivery?.provider.service_id,
+    });
+
+    await this.updateStatusBilling({
+      id: payload.order.id,
+      status: 'Pendiente',
+      statusDate: new Date(),
+    });
+
+    const isCourierAsignado =
+      payload.order.delivery.provider.urlLabel.length > 0 && payload.order.delivery.provider.trackingNumber.length > 0;
+
+    if (!isCourierAsignado) {
+      await this.updateStatusCourier({
+        id: payload.order.id,
+        status: 'Pendiente',
+        statusDate: new Date(),
+      });
+
+      // Emitir Courier
+      const courierVO = new OrdenOValue().generarCourier(payload.order);
+
+      await this.generarCourier({
+        accion: 'generar-orden-de-courier',
+        origen: 'SISTEMA ORDENES',
+        payload: courierVO,
+      });
+    }
+
+    await this.orderSeguroComplementario(payload.order);
+  };
+
+  updatePreparandoToRetiro = async (payload: IUpdatePreparandoToRetiro) => {
+    if (!payload.order.seguroComplementario) {
+      await this.preparandoToRetiro(payload);
+      return;
+    }
+
+    const isSeguroConfirmado =
+      payload.order.seguroComplementario.vouchers_url.length > 0 &&
+      payload.order.seguroComplementario.billing.length > 0;
+
+    if (!isSeguroConfirmado) {
+      await this.preparandoToRetiroSeguroComplementario(payload);
+      return;
+    }
+
+    await this.updateStatusOrder(payload.order, payload.order.statusOrder, 'LISTO_PARA_RETIRO', payload.responsible);
+  };
+
+  preparandoToRetiro = async (payload: IUpdatePreparandoToRetiro) => {
+    await this.updateProvisionalStatusOrder({
+      id: payload.order.id,
+      provisionalStatusOrder: 'Pendiente',
+    });
+
+    const isDocumentoTributarioAsignado =
+      payload.order.billing.urlBilling.length > 0 && payload.order.billing.number.length > 0;
+
+    if (!isDocumentoTributarioAsignado) {
+      await this.updateStatusBilling({
+        id: payload.order.id,
+        status: 'Pendiente',
+        statusDate: new Date(),
+      });
+
+      // Emitir Documentos Tributarios
+      const documentoVO = new OrdenOValue().generarDocumentosTributarios(payload.order);
+
+      console.log('----- Generar Documento Tributario: ', documentoVO);
+
+      await this.generarDocumentosTributarios({
+        accion: 'generar-documento-tributario',
+        origen: 'SISTEMA ORDENES',
+        payload: documentoVO,
+      });
+    }
+
+    await this.updateStatusOrder(payload.order, payload.order.statusOrder, 'LISTO_PARA_RETIRO', payload.responsible);
+  };
+
+  preparandoToRetiroSeguroComplementario = async (payload: IUpdatePreparandoToRetiro) => {
+    await this.updateProvisionalStatusOrder({
+      id: payload.order.id,
+      provisionalStatusOrder: 'Pendiente',
+    });
+
+    await this.updateStatusBilling({
+      id: payload.order.id,
+      status: 'Pendiente',
+      statusDate: new Date(),
+    });
+
+    await this.orderSeguroComplementario(payload.order);
   };
 
   updateOrderTracking = async (payload: IUpdateOrderTracking) => {
@@ -1013,7 +1121,7 @@ export class OrdenUseCase implements IOrdenUseCase {
         },
       });
 
-      await actualizarOrdenEccomerce(ordenACancelar, payload.toPos);
+      await actualizarOrdenEccomerce(ordenACancelar);
 
       await notificarEstadoDeOrden(ordenACancelar, payload.toPos);
 
@@ -1032,6 +1140,14 @@ export class OrdenUseCase implements IOrdenUseCase {
 
       await this.notificarCambioOrden(payload.id);
     }
+  };
+
+  orderSeguroComplementario = async (order: OrdenEntity) => {
+    const seguroComplementarioVO = new OrdenOValue().generarSeguroComplementario(order);
+
+    console.log('----- Generar Seguro Complementario: ', seguroComplementarioVO);
+
+    await this.generarSeguroComplementario(seguroComplementarioVO);
   };
 
   updateEstadoCedulaIdentidad = async (payload: IUpdateEstadoCedulaIdentidad) => {

@@ -85,7 +85,7 @@ export const generarCourierEvent = async (payload: ICourierEventInput) => {
   console.log('--- EVENTO GENERAR COURIER --- ', evento);
 };
 
-export const actualizarOrdenEccomerce = async (orden: OrdenEntity, toPos: boolean) => {
+export const actualizarOrdenEccomerce = async (orden: OrdenEntity) => {
   const evento = await eventBridgeClient.send(
     new PutEventsCommand({
       Entries: [
@@ -98,7 +98,6 @@ export const actualizarOrdenEccomerce = async (orden: OrdenEntity, toPos: boolea
               billing: orden.billing,
               delivery: orden.delivery,
             },
-            toPos,
           }),
           DetailType: 'Actualizar orden ecommerce.',
           EventBusName: 'arn:aws:events:us-east-1:069526102702:event-bus/default',

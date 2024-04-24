@@ -90,21 +90,23 @@ export const handler = async (event: SQSEvent) => {
       }
 
       if (payload.newStatus === 'LISTO_PARA_RETIRO') {
-        await orderUseCase.updateStatusOrder(
-          payload.order,
-          payload.previousStatus,
-          payload.newStatus,
-          payload.responsible
-        );
+        await orderUseCase.updatePreparandoToRetiro({
+          order: payload.order,
+          responsible: payload.responsible,
+        });
+        // await orderUseCase.updateStatusOrder(
+        //   payload.order,
+        //   payload.previousStatus,
+        //   payload.newStatus,
+        //   payload.responsible
+        // );
       }
 
       if (payload.newStatus === 'ASIGNAR_A_DELIVERY') {
-        await orderUseCase.updateStatusOrder(
-          payload.order,
-          payload.previousStatus,
-          payload.newStatus,
-          payload.responsible
-        );
+        await orderUseCase.updatePreparandoToDelivery({
+          order: payload.order,
+          responsible: payload.responsible,
+        });
       }
 
       if (payload.newStatus === 'EN_DELIVERY') {
