@@ -309,7 +309,7 @@ export class OrdenOValue {
       tipo_pago: TipoPago[order?.payment?.payment.method ?? 'Venta Débito'] ?? 'Debito',
     };
 
-    if (order.delivery) {
+    if (order.delivery.pricePaid > 0) {
       payload.delivery = {
         precio_unitario: order.delivery.pricePaid,
         titulo: 'Envío',
