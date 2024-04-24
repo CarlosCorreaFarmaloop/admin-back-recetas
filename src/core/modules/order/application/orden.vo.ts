@@ -409,13 +409,13 @@ export class OrdenOValue {
       },
       id_interno: order.id,
       orden: {
-        precio_delivery: order.delivery.cost,
+        precio_delivery: order.delivery.pricePaid,
         productos: order.productsOrder.map((product) => {
           return {
             cantidad: product.qty,
             lote: product.batchId,
             nombre: product.fullName,
-            precio_unitario: product.price,
+            precio_unitario: product.pricePaidPerUnit,
             sku: product.sku,
           };
         }),
