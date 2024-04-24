@@ -312,7 +312,7 @@ export class OrdenOValue {
     if (order.delivery) {
       payload.delivery = {
         precio_unitario: order.delivery.pricePaid,
-        titulo: 'Despacho',
+        titulo: 'Envío',
       };
     }
 
