@@ -1238,6 +1238,15 @@ export class OrdenUseCase implements IOrdenUseCase {
       throw new ApiResponse(HttpCodes.BAD_REQUEST, ordenConBilling, 'Error al asignar documentos tributarios.');
 
     console.log('-------- Documentos Tributarios Asignados: ', ordenConBilling);
+
+    const isOrderDelivery = ordenConBilling.delivery.method === 'DELIVERY' && ordenConBilling.delivery.type !== '';
+
+    await this.updateStatusOrder(
+      ordenConBilling,
+      ordenConBilling.statusOrder,
+      isOrderDelivery ? 'ASIGNAR_A_DELIVERY' : 'LISTO_PARA_RETIRO',
+      'SISTEMA'
+    );
   };
 
   generarCourier = async (payload: ICourierEventInput) => {
