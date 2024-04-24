@@ -54,6 +54,11 @@ export const handler = async (event: SQSEvent) => {
       const payload = body as IUpdateStatusOrder;
 
       if (payload.newStatus === 'VALIDANDO_RECETA') {
+        await orderUseCase.updateProvisionalStatusOrder({
+          id: payload.order.id,
+          provisionalStatusOrder: 'Pendiente',
+        });
+
         await orderUseCase.updateStatusOrder(
           payload.order,
           payload.previousStatus,
@@ -63,6 +68,11 @@ export const handler = async (event: SQSEvent) => {
       }
 
       if (payload.newStatus === 'RECETA_VALIDADA') {
+        await orderUseCase.updateProvisionalStatusOrder({
+          id: payload.order.id,
+          provisionalStatusOrder: 'Pendiente',
+        });
+
         await orderUseCase.updateStatusOrder(
           payload.order,
           payload.previousStatus,
@@ -72,6 +82,11 @@ export const handler = async (event: SQSEvent) => {
       }
 
       if (payload.newStatus === 'OBSERVACIONES_RECETAS') {
+        await orderUseCase.updateProvisionalStatusOrder({
+          id: payload.order.id,
+          provisionalStatusOrder: 'Pendiente',
+        });
+
         await orderUseCase.updateStatusOrder(
           payload.order,
           payload.previousStatus,
@@ -81,6 +96,11 @@ export const handler = async (event: SQSEvent) => {
       }
 
       if (payload.newStatus === 'PREPARANDO') {
+        await orderUseCase.updateProvisionalStatusOrder({
+          id: payload.order.id,
+          provisionalStatusOrder: 'Pendiente',
+        });
+
         await orderUseCase.updateStatusOrder(
           payload.order,
           payload.previousStatus,
@@ -104,6 +124,11 @@ export const handler = async (event: SQSEvent) => {
       }
 
       if (payload.newStatus === 'EN_DELIVERY') {
+        await orderUseCase.updateProvisionalStatusOrder({
+          id: payload.order.id,
+          provisionalStatusOrder: 'Pendiente',
+        });
+
         await orderUseCase.updateStatusOrder(
           payload.order,
           payload.previousStatus,
@@ -113,6 +138,11 @@ export const handler = async (event: SQSEvent) => {
       }
 
       if (payload.newStatus === 'ENTREGADO') {
+        await orderUseCase.updateProvisionalStatusOrder({
+          id: payload.order.id,
+          provisionalStatusOrder: 'Pendiente',
+        });
+
         await orderUseCase.updateStatusOrder(
           payload.order,
           payload.previousStatus,
@@ -122,6 +152,11 @@ export const handler = async (event: SQSEvent) => {
       }
 
       if (payload.newStatus === 'EN_OBSERVACION') {
+        await orderUseCase.updateProvisionalStatusOrder({
+          id: payload.order.id,
+          provisionalStatusOrder: 'Pendiente',
+        });
+
         await orderUseCase.updateStatusOrder(
           payload.order,
           payload.previousStatus,
@@ -131,6 +166,11 @@ export const handler = async (event: SQSEvent) => {
       }
 
       if (payload.newStatus === 'CANCELADO') {
+        await orderUseCase.updateProvisionalStatusOrder({
+          id: payload.order.id,
+          provisionalStatusOrder: 'Pendiente',
+        });
+
         await orderUseCase.updateStatusOrder(
           payload.order,
           payload.previousStatus,

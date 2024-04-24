@@ -503,11 +503,6 @@ export class OrdenUseCase implements IOrdenUseCase {
   ) => {
     try {
       console.log('----- Intentando Actualizar Orden: ', order.id, ' de ', previousStatus, ' a ', newStatus);
-      // Actualizar Provisional Status Order a Pendiente
-      await this.updateProvisionalStatusOrder({
-        id: order.id,
-        provisionalStatusOrder: 'Pendiente',
-      });
 
       await this.notificarCambioOrden(order.id);
 
@@ -575,6 +570,12 @@ export class OrdenUseCase implements IOrdenUseCase {
   };
 
   updatePreparandoToDelivery = async (payload: IUpdatePreparandoToDelivery) => {
+    // Actualizar Provisional Status Order a Pendiente
+    await this.updateProvisionalStatusOrder({
+      id: payload.order.id,
+      provisionalStatusOrder: 'Pendiente',
+    });
+
     if (!payload.order.seguroComplementario) {
       await this.preparandoToDelivery(payload);
       return;
@@ -593,11 +594,6 @@ export class OrdenUseCase implements IOrdenUseCase {
   };
 
   preparandoToDelivery = async (payload: IUpdatePreparandoToDelivery) => {
-    await this.updateProvisionalStatusOrder({
-      id: payload.order.id,
-      provisionalStatusOrder: 'Pendiente',
-    });
-
     await this.updateOrderProvider({
       id: payload.order.id,
       providerName: payload.order?.delivery?.provider.provider,
@@ -650,11 +646,6 @@ export class OrdenUseCase implements IOrdenUseCase {
   };
 
   preparandoToDeliverySeguroComplementario = async (payload: IUpdatePreparandoToDelivery) => {
-    await this.updateProvisionalStatusOrder({
-      id: payload.order.id,
-      provisionalStatusOrder: 'Pendiente',
-    });
-
     await this.updateOrderProvider({
       id: payload.order.id,
       providerName: payload.order?.delivery?.provider.provider,
@@ -691,6 +682,11 @@ export class OrdenUseCase implements IOrdenUseCase {
   };
 
   updatePreparandoToRetiro = async (payload: IUpdatePreparandoToRetiro) => {
+    await this.updateProvisionalStatusOrder({
+      id: payload.order.id,
+      provisionalStatusOrder: 'Pendiente',
+    });
+
     if (!payload.order.seguroComplementario) {
       await this.preparandoToRetiro(payload);
       return;
@@ -709,11 +705,6 @@ export class OrdenUseCase implements IOrdenUseCase {
   };
 
   preparandoToRetiro = async (payload: IUpdatePreparandoToRetiro) => {
-    await this.updateProvisionalStatusOrder({
-      id: payload.order.id,
-      provisionalStatusOrder: 'Pendiente',
-    });
-
     const isDocumentoTributarioAsignado =
       payload.order.billing.urlBilling.length > 0 && payload.order.billing.number.length > 0;
 
@@ -740,11 +731,6 @@ export class OrdenUseCase implements IOrdenUseCase {
   };
 
   preparandoToRetiroSeguroComplementario = async (payload: IUpdatePreparandoToRetiro) => {
-    await this.updateProvisionalStatusOrder({
-      id: payload.order.id,
-      provisionalStatusOrder: 'Pendiente',
-    });
-
     await this.updateStatusBilling({
       id: payload.order.id,
       status: 'Pendiente',
