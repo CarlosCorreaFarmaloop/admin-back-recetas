@@ -276,6 +276,9 @@ const DeliverySchema = new mongoose.Schema<Delivery>(
     method: { type: String, enum: ['DELIVERY', 'STORE'] },
     type: String,
     cost: Number,
+    discount: Number,
+    pricePaid: Number,
+
     provider: ProviderSchema,
     deliveryTracking: [DeliveryTrackingSchema],
     compromiso_entrega: CompromisoEntregaSchema,
