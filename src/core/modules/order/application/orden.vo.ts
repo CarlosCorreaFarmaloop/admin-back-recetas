@@ -300,7 +300,7 @@ export class OrdenOValue {
         return {
           cantidad: product.qty,
           descuento: 0,
-          precio_unitario: product.price,
+          precio_unitario: product.pricePaidPerUnit,
           titulo: product.fullName,
         };
       }),
@@ -311,7 +311,7 @@ export class OrdenOValue {
 
     if (order.delivery) {
       payload.delivery = {
-        precio_unitario: order.delivery.cost,
+        precio_unitario: order.delivery.pricePaid,
         titulo: 'Despacho',
       };
     }
