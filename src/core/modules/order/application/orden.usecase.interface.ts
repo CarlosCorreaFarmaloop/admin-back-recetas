@@ -15,6 +15,7 @@ import {
   IUpdatePreparandoToDelivery,
   IUpdatePreparandoToRetiro,
   IUpdateStatusOderObservation,
+  IUpdateStatusSeguroComplementario,
 } from '.././../../../interface/event';
 import { ICourierEventInput } from '../domain/courier.interface';
 import { IDocumentoTributarioEventInput } from '../domain/documentos_tributarios.interface';
@@ -58,6 +59,7 @@ export interface IOrdenUseCase {
   updatePreparandoToRetiro: (payload: IUpdatePreparandoToRetiro) => Promise<void>;
   preparandoToRetiro: (payload: IUpdatePreparandoToRetiro) => Promise<void>;
   preparandoToRetiroSeguroComplementario: (payload: IUpdatePreparandoToRetiro) => Promise<void>;
+  updateStatusSeguroComplementario: (payload: IUpdateStatusSeguroComplementario) => Promise<void>;
 
   orderSeguroComplementario: (order: OrdenEntity) => Promise<void>;
 

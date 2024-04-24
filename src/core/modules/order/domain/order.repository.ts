@@ -18,6 +18,7 @@ import {
   IAsignarSeguroComplementarioPayload,
   IUpdateEstadoCedulaIdentidadPayload,
   IUpdateProvisionalStatusOrder,
+  IUpdateStatusSeguroComplementarioPayload,
 } from './order.respository.interface';
 
 export interface IOrdenRepository {
@@ -44,4 +45,5 @@ export interface IOrdenRepository {
 
   guardarSeguroComplementario: (payload: IGuardarSeguroComplementario) => Promise<OrdenEntity | null>;
   confirmarSeguroComplementario: (payload: IAsignarSeguroComplementarioPayload) => Promise<OrdenEntity | null>;
+  updateStatusSeguroComplementario: (payload: IUpdateStatusSeguroComplementarioPayload) => Promise<OrdenEntity | null>;
 }

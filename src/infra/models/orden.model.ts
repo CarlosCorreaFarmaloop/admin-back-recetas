@@ -432,6 +432,9 @@ const SeguroComplementarioSchema = new mongoose.Schema<ISeguroComplementario>(
     aseguradora_nombre: String,
     aseguradora_rut: String,
 
+    status: String,
+    statusDate: Number,
+
     productos: [SeguroComplementarioProductoSchema],
     vouchers_url: [String],
     billing: [SeguroComplementarioBillingSchema],

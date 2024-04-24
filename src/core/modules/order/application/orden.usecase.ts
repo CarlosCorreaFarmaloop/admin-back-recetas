@@ -14,6 +14,7 @@ import {
   IUpdatePreparandoToDelivery,
   IUpdatePreparandoToRetiro,
   IUpdateStatusOderObservation,
+  IUpdateStatusSeguroComplementario,
 } from '.././../../../interface/event';
 import { MovementRepository } from '../../../modules/movements/domain/movements.repositoy';
 import { EcommerceOrderEntity } from '../../../../interface/ecommerceOrder.entity';
@@ -1132,11 +1133,34 @@ export class OrdenUseCase implements IOrdenUseCase {
   };
 
   orderSeguroComplementario = async (order: OrdenEntity) => {
+    await this.updateStatusSeguroComplementario({
+      id: order.id,
+      status: 'Pendiente',
+    });
+
     const seguroComplementarioVO = new OrdenOValue().generarSeguroComplementario(order);
 
     console.log('----- Generar Seguro Complementario: ', seguroComplementarioVO);
 
     await this.generarSeguroComplementario(seguroComplementarioVO);
+  };
+
+  updateStatusSeguroComplementario = async (payload: IUpdateStatusSeguroComplementario) => {
+    const updateStatusSeguroComplementarioSchema = Joi.object({
+      id: Joi.string().required(),
+      status: Joi.string().required(),
+    });
+
+    const { error } = updateStatusSeguroComplementarioSchema.validate(payload);
+
+    if (error) {
+      throw new ApiResponse(HttpCodes.BAD_REQUEST, updateStatusSeguroComplementarioSchema, error.message);
+    }
+
+    const ordenActualizada = await this.ordenRepository.updateStatusSeguroComplementario(payload);
+
+    if (!ordenActualizada)
+      throw new ApiResponse(HttpCodes.BAD_REQUEST, ordenActualizada, 'Error al actualizar el estado del seguro.');
   };
 
   updateEstadoCedulaIdentidad = async (payload: IUpdateEstadoCedulaIdentidad) => {
@@ -1486,6 +1510,11 @@ export class OrdenUseCase implements IOrdenUseCase {
       );
 
     console.log('-------- Seguro Complementario Confirmado: ', ordenConSeguroComplementario);
+
+    await this.updateStatusSeguroComplementario({
+      id: ordenConSeguroComplementario.id,
+      status: 'Aprobado',
+    });
 
     const isOrderDelivery =
       ordenConSeguroComplementario.delivery.method === 'DELIVERY' && ordenConSeguroComplementario.delivery.type !== '';

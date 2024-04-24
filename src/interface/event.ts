@@ -2,6 +2,7 @@ import {
   DeliveryTracking,
   EstadoCredencial,
   IBillingType,
+  ISeguroComplementarioStatus,
   OrdenEntity,
   StatusOrder,
 } from '../core/modules/order/domain/order.entity';
@@ -135,4 +136,9 @@ export interface IUpdatePreparandoToDelivery {
 export interface IUpdatePreparandoToRetiro {
   order: OrdenEntity;
   responsible: string;
+}
+
+export interface IUpdateStatusSeguroComplementario {
+  id: string;
+  status: ISeguroComplementarioStatus;
 }

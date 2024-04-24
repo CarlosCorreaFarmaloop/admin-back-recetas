@@ -19,6 +19,7 @@ import {
   IAsignarSeguroComplementarioPayload,
   IUpdateEstadoCedulaIdentidadPayload,
   IUpdateProvisionalStatusOrder,
+  IUpdateStatusSeguroComplementarioPayload,
 } from '../../../core/modules/order/domain/order.respository.interface';
 import { IGuardarSeguroComplementario } from 'src/interface/seguroComplementario.interface';
 
@@ -277,6 +278,21 @@ export class OrdenMongoRepository implements IOrdenRepository {
         $set: {
           'seguroComplementario.vouchers_url': payload.vouchers_url,
           'seguroComplementario.billing': payload.documents,
+        },
+      },
+      { new: true }
+    );
+  };
+
+  updateStatusSeguroComplementario = async (payload: IUpdateStatusSeguroComplementarioPayload) => {
+    console.log('------Order To Update Status Seguro Complemenatrio ---- ', payload);
+
+    return await OrderModel.findOneAndUpdate(
+      { id: payload.id },
+      {
+        $set: {
+          'seguroComplementario.status': payload.status,
+          'seguroComplementario.statusDate': new Date().getTime(),
         },
       },
       { new: true }

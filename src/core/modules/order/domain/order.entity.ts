@@ -369,11 +369,16 @@ export interface ISeguroComplementario {
   aseguradora_rut: string;
   aseguradora_nombre: string;
 
+  status: ISeguroComplementarioStatus;
+  statusDate: number;
+
   billing: ISeguroComplementarioBilling[];
   vouchers_url: string[];
   estado_credencial: EstadoCredencial;
   historial: ISeguroComplementarioHistorial[];
 }
+
+export type ISeguroComplementarioStatus = '' | 'Pendiente' | 'Aprobado' | 'Error';
 
 export interface ISeguroComplementarioBilling extends Billing {
   destinatario: string;
