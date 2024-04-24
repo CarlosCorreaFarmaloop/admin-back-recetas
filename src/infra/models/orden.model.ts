@@ -94,6 +94,8 @@ const ProductOrderSchema = new mongoose.Schema<ProductOrder>(
     quantityPerContainer: String,
     recommendations: String,
     shortName: String,
+    discountPerUnit: Number,
+    pricePaidPerUnit: Number,
   },
   { _id: false }
 );

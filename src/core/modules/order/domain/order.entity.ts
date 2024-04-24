@@ -265,7 +265,7 @@ export interface PrescriptionValidation {
 export type StatePrescription = 'Pending' | 'Rejected' | 'Approved' | 'Approved_With_Comments' | '';
 
 export interface ResumeOrder {
-  canal?: string;
+  canal: string;
   convenio: string;
   deliveryPrice: number;
   discount: Discount;
