@@ -502,6 +502,7 @@ export class OrdenUseCase implements IOrdenUseCase {
     responsible: string
   ) => {
     try {
+      console.log('----- Intentando Actualizar Orden: ', order.id, ' de ', previousStatus, ' a ', newStatus);
       // Actualizar Provisional Status Order a Pendiente
       await this.updateProvisionalStatusOrder({
         id: order.id,
@@ -513,7 +514,7 @@ export class OrdenUseCase implements IOrdenUseCase {
       if (!ordenStateMachine(previousStatus, newStatus, order))
         throw new ApiResponse(HttpCodes.BAD_REQUEST, order, 'Error en la maquina de estados.');
 
-      console.log('----- Actualizando Orden: ', order.id, ' de ', previousStatus, ' a ', newStatus);
+      console.log('----- Orden Pasa Maquina de Estados: ', order.id, ' de ', previousStatus, ' a ', newStatus);
 
       const ordenStatusActualizada = await this.ordenRepository.updateOrderStatus(order.id, newStatus);
 
@@ -566,6 +567,8 @@ export class OrdenUseCase implements IOrdenUseCase {
 
       // Notificar Cambio de Orden a SQS
       await this.notificarCambioOrden(order.id);
+
+      console.log('----- Orden Actualizada: ', ordenStatusActualizada);
     } catch (error) {
       console.log('Error en el Usecase Update Status Order: ', error);
     }
