@@ -26,19 +26,19 @@ import {
 } from './core/modules/order/application/interface';
 
 // event can be event: EventBridgeEvent<string, IEventDetail> or event: EventBridgeEvent<string, IEventDetail>  {body: IEventDetail}
-export const handler = async (event: any) => {
+export const handler = async (event: SQSEvent) => {
   // Connect to Mongo
   try {
     await connectoToMongoDB();
 
     console.log('--- Event: ', event);
 
-    // const bodyEvent: EventBridgeEvent<string, IEventDetail> = JSON.parse(event.Records[0].body);
-    // const { origin, body, action } = bodyEvent.detail;
+    const bodyEvent: EventBridgeEvent<string, IEventDetail> = JSON.parse(event.Records[0].body);
+    const { origin, body, action } = bodyEvent.detail;
 
     // Only Development Environment
-    const bodyDetail = JSON.parse(event.body);
-    const { origin, body, action } = bodyDetail;
+    // const bodyDetail = JSON.parse(event.body);
+    // const { origin, body, action } = bodyDetail;
 
     const orderRespository = new OrdenMongoRepository();
     const cotizacionRespository = new CotizacionRepository();
@@ -94,12 +94,6 @@ export const handler = async (event: any) => {
           order: payload.order,
           responsible: payload.responsible,
         });
-        // await orderUseCase.updateStatusOrder(
-        //   payload.order,
-        //   payload.previousStatus,
-        //   payload.newStatus,
-        //   payload.responsible
-        // );
       }
 
       if (payload.newStatus === 'ASIGNAR_A_DELIVERY') {
@@ -174,8 +168,12 @@ export const handler = async (event: any) => {
 
     // ---------- Documentos Tributarios ----------------
 
-    if (origin === 'documento-tributario' && action === 'asignar-documento-tributario')
-      await orderUseCase.asignarDocumentosTributarios(body as IAsignarDocumentosTributarios);
+    if (origin === 'documento-tributario' && action === 'asignar-documento-tributario') {
+      const bodyAction = body as IAsignarDocumentosTributarios;
+
+      if (bodyAction.type !== 'Despacho')
+        await orderUseCase.asignarDocumentosTributarios(body as IAsignarDocumentosTributarios);
+    }
 
     // ---------- Courier ----------------
 
