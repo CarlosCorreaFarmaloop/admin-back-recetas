@@ -1148,7 +1148,7 @@ export class OrdenUseCase implements IOrdenUseCase {
         changeTo: 'CANCELADO',
         aditionalInfo: {
           product_sku: '',
-          comments: '',
+          comments: payload.reason,
         },
       });
 
