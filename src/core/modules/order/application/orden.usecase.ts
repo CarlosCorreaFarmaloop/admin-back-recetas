@@ -1128,8 +1128,16 @@ export class OrdenUseCase implements IOrdenUseCase {
       if (!ordenACancelar)
         throw new ApiResponse(HttpCodes.BAD_REQUEST, ordenACancelar, 'Error al buscar la orden a cancelar.');
 
+      console.log('----- Orden a Cancelar: ', ordenACancelar.id, ' con estado: ', ordenACancelar.statusOrder);
+
       if (!ordenStateMachine(ordenACancelar.statusOrder, 'CANCELADO', ordenACancelar))
         throw new ApiResponse(HttpCodes.BAD_REQUEST, ordenACancelar, 'Error en la maquina de estados.');
+
+      const ordenCancelada = await this.ordenRepository.updateOrderStatus(payload.id, 'CANCELADO');
+
+      if (!ordenCancelada) throw new ApiResponse(HttpCodes.BAD_REQUEST, ordenCancelada, 'Error al cancelar la orden.');
+
+      console.log('----- Orden Cancelada: ', ordenCancelada.id, ' con estado: ', ordenCancelada.statusOrder);
 
       await this.updateOrderTracking({
         id: payload.id,
@@ -1137,8 +1145,6 @@ export class OrdenUseCase implements IOrdenUseCase {
         statusOrder: 'CANCELADO',
         reason: payload.reason,
       });
-
-      await this.ordenRepository.updateOrderStatus(payload.id, 'CANCELADO');
 
       await this.updateOrderHistory({
         id: payload.id,
@@ -1152,16 +1158,16 @@ export class OrdenUseCase implements IOrdenUseCase {
         },
       });
 
-      await actualizarOrdenEccomerce(ordenACancelar);
+      await notificarEstadoDeOrden(ordenCancelada, payload.toPos);
 
-      await notificarEstadoDeOrden(ordenACancelar, payload.toPos);
-
-      await this.notificarCambioOrden(payload.id);
+      await actualizarOrdenEccomerce(ordenCancelada);
 
       await this.updateProvisionalStatusOrder({
         id: payload.id,
         provisionalStatusOrder: '',
       });
+
+      await this.notificarCambioOrden(payload.id);
     } catch (error) {
       // Actualizar Provisional Status Order a Pendiente
       await this.updateProvisionalStatusOrder({
