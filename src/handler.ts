@@ -9,6 +9,7 @@ import { actualizarStock } from './core/modules/order/domain/eventos';
 import { ApiResponse, HttpCodes } from './core/modules/order/application/api.response';
 import {
   IActualizarOrderStatusWebhook,
+  IAddOrderObservation,
   IAsignarCourier,
   IAsignarDocumentosTributarios,
   IAsignarSeguroComplementario,
@@ -204,6 +205,10 @@ export const handler = async (event: SQSEvent) => {
 
     if (origin === 'admin' && action === 'cancelar-order') {
       await orderUseCase.cancelarOrden(body as ICancelarOrder);
+    }
+
+    if (origin === 'admin' && action === 'agregar-observacion-order') {
+      await orderUseCase.addObservationToOrder(body as IAddOrderObservation);
     }
 
     // ---------- Documentos Tributarios ----------------

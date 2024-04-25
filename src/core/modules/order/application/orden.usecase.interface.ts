@@ -5,6 +5,7 @@ import {
 import { EcommerceOrderEntity } from '../../../../interface/ecommerceOrder.entity';
 import {
   IActualizarOrderStatusWebhook,
+  IAddOrderObservation,
   IAsignarCourier,
   IAsignarDocumentosTributarios,
   IAsignarSeguroComplementario,
@@ -60,6 +61,7 @@ export interface IOrdenUseCase {
   preparandoToRetiro: (payload: IUpdatePreparandoToRetiro) => Promise<void>;
   preparandoToRetiroSeguroComplementario: (payload: IUpdatePreparandoToRetiro) => Promise<void>;
   updateStatusSeguroComplementario: (payload: IUpdateStatusSeguroComplementario) => Promise<void>;
+  addObservationToOrder: (payload: IAddOrderObservation) => Promise<void>;
 
   orderSeguroComplementario: (order: OrdenEntity) => Promise<void>;
 

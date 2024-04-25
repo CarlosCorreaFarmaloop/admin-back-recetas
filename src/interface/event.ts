@@ -29,7 +29,8 @@ export type IAction =
   | 'regresar-order-al-flujo'
   | 'cancelar-order'
   | 'confirmar-seguro-complementario'
-  | 'actualizar-estado-cedula-identidad';
+  | 'actualizar-estado-cedula-identidad'
+  | 'agregar-observacion-order';
 
 export interface IAsignacionCourier {
   id: string;
@@ -141,4 +142,11 @@ export interface IUpdatePreparandoToRetiro {
 export interface IUpdateStatusSeguroComplementario {
   id: string;
   status: ISeguroComplementarioStatus;
+}
+
+export interface IAddOrderObservation {
+  id: string;
+  name: string;
+  observation: string;
+  responsible: string;
 }

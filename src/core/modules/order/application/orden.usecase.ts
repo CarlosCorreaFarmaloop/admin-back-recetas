@@ -4,6 +4,7 @@ import { IOrdenUseCase } from './orden.usecase.interface';
 import { OrdenOValue } from './orden.vo';
 import {
   IActualizarOrderStatusWebhook,
+  IAddOrderObservation,
   IAsignarCourier,
   IAsignarDocumentosTributarios,
   IAsignarSeguroComplementario,
@@ -920,6 +921,44 @@ export class OrdenUseCase implements IOrdenUseCase {
     };
 
     await notificarCambioOrdenSQS(detailBody);
+  };
+
+  addObservationToOrder = async (payload: IAddOrderObservation) => {
+    const addOrderObservationSchema = Joi.object({
+      id: Joi.string().required(),
+      observation: Joi.string().required(),
+      responsible: Joi.string().required(),
+      name: Joi.string().required(),
+    });
+
+    const { error } = addOrderObservationSchema.validate(payload);
+
+    if (error) {
+      throw new ApiResponse(HttpCodes.BAD_REQUEST, addOrderObservationSchema, error.message);
+    }
+
+    const observationVO = new OrdenOValue().agregarObservacion(payload);
+
+    const ordenActualizadaConObservacion = await this.ordenRepository.addOrderObservation(observationVO);
+
+    if (!ordenActualizadaConObservacion)
+      throw new ApiResponse(
+        HttpCodes.BAD_REQUEST,
+        ordenActualizadaConObservacion,
+        'Error al agregar la observación a la orden.'
+      );
+
+    await this.updateOrderHistory({
+      id: payload.id,
+      type: 'observacion',
+      responsible: payload.responsible,
+      changeFrom: '',
+      changeTo: 'Observación agregada',
+      aditionalInfo: {
+        product_sku: '',
+        comments: payload.observation,
+      },
+    });
   };
 
   updateOrderStatusObservation = async (payload: IUpdateStatusOderObservation) => {
