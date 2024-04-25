@@ -959,6 +959,8 @@ export class OrdenUseCase implements IOrdenUseCase {
         comments: payload.observation,
       },
     });
+
+    await this.notificarCambioOrden(payload.id);
   };
 
   updateOrderStatusObservation = async (payload: IUpdateStatusOderObservation) => {
