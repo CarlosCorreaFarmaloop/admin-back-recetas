@@ -223,7 +223,7 @@ export class OrdenOValue {
         },
         deliveryTracking: [],
         discount: order.delivery.discount,
-        pricePaid: order.delivery.discount,
+        pricePaid: order.delivery.pricePaid,
       },
       statusOrder: 'CREADO',
       createdAt: createdDate,
