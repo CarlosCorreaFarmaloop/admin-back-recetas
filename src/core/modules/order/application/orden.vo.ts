@@ -5,7 +5,7 @@ import { IAddObservation, ICrearOrden, ICrearPartialOrden } from './interface';
 import { GenerarBoletaPayload } from '../domain/documentos_tributarios.interface';
 import { TipoPago } from '../domain/utils/diccionario/tipoPago';
 import { GenerarOrdenDeCourierPayload } from '../domain/courier.interface';
-import { diccionarioTipoDelivery } from '../domain/utils/diccionario/tipoDelivery';
+import { getTipoDelivery } from '../domain/utils/diccionario/tipoDelivery';
 import { IUpdateStatusOderObservation } from 'src/interface/event';
 import {
   IGenerarSeguroComplementario,
@@ -340,7 +340,7 @@ export class OrdenOValue {
       },
       id_interno: order.id,
       notas: '',
-      tipo_delivery: diccionarioTipoDelivery[order.delivery.type] ?? 'SMD',
+      tipo_delivery: getTipoDelivery(order.delivery.type),
       usuario: {
         apellido: order.delivery.delivery_address.firstName,
         correo_electronico: order.customer,
