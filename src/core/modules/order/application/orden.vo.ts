@@ -340,7 +340,7 @@ export class OrdenOValue {
       },
       id_interno: order.id,
       notas: '',
-      tipo_delivery: getTipoDelivery(order.delivery.type),
+      tipo_delivery: getTipoDelivery(order.delivery.provider.service_id ?? ''),
       usuario: {
         apellido: order.delivery.delivery_address.firstName,
         correo_electronico: order.customer,
