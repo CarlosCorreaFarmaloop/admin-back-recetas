@@ -321,7 +321,7 @@ export class OrdenOValue {
 
   generarCourier = (order: OrdenEntity): GenerarOrdenDeCourierPayload => {
     return {
-      courier: 'propio3',
+      courier: order.delivery.provider.provider,
       direccion_origen: {
         calle: 'Av. Príncipe de Gales',
         comuna: 'La Reina',

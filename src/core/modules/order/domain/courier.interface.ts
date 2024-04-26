@@ -27,7 +27,7 @@ export interface Usuario {
   nombre: string;
   telefono: string;
 }
-export type Couriers = 'propio3';
+export type Couriers = string;
 
 export type TipoDelivery = 'EXP' | 'SMD' | 'NXD';
 
