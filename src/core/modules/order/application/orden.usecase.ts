@@ -568,6 +568,7 @@ export class OrdenUseCase implements IOrdenUseCase {
       console.log('----- Orden Actualizada: ', ordenStatusActualizada);
     } catch (error) {
       console.log('Error en el Usecase Update Status Order: ', error);
+      throw new ApiResponse(HttpCodes.BAD_REQUEST, order, 'Error al actualizar el estado de la orden.');
     }
   };
 
@@ -820,6 +821,8 @@ export class OrdenUseCase implements IOrdenUseCase {
       ...payload,
       provisionalStatusOrderDate: new Date().getTime(),
     });
+
+    console.log('----- Estado Provisional Actualizado: ', ordenActualizada);
 
     if (!ordenActualizada)
       throw new ApiResponse(
