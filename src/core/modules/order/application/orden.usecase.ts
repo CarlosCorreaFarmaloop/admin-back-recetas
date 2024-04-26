@@ -637,6 +637,8 @@ export class OrdenUseCase implements IOrdenUseCase {
       // Emitir Courier
       const courierVO = new OrdenOValue().generarCourier(payload.order);
 
+      console.log('----- Generar Courier: ', courierVO);
+
       await this.generarCourier({
         accion: 'generar-orden-de-courier',
         origen: 'SISTEMA ORDENES',
@@ -672,6 +674,8 @@ export class OrdenUseCase implements IOrdenUseCase {
 
       // Emitir Courier
       const courierVO = new OrdenOValue().generarCourier(payload.order);
+
+      console.log('----- Generar Courier: ', courierVO);
 
       await this.generarCourier({
         accion: 'generar-orden-de-courier',
