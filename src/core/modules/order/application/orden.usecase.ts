@@ -1007,6 +1007,11 @@ export class OrdenUseCase implements IOrdenUseCase {
       },
     });
 
+    await this.updateProvisionalStatusOrder({
+      id: payload.id,
+      provisionalStatusOrder: 'Pendiente',
+    });
+
     await this.updateStatusOrder(
       ordenActualizadaConObservacion,
       ordenActualizadaConObservacion.statusOrder,
