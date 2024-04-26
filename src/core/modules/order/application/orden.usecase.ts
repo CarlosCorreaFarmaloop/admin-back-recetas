@@ -1109,6 +1109,11 @@ export class OrdenUseCase implements IOrdenUseCase {
 
     if (!orderVo) throw new ApiResponse(HttpCodes.BAD_REQUEST, orderVo, 'Error al regresar la orden al flujo.');
 
+    await this.updateProvisionalStatusOrder({
+      id: payload.order.id,
+      provisionalStatusOrder: 'Pendiente',
+    });
+
     await this.updateStatusOrder(orderVo, payload.order.statusOrder, orderVo.statusOrder, payload.responsible);
   };
 
