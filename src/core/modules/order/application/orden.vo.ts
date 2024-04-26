@@ -342,7 +342,7 @@ export class OrdenOValue {
       notas: '',
       tipo_delivery: getTipoDelivery(order.delivery.provider.service_id ?? ''),
       usuario: {
-        apellido: order.delivery.delivery_address.firstName,
+        apellido: '',
         correo_electronico: order.customer,
         nombre: order.delivery.delivery_address.firstName,
         telefono: order.delivery.delivery_address.phone,
