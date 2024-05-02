@@ -98,3 +98,9 @@ export interface IUpdateStatusSeguroComplementarioPayload {
   id: string;
   status: ISeguroComplementarioStatus;
 }
+
+export interface IUpdateCanalConvenio {
+  id: string;
+  convenio: string;
+  canal: string;
+}

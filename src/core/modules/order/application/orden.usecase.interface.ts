@@ -12,6 +12,7 @@ import {
   ICancelarOrder,
   IOrderBackToFlow,
   IOrigin,
+  IUpdateCanalConvenio,
   IUpdateEstadoCedulaIdentidad,
   IUpdatePreparandoToDelivery,
   IUpdatePreparandoToRetiro,
@@ -62,7 +63,7 @@ export interface IOrdenUseCase {
   preparandoToRetiroSeguroComplementario: (payload: IUpdatePreparandoToRetiro) => Promise<void>;
   updateStatusSeguroComplementario: (payload: IUpdateStatusSeguroComplementario) => Promise<void>;
   addObservationToOrder: (payload: IAddOrderObservation) => Promise<void>;
-
+  updateCanalConvenio: (payload: IUpdateCanalConvenio) => Promise<void>;
   orderSeguroComplementario: (order: OrdenEntity) => Promise<void>;
 
   // Documentos Tributarios

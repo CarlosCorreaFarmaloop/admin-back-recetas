@@ -150,3 +150,9 @@ export interface IAddOrderObservation {
   observation: string;
   responsible: string;
 }
+
+export interface IUpdateCanalConvenio {
+  id: string;
+  convenio: string;
+  canal: string;
+}

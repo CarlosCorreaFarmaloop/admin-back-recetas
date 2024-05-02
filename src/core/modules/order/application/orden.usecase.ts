@@ -11,6 +11,7 @@ import {
   ICancelarOrder,
   IOrderBackToFlow,
   IOrigin,
+  IUpdateCanalConvenio,
   IUpdateEstadoCedulaIdentidad,
   IUpdatePreparandoToDelivery,
   IUpdatePreparandoToRetiro,
@@ -1018,6 +1019,27 @@ export class OrdenUseCase implements IOrdenUseCase {
       'EN_OBSERVACION',
       payload.responsible
     );
+  };
+
+  updateCanalConvenio = async (payload: IUpdateCanalConvenio) => {
+    const updateCanalConvenioSchema = Joi.object({
+      id: Joi.string().required(),
+      canal: Joi.string().required(),
+      responsible: Joi.string().required(),
+    });
+
+    const { error } = updateCanalConvenioSchema.validate(payload);
+
+    if (error) {
+      throw new ApiResponse(HttpCodes.BAD_REQUEST, updateCanalConvenioSchema, error.message);
+    }
+
+    const ordenActualizada = await this.ordenRepository.updateCanalConvenio(payload);
+
+    if (!ordenActualizada)
+      throw new ApiResponse(HttpCodes.BAD_REQUEST, ordenActualizada, 'Error al actualizar el canal de la orden.');
+
+    await this.notificarCambioOrden(payload.id);
   };
 
   regresarOrderAlFlujo = async (payload: IOrderBackToFlow) => {

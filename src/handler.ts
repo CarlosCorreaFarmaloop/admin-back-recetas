@@ -74,6 +74,12 @@ export const handler = async (event: SQSEvent) => {
           provisionalStatusOrder: 'Pendiente',
         });
 
+        await orderUseCase.updateCanalConvenio({
+          id: payload.order.id,
+          convenio: payload.order.resumeOrder.convenio,
+          canal: payload.order.resumeOrder.canal,
+        });
+
         await orderUseCase.updateStatusOrder(
           payload.order,
           payload.previousStatus,

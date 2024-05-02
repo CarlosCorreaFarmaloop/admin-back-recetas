@@ -20,6 +20,7 @@ import {
   IUpdateEstadoCedulaIdentidadPayload,
   IUpdateProvisionalStatusOrder,
   IUpdateStatusSeguroComplementarioPayload,
+  IUpdateCanalConvenio,
 } from '../../../core/modules/order/domain/order.respository.interface';
 import { IGuardarSeguroComplementario } from 'src/interface/seguroComplementario.interface';
 
@@ -150,6 +151,21 @@ export class OrdenMongoRepository implements IOrdenRepository {
         $set: {
           'productsOrder.$.prescription.state': payload.productOrder.prescription.state,
           'productsOrder.$.prescription.validation': payload.productOrder.prescription.validation,
+        },
+      },
+      { new: true, upsert: true }
+    );
+  };
+
+  updateCanalConvenio = async (payload: IUpdateCanalConvenio) => {
+    console.log('------Order To Update Canal Convenio ---- ', payload);
+
+    return await OrderModel.findOneAndUpdate(
+      { id: payload.id },
+      {
+        $set: {
+          'resumeOrder.convenio': payload.convenio,
+          'resumeOrder.canal': payload.canal,
         },
       },
       { new: true, upsert: true }
