@@ -1025,7 +1025,7 @@ export class OrdenUseCase implements IOrdenUseCase {
     const updateCanalConvenioSchema = Joi.object({
       id: Joi.string().required(),
       canal: Joi.string().required(),
-      responsible: Joi.string().required(),
+      convenio: Joi.string().required(),
     });
 
     const { error } = updateCanalConvenioSchema.validate(payload);
