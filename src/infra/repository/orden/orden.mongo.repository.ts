@@ -100,7 +100,7 @@ export class OrdenMongoRepository implements IOrdenRepository {
           'delivery.provider.note': payload.note,
         },
       },
-      { new: true, upsert: true }
+      { new: true }
     );
   };
 
