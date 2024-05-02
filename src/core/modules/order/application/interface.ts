@@ -72,6 +72,7 @@ export interface IUpdateBillingStatus extends Pick<OrdenEntity, 'id'> {
 export interface IUpdateProvider extends Pick<OrdenEntity, 'id'> {
   providerName: string;
   serviceId?: string;
+  note: string;
 }
 
 export interface IUpdateProvisionalStatusOrder extends Pick<OrdenEntity, 'id' | 'provisionalStatusOrder'> {}

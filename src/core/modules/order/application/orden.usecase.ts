@@ -602,6 +602,7 @@ export class OrdenUseCase implements IOrdenUseCase {
       id: payload.order.id,
       providerName: payload.order?.delivery?.provider.provider,
       serviceId: payload.order?.delivery?.provider.service_id,
+      note: payload.order.delivery.provider.note,
     });
 
     const isDocumentoTributarioAsignado =
@@ -656,6 +657,7 @@ export class OrdenUseCase implements IOrdenUseCase {
       id: payload.order.id,
       providerName: payload.order?.delivery?.provider.provider,
       serviceId: payload.order?.delivery?.provider.service_id,
+      note: payload.order.delivery.provider.note,
     });
 
     await this.updateStatusBilling({

@@ -236,6 +236,7 @@ const ProviderSchema = new mongoose.Schema(
     statusDate: Date,
     provider: String,
     urlLabel: String,
+    note: String,
 
     orderTransport: String,
     service_id: String,

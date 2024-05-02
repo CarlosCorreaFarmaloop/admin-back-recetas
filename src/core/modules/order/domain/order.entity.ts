@@ -146,7 +146,7 @@ export interface DeliveryProvider {
   urlLabel: string;
   trackingNumber: string;
   emmissionDate?: number;
-
+  note: string;
   status: DeliveryProviderStatus;
   statusDate?: number;
 

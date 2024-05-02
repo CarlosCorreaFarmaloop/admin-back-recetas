@@ -94,7 +94,11 @@ export class OrdenMongoRepository implements IOrdenRepository {
     return await OrderModel.findOneAndUpdate(
       { id },
       {
-        $set: { 'delivery.provider.provider': payload.providerName, 'delivery.provider.service_id': payload.serviceId },
+        $set: {
+          'delivery.provider.provider': payload.providerName,
+          'delivery.provider.service_id': payload.serviceId,
+          'delivery.provider.note': payload.note,
+        },
       },
       { new: true, upsert: true }
     );
