@@ -1339,6 +1339,8 @@ export class OrdenUseCase implements IOrdenUseCase {
 
     const isOrderDelivery = ordenConBilling.delivery.method === 'DELIVERY' && ordenConBilling.delivery.type !== '';
 
+    await this.notificarCambioOrden(ordenConBilling.id);
+
     await this.updateStatusOrder(
       ordenConBilling,
       ordenConBilling.statusOrder,
