@@ -3,6 +3,7 @@ import { EstadoCourierTracking } from './courier.interface';
 export interface OrdenEntity {
   billing: Billing;
   createdAt: Date;
+  client: IClient;
   customer: string;
   delivery: Delivery;
   documentos?: Documento[];
@@ -10,7 +11,6 @@ export interface OrdenEntity {
   inPharmacy?: string;
   modifiedPrice?: boolean;
   note?: string;
-  payment?: Payment;
   paymentForms: PaymentForm[];
   productsOrder: ProductOrder[];
   responsible: string;
@@ -23,6 +23,19 @@ export interface OrdenEntity {
   observations?: Observations[];
   history: IOrderHistory[];
   extras: { referrer: string };
+}
+
+export interface IClient {
+  rut: string;
+  id: string;
+  address: string;
+  region: string;
+  comuna: string;
+  phone: string;
+  email: string;
+  name: string;
+  activity: string;
+  clientType: 'Natural' | 'Juridico';
 }
 
 export type IProvisionalStatusOrder = '' | 'Pendiente' | 'Error' | 'Aprobado';
@@ -198,22 +211,26 @@ export interface ProductoDocumento {
   seguro_deducible?: number;
 }
 
-export interface Payment {
-  payment: {
-    amount?: number;
-    method?: string;
-    originCode?: string;
-    paymentDate?: number;
+// export interface Payment {
+//   payment: {
+//     amount?: number;
+//     method?: string;
+//     originCode?: string;
+//     paymentDate?: number;
 
-    status: string;
-    wallet: string;
-  };
-}
+//     status: string;
+//     wallet: string;
+//   };
+// }
 
 export interface PaymentForm {
   amount: number;
   method: string;
-  voucher?: string;
+  originCode: string;
+  paymentDate: number;
+
+  status: string;
+  wallet: string;
 }
 
 export interface ProductOrder {

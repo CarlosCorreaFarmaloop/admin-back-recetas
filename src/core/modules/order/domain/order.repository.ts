@@ -3,7 +3,6 @@ import {
   ICrearOrden,
   ICrearPartialOrden,
   IUpdateBillingStatus,
-  IUpdatePaymentOrden,
   IUpdatePrescriptionState,
   IUpdateProvider,
   IUpdateProviderStatus,
@@ -18,6 +17,7 @@ import {
   IAsignarSeguroComplementarioPayload,
   IUpdateCanalConvenio,
   IUpdateEstadoCedulaIdentidadPayload,
+  IUpdatePaymentRepository,
   IUpdateProvisionalStatusOrder,
   IUpdateStatusSeguroComplementarioPayload,
 } from './order.respository.interface';
@@ -25,7 +25,7 @@ import {
 export interface IOrdenRepository {
   createOrderFromEcommerce: (payload: ICrearOrden) => Promise<OrdenEntity>;
   createPartialOrder: (payload: ICrearPartialOrden) => Promise<OrdenEntity>;
-  updatePayment: (payload: IUpdatePaymentOrden) => Promise<OrdenEntity>;
+  updatePayment: (payload: IUpdatePaymentRepository) => Promise<OrdenEntity>;
   findOrderById: (id: string) => Promise<OrdenEntity | null | undefined>;
   updateOrderStatus: (id: string, status: StatusOrder) => Promise<OrdenEntity>;
   updateOrderTracking: (id: string, payload: Tracking) => Promise<OrdenEntity>;

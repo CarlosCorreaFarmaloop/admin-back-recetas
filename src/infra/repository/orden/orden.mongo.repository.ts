@@ -4,7 +4,6 @@ import {
   ICrearOrden,
   ICrearPartialOrden,
   IUpdateBillingStatus,
-  IUpdatePaymentOrden,
   IUpdatePrescriptionState,
   IUpdateProvider,
   IUpdateProviderStatus,
@@ -21,6 +20,7 @@ import {
   IUpdateProvisionalStatusOrder,
   IUpdateStatusSeguroComplementarioPayload,
   IUpdateCanalConvenio,
+  IUpdatePaymentRepository,
 } from '../../../core/modules/order/domain/order.respository.interface';
 import { IGuardarSeguroComplementario } from 'src/interface/seguroComplementario.interface';
 
@@ -35,9 +35,14 @@ export class OrdenMongoRepository implements IOrdenRepository {
     return await OrderModel.create(payload);
   };
 
-  updatePayment = async (payload: IUpdatePaymentOrden) => {
+  updatePayment = async (payload: IUpdatePaymentRepository) => {
     console.log('------Order To Update ----', JSON.stringify(payload, null, 2));
-    return await OrderModel.findOneAndUpdate({ id: payload.id }, { $set: payload }, { new: true })
+
+    return await OrderModel.findOneAndUpdate(
+      { id: payload.id, 'paymentForms.originCode': { $ne: payload.paymentForm.originCode } },
+      { $set: { paymentForms: payload.paymentForm } },
+      { new: true, upsert: true }
+    )
       .then((res) => res?.toObject())
       .catch((err) => err);
   };

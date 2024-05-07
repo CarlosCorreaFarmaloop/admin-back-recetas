@@ -55,7 +55,7 @@ export interface Payment {
     status: string;
     wallet: string;
 
-    paymentDate?: number;
+    paymentDate: number;
   };
 }
 

@@ -1,7 +1,7 @@
 import { EcommerceOrderEntity } from 'src/interface/ecommerceOrder.entity';
-import { OrdenEntity, Payment, StatusOrder } from '../domain/order.entity';
+import { OrdenEntity, PaymentForm, StatusOrder } from '../domain/order.entity';
 import { validateNumberType, validateStringType } from '../domain/utils/validate';
-import { IAddObservation, ICrearOrden, ICrearPartialOrden } from './interface';
+import { IAddObservation, ICrearOrden, ICrearPartialOrden, IUpdatePaymentOrden } from './interface';
 import { GenerarBoletaPayload } from '../domain/documentos_tributarios.interface';
 import { TipoPago } from '../domain/utils/diccionario/tipoPago';
 import { GenerarOrdenDeCourierPayload } from '../domain/courier.interface';
@@ -16,14 +16,13 @@ export class OrdenOValue {
   completeOrderFromEcommerce = (order: EcommerceOrderEntity): ICrearOrden => {
     const createdDate = new Date();
 
-    const nuevo_pago: Payment = {
-      payment: {
-        amount: validateNumberType(order?.payment?.payment.amount),
-        method: validateStringType(order?.payment?.payment.method),
-        originCode: validateStringType(order?.payment?.payment.originCode),
-        status: validateStringType(order?.payment?.payment.status),
-        wallet: validateStringType(order?.payment?.payment.wallet),
-      },
+    const nuevo_pago: PaymentForm = {
+      amount: validateNumberType(order?.payment?.payment.amount),
+      method: validateStringType(order?.payment?.payment.method),
+      originCode: validateStringType(order?.payment?.payment.originCode),
+      status: validateStringType(order?.payment?.payment.status),
+      wallet: validateStringType(order?.payment?.payment.wallet),
+      paymentDate: order?.payment?.payment.paymentDate,
     };
 
     const ordenCompleta: ICrearOrden = {
@@ -37,7 +36,7 @@ export class OrdenOValue {
       },
       customer: order.customer,
       extras: order.extras,
-      payment: nuevo_pago,
+      paymentForms: [nuevo_pago],
       delivery: {
         delivery_address: {
           comuna: order.delivery.delivery_address.comuna,
@@ -140,12 +139,16 @@ export class OrdenOValue {
       },
       customer: order.customer,
       extras: order.extras,
-      payment: {
-        payment: {
+      paymentForms: [
+        {
+          amount: 0,
+          method: '',
+          originCode: '',
+          paymentDate: 0,
           status: validateStringType(order?.payment?.payment.status),
           wallet: validateStringType(order?.payment?.payment.wallet),
         },
-      },
+      ],
       productsOrder: order.productsOrder.map((product) => {
         return {
           batchId: product.batchId,
@@ -234,6 +237,20 @@ export class OrdenOValue {
     return ordenParcial;
   };
 
+  updatePayment = (payload: IUpdatePaymentOrden): IUpdatePaymentVO => {
+    return {
+      id: payload.id,
+      paymentForm: {
+        amount: payload.payment.payment.amount ?? 0,
+        method: payload.payment.payment.method ?? '',
+        originCode: payload.payment.payment.originCode ?? '',
+        status: payload.payment.payment.status,
+        wallet: payload.payment.payment.wallet,
+        paymentDate: payload.payment.payment.paymentDate ?? 0,
+      },
+    };
+  };
+
   regresarOrderToFlow = (order: OrdenEntity): OrdenEntity | null => {
     console.log('---- Orden a revisar ----', JSON.stringify(order, null, 2));
 
@@ -308,7 +325,7 @@ export class OrdenOValue {
       }),
       proveedor: 'Bsale',
       tipo_documento: 'Boleta',
-      tipo_pago: TipoPago[order?.payment?.payment.method ?? 'Venta Débito'] ?? 'Debito',
+      tipo_pago: TipoPago[order.paymentForms.length > 0 ? order?.paymentForms[0].method : 'Venta Débito'] ?? 'Debito',
     };
 
     if (order.delivery.pricePaid > 0) {
@@ -430,4 +447,9 @@ export class OrdenOValue {
 export interface ITrackingPayload {
   responsible: string;
   toStatus: StatusOrder;
+}
+
+export interface IUpdatePaymentVO {
+  id: string;
+  paymentForm: PaymentForm;
 }

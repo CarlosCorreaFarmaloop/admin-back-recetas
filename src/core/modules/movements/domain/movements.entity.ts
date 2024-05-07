@@ -11,6 +11,7 @@ export interface MovementEntity {
 }
 
 export type MovementType = 'Entrada' | 'Salida' | 'Inventario' | 'Nota de crédito';
+
 export type DocumentType =
   | 'Guia de despacho'
   | 'Factura'

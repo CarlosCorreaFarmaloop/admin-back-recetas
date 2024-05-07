@@ -1,36 +1,40 @@
 export interface AdminOrderEntity {
   id: string;
-  billing: Billing;
-  cotizacion?: string;
-  createdAt: Date;
   customer: string;
   delivery: Delivery;
-  extras: Extras;
   payment: Payment;
   productsOrder: ProductOrder[];
   resumeOrder: ResumeOrder;
-  seguro_complementario?: SeguroComplementario;
-  statusOrder: string;
-  tracking: Tracking[];
+  extras: IReferrer;
+  seguroComplementario?: ISeguroComplementario;
 }
 
-interface Billing {
-  emitter: string;
-  number: string;
-  type: string;
-  urlBilling: string;
-}
-
-interface Delivery {
-  compromiso_entrega: string;
+export interface Delivery {
   cost: number;
   delivery_address: DeliveryAddress;
-  method: string;
-  provider: Provider;
-  type?: string;
+  method: DeliveryMethod;
+  type: DeliveryType;
+  discount: number;
+
+  compromiso_entrega: ICompromisoEntrega;
+  pricePaid: number;
 }
 
-interface DeliveryAddress {
+export type DeliveryMethod = 'DELIVERY' | 'STORE';
+
+export interface ICompromisoEntrega {
+  dateText: string;
+  date: number;
+}
+
+export type DeliveryType =
+  | ''
+  | 'Envío Estándar (48 horas hábiles)'
+  | 'Envío Express (4 horas hábiles)'
+  | 'Envío en el día (24 horas hábiles)'
+  | 'Envío 24 horas hábiles';
+
+export interface DeliveryAddress {
   comuna: string;
   dpto: string;
   firstName: string;
@@ -39,24 +43,20 @@ interface DeliveryAddress {
   phone: string;
   region: string;
   streetName: string;
+
+  streetNumber: string;
 }
 
-interface Provider {
-  provider: string;
-  orderTransport: string;
-  urlLabel: string;
-}
+export interface Payment {
+  payment: {
+    originCode?: string;
+    amount?: number;
+    method?: string;
+    status: string;
+    wallet: string;
 
-interface Extras {
-  referrer: string;
-}
-
-interface Payment {
-  amount?: number;
-  method?: string;
-  originCode?: string;
-  status: string;
-  wallet: string;
+    paymentDate: number;
+  };
 }
 
 export interface ProductOrder {
@@ -83,75 +83,13 @@ export interface ProductOrder {
   requirePrescription: boolean;
   shortName: string;
   sku: string;
-  seguro_complementario?: SeguroComplementarioProducto;
+
+  pricePaidPerUnit: number;
+  discountPerUnit: number;
 }
 
-interface Prescription {
-  state: string;
+export interface Prescription {
   file: string;
-  validation: { rut: string; comments: string };
-}
-
-interface SeguroComplementarioProducto {
-  beneficio_unitario: number;
-  cantidad: number;
-  copago_unitario: number;
-  deducible_unitario: number;
-  observacion: string;
-  precio_unitario: number;
-}
-
-interface ResumeOrder {
-  nroProducts: number;
-  subtotal: number;
-  deliveryPrice: number;
-  totalPrice: number;
-  discount: Discount;
-}
-
-interface Discount {
-  total: number;
-  details: Details[];
-}
-
-interface Details {
-  descuentos_unitarios?: DescuentoUnitario[];
-  discount?: number;
-  promotionCode?: string;
-  reference?: string;
-  type?: string;
-}
-
-interface DescuentoUnitario {
-  cantidad: number;
-  descuento_unitario: number;
-  expireDate: string;
-  lote_id: string;
-  mg: number;
-  price: number;
-  sku: string;
-}
-
-interface SeguroComplementario {
-  beneficiario: string;
-  cotizacion_id: number;
-  credencial: string;
-  deducible_total: number;
-  descuento_total: number;
-  documento: string;
-  estado_crendencial: string;
-  estado: string;
-  fecha_creacion: number;
-  id: string;
-  rut: string;
-  seguro_id: string;
-  seguro_nombre: string;
-}
-
-interface Tracking {
-  date: Date;
-  responsible: string;
-  toStatus: string;
 }
 
 export type PrescriptionType =
@@ -159,3 +97,56 @@ export type PrescriptionType =
   | 'Venta directa (Sin receta)'
   | 'Venta bajo receta cheque'
   | 'Receta médica retenida';
+
+export interface ResumeOrder {
+  canal: string;
+  deliveryPrice: number;
+  discount: Discount;
+  subtotal: number;
+  totalPrice: number;
+  nroProducts: number;
+}
+
+export interface Discount {
+  details: Details[];
+  total: number;
+}
+
+export interface Details {
+  discount: number;
+  promotionCode: string;
+  reference: string;
+  type: string;
+}
+
+export interface ISeguroComplementario {
+  nombreBeneficiario: string;
+  id_externo: number;
+  credencial_url: string;
+  deducible_total: number;
+  descuento_total: number;
+  tipo_documento_emitir: Documento;
+  fecha_creacion: number;
+  id: string;
+  productos: Producto[];
+  rut: string;
+  aseguradora_rut: string;
+  aseguradora_nombre: string;
+}
+export interface Producto {
+  sku: string;
+  lote: string;
+  descuento_unitario: number;
+  cantidad_afectada: number;
+  copago_unitario: number;
+  precio_pagado_por_unidad: number;
+  deducible_unitario: number;
+  nombre: string;
+  observacion: string;
+}
+
+export type Documento = 'bill' | 'dispatch_note';
+
+export interface IReferrer {
+  referrer: string;
+}

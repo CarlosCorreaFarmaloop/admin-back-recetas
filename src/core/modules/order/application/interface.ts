@@ -12,7 +12,7 @@ export type ICrearOrden = Pick<
   OrdenEntity,
   | 'id'
   | 'seguroComplementario'
-  | 'payment'
+  | 'paymentForms'
   | 'customer'
   | 'extras'
   | 'productsOrder'
@@ -34,13 +34,28 @@ export type ICrearPartialOrden = Pick<
   | 'resumeOrder'
   | 'statusOrder'
   | 'delivery'
-  | 'payment'
+  | 'paymentForms'
   | 'billing'
   | 'provisionalStatusOrder'
   | 'createdAt'
 >;
 
-export type IUpdatePaymentOrden = Pick<OrdenEntity, 'id' | 'payment'>;
+export interface IUpdatePaymentOrden {
+  id: string;
+  payment: Payment;
+}
+
+export interface Payment {
+  payment: {
+    amount?: number;
+    method?: string;
+    originCode?: string;
+    paymentDate?: number;
+
+    status: string;
+    wallet: string;
+  };
+}
 
 export interface IUpdateOrderTracking extends Pick<OrdenEntity, 'id'> {
   statusOrder: StatusOrder;

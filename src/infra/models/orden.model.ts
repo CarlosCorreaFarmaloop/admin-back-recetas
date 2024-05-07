@@ -4,7 +4,6 @@ import {
   CompromisoEntrega,
   IOrderHistory,
   DeliveryTracking,
-  Payment,
   PaymentForm,
   Details,
   Discount,
@@ -149,24 +148,28 @@ const PaymentFormsSchema = new mongoose.Schema<PaymentForm>(
   {
     amount: Number,
     method: String,
-    voucher: String,
+    originCode: String,
+    paymentDate: Number,
+
+    status: String,
+    wallet: String,
   },
   { _id: false }
 );
 
-const PaymentSchema = new mongoose.Schema<Payment>(
-  {
-    payment: {
-      amount: Number,
-      method: String,
-      paymentDate: Number,
-      originCode: String,
-      status: String,
-      wallet: String,
-    },
-  },
-  { _id: false }
-);
+// const PaymentSchema = new mongoose.Schema<Payment>(
+//   {
+//     payment: {
+//       amount: Number,
+//       method: String,
+//       paymentDate: Number,
+//       originCode: String,
+//       status: String,
+//       wallet: String,
+//     },
+//   },
+//   { _id: false }
+// );
 
 const ProductoDocumentoSchema = new mongoose.Schema(
   {
@@ -460,7 +463,6 @@ const OrderSchema = new mongoose.Schema({
   inPharmacy: String,
   modifiedPrice: Boolean,
   note: String,
-  payment: PaymentSchema,
   paymentForms: [PaymentFormsSchema],
   productsOrder: [ProductOrderSchema],
   responsible: String,
