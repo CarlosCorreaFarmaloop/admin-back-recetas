@@ -1,4 +1,4 @@
-import { SQSEvent, EventBridgeEvent } from 'aws-lambda';
+import { SQSEvent, EventBridgeEvent, APIGatewayEvent } from 'aws-lambda';
 import { OrdenUseCase } from './core/modules/order/application/orden.usecase';
 import { OrdenMongoRepository } from './infra/repository/orden/orden.mongo.repository';
 import { connectoToMongoDB } from './infra/db/mongo';
@@ -27,279 +27,302 @@ import {
 } from './core/modules/order/application/interface';
 
 // event can be event: EventBridgeEvent<string, IEventDetail> or event: EventBridgeEvent<string, IEventDetail>  {body: IEventDetail}
-export const handler = async (event: SQSEvent) => {
+export const handler = async (event: SQSEvent | APIGatewayEvent) => {
   // Connect to Mongo
   try {
     await connectoToMongoDB();
 
     console.log('--- Event: ', event);
 
-    const bodyEvent: EventBridgeEvent<string, IEventDetail> = JSON.parse(event.Records[0].body);
-    const { origin, body, action } = bodyEvent.detail;
+    if ('body' in event && typeof event.body === 'string') {
+      console.log('--- Event Body: ', JSON.parse(event.body));
 
-    // Only Development Environment
-    // const bodyDetail = JSON.parse(event.body);
-    // const { origin, body, action } = bodyDetail;
+      const parsedBody = JSON.parse(event.body);
 
-    const orderRespository = new OrdenMongoRepository();
-    const cotizacionRespository = new CotizacionRepository();
-    const movementsRepository = new MovementMongoRepository();
+      if (parsedBody.origin === 'admin' && parsedBody.action === 'orden-pos') {
+        const text = 'Prueba Carlitos';
 
-    const orderUseCase = new OrdenUseCase(orderRespository, cotizacionRespository, movementsRepository);
+        return {
+          statusCode: 200,
+          body: JSON.stringify({ text }),
+        };
+      }
 
-    if (origin === 'ecommerce' && action === 'crear-order') await orderUseCase.createOrderFromEcommerce(body, origin);
+      return { statusCode: 200, body: JSON.stringify(event) };
+    }
 
-    if (origin === 'ecommerce' && action === 'actualizar-pago') await orderUseCase.updatePayment(body, origin);
+    if ('Records' in event) {
+      console.log('--- Event Records: ', event.Records);
 
-    if (origin === 'admin' && action === 'actualizar-estado') {
-      const payload = body as IUpdateStatusOrder;
+      const bodyEvent: EventBridgeEvent<string, IEventDetail> = JSON.parse(event.Records[0].body);
+      const { origin, body, action } = bodyEvent.detail;
 
-      if (payload.newStatus === 'VALIDANDO_RECETA') {
-        await orderUseCase.updateProvisionalStatusOrder({
-          id: payload.order.id,
-          provisionalStatusOrder: 'Pendiente',
-        });
+      // Only Development Environment
+      // const bodyDetail = JSON.parse(event.body);
+      // const { origin, body, action } = bodyDetail;
 
-        await orderUseCase.updateStatusOrder(
-          payload.order,
-          payload.previousStatus,
-          payload.newStatus,
-          payload.responsible
+      const orderRespository = new OrdenMongoRepository();
+      const cotizacionRespository = new CotizacionRepository();
+      const movementsRepository = new MovementMongoRepository();
+
+      const orderUseCase = new OrdenUseCase(orderRespository, cotizacionRespository, movementsRepository);
+
+      if (origin === 'ecommerce' && action === 'crear-order') await orderUseCase.createOrderFromEcommerce(body, origin);
+
+      if (origin === 'ecommerce' && action === 'actualizar-pago') await orderUseCase.updatePayment(body, origin);
+
+      if (origin === 'admin' && action === 'actualizar-estado') {
+        const payload = body as IUpdateStatusOrder;
+
+        if (payload.newStatus === 'VALIDANDO_RECETA') {
+          await orderUseCase.updateProvisionalStatusOrder({
+            id: payload.order.id,
+            provisionalStatusOrder: 'Pendiente',
+          });
+
+          await orderUseCase.updateStatusOrder(
+            payload.order,
+            payload.previousStatus,
+            payload.newStatus,
+            payload.responsible
+          );
+        }
+
+        if (payload.newStatus === 'RECETA_VALIDADA') {
+          await orderUseCase.updateProvisionalStatusOrder({
+            id: payload.order.id,
+            provisionalStatusOrder: 'Pendiente',
+          });
+
+          await orderUseCase.updateCanalConvenio({
+            id: payload.order.id,
+            convenio: payload.order.resumeOrder.convenio,
+            canal: payload.order.resumeOrder.canal,
+          });
+
+          await orderUseCase.updateStatusOrder(
+            payload.order,
+            payload.previousStatus,
+            payload.newStatus,
+            payload.responsible
+          );
+        }
+
+        if (payload.newStatus === 'OBSERVACIONES_RECETAS') {
+          await orderUseCase.updateProvisionalStatusOrder({
+            id: payload.order.id,
+            provisionalStatusOrder: 'Pendiente',
+          });
+
+          await orderUseCase.updateStatusOrder(
+            payload.order,
+            payload.previousStatus,
+            payload.newStatus,
+            payload.responsible
+          );
+        }
+
+        if (payload.newStatus === 'PREPARANDO') {
+          await orderUseCase.updateProvisionalStatusOrder({
+            id: payload.order.id,
+            provisionalStatusOrder: 'Pendiente',
+          });
+
+          await orderUseCase.updateStatusOrder(
+            payload.order,
+            payload.previousStatus,
+            payload.newStatus,
+            payload.responsible
+          );
+        }
+
+        if (payload.newStatus === 'LISTO_PARA_RETIRO') {
+          await orderUseCase.updatePreparandoToRetiro({
+            order: payload.order,
+            responsible: payload.responsible,
+          });
+        }
+
+        if (payload.newStatus === 'ASIGNAR_A_DELIVERY') {
+          await orderUseCase.updatePreparandoToDelivery({
+            order: payload.order,
+            responsible: payload.responsible,
+          });
+        }
+
+        if (payload.newStatus === 'EN_DELIVERY') {
+          await orderUseCase.updateProvisionalStatusOrder({
+            id: payload.order.id,
+            provisionalStatusOrder: 'Pendiente',
+          });
+
+          await orderUseCase.updateStatusOrder(
+            payload.order,
+            payload.previousStatus,
+            payload.newStatus,
+            payload.responsible
+          );
+        }
+
+        if (payload.newStatus === 'ENTREGADO') {
+          await orderUseCase.updateProvisionalStatusOrder({
+            id: payload.order.id,
+            provisionalStatusOrder: 'Pendiente',
+          });
+
+          await orderUseCase.updateStatusOrder(
+            payload.order,
+            payload.previousStatus,
+            payload.newStatus,
+            payload.responsible
+          );
+        }
+
+        if (payload.newStatus === 'EN_OBSERVACION') {
+          await orderUseCase.updateProvisionalStatusOrder({
+            id: payload.order.id,
+            provisionalStatusOrder: 'Pendiente',
+          });
+
+          await orderUseCase.updateStatusOrder(
+            payload.order,
+            payload.previousStatus,
+            payload.newStatus,
+            payload.responsible
+          );
+        }
+
+        if (payload.newStatus === 'CANCELADO') {
+          await orderUseCase.updateProvisionalStatusOrder({
+            id: payload.order.id,
+            provisionalStatusOrder: 'Pendiente',
+          });
+
+          await orderUseCase.updateStatusOrder(
+            payload.order,
+            payload.previousStatus,
+            payload.newStatus,
+            payload.responsible
+          );
+        }
+      }
+
+      if (origin === 'admin' && action === 'actualizar-provisional-status-order') {
+        await orderUseCase.updateProvisionalStatusOrder(body as IUpdateProvisionalStatusOrder);
+      }
+
+      if (origin === 'admin' && action === 'cargar-receta')
+        await orderUseCase.uploadPrescriptionFile(body as IUploadPrescription);
+
+      if (origin === 'admin' && action === 'actualizar-estado-receta')
+        await orderUseCase.updatePrescriptionState(body as IUpdatePrescriptionState);
+
+      if (origin === 'admin' && action === 'actualizar-order-estado-obervacion') {
+        await orderUseCase.updateOrderStatusObservation(body as IUpdateStatusOderObservation);
+      }
+
+      if (origin === 'admin' && action === 'regresar-order-al-flujo') {
+        await orderUseCase.regresarOrderAlFlujo(body as IOrderBackToFlow);
+      }
+
+      if (origin === 'admin' && action === 'actualizar-estado-cedula-identidad') {
+        await orderUseCase.updateEstadoCedulaIdentidad(body as IUpdateEstadoCedulaIdentidad);
+      }
+
+      if (origin === 'admin' && action === 'cancelar-order') {
+        await orderUseCase.cancelarOrden(body as ICancelarOrder);
+      }
+
+      if (origin === 'admin' && action === 'agregar-observacion-order') {
+        await orderUseCase.addObservationToOrder(body as IAddOrderObservation);
+      }
+
+      // ---------- Documentos Tributarios ----------------
+
+      if (origin === 'documento-tributario' && action === 'asignar-documento-tributario') {
+        const bodyAction = body as IAsignarDocumentosTributarios;
+
+        if (bodyAction.type !== 'Despacho')
+          await orderUseCase.asignarDocumentosTributarios(body as IAsignarDocumentosTributarios);
+      }
+
+      // ---------- Courier ----------------
+
+      if (origin === 'courier' && action === 'asignar-courier') {
+        await orderUseCase.asignarCourier(body as IAsignarCourier);
+      }
+
+      if (origin === 'courier' && action === 'actualizar-order-status-webhook') {
+        await orderUseCase.actualizarOrderStatusWebhook(body as IActualizarOrderStatusWebhook);
+      }
+
+      // ---------- Seguro Complementario ----------------
+
+      if (origin === 'seguro-complementario' && action === 'confirmar-seguro-complementario') {
+        await orderUseCase.confirmarSeguroComplementario(body as IAsignarSeguroComplementario);
+      }
+
+      if (
+        body?.payment?.payment.status === 'Aprobado' &&
+        origin === 'ecommerce' &&
+        (action === 'actualizar-pago' || action === 'crear-order')
+      ) {
+        const ordenEncontrada = await orderRespository.findOrderById(body.id as string);
+
+        if (!ordenEncontrada) {
+          throw new ApiResponse(HttpCodes.NOT_FOUND, 'Order not found');
+        }
+
+        console.log('--- Orden Productos: ', ordenEncontrada.productsOrder);
+
+        await movementsRepository.createMovements(
+          ordenEncontrada.productsOrder.map((producto) => {
+            return {
+              batch: producto.batchId,
+              createAt: new Date(),
+              documentNumber: body.id,
+              documentType: 'Order',
+              id: uuid(),
+              movementType: 'Salida',
+              quantity: producto.qty * -1,
+              sku: producto.sku,
+              documento_referencia: body.id,
+            };
+          })
         );
+
+        await actualizarStock(ordenEncontrada);
       }
 
-      if (payload.newStatus === 'RECETA_VALIDADA') {
-        await orderUseCase.updateProvisionalStatusOrder({
-          id: payload.order.id,
-          provisionalStatusOrder: 'Pendiente',
-        });
+      if (origin === 'admin' && action === 'cancelar-order') {
+        const ordenEncontrada = await orderRespository.findOrderById(body.id as string);
 
-        await orderUseCase.updateCanalConvenio({
-          id: payload.order.id,
-          convenio: payload.order.resumeOrder.convenio,
-          canal: payload.order.resumeOrder.canal,
-        });
+        if (!ordenEncontrada) {
+          throw new ApiResponse(HttpCodes.NOT_FOUND, 'Order not found');
+        }
 
-        await orderUseCase.updateStatusOrder(
-          payload.order,
-          payload.previousStatus,
-          payload.newStatus,
-          payload.responsible
+        console.log('--- Orden Productos: ', ordenEncontrada.productsOrder);
+
+        await movementsRepository.createMovements(
+          ordenEncontrada.productsOrder.map((producto) => {
+            return {
+              batch: producto.batchId,
+              createAt: new Date(),
+              documentNumber: body.id,
+              documentType: 'Order',
+              id: uuid(),
+              movementType: 'Entrada',
+              quantity: producto.qty,
+              sku: producto.sku,
+              documento_referencia: body.id,
+            };
+          })
         );
+
+        await actualizarStock(ordenEncontrada);
       }
 
-      if (payload.newStatus === 'OBSERVACIONES_RECETAS') {
-        await orderUseCase.updateProvisionalStatusOrder({
-          id: payload.order.id,
-          provisionalStatusOrder: 'Pendiente',
-        });
-
-        await orderUseCase.updateStatusOrder(
-          payload.order,
-          payload.previousStatus,
-          payload.newStatus,
-          payload.responsible
-        );
-      }
-
-      if (payload.newStatus === 'PREPARANDO') {
-        await orderUseCase.updateProvisionalStatusOrder({
-          id: payload.order.id,
-          provisionalStatusOrder: 'Pendiente',
-        });
-
-        await orderUseCase.updateStatusOrder(
-          payload.order,
-          payload.previousStatus,
-          payload.newStatus,
-          payload.responsible
-        );
-      }
-
-      if (payload.newStatus === 'LISTO_PARA_RETIRO') {
-        await orderUseCase.updatePreparandoToRetiro({
-          order: payload.order,
-          responsible: payload.responsible,
-        });
-      }
-
-      if (payload.newStatus === 'ASIGNAR_A_DELIVERY') {
-        await orderUseCase.updatePreparandoToDelivery({
-          order: payload.order,
-          responsible: payload.responsible,
-        });
-      }
-
-      if (payload.newStatus === 'EN_DELIVERY') {
-        await orderUseCase.updateProvisionalStatusOrder({
-          id: payload.order.id,
-          provisionalStatusOrder: 'Pendiente',
-        });
-
-        await orderUseCase.updateStatusOrder(
-          payload.order,
-          payload.previousStatus,
-          payload.newStatus,
-          payload.responsible
-        );
-      }
-
-      if (payload.newStatus === 'ENTREGADO') {
-        await orderUseCase.updateProvisionalStatusOrder({
-          id: payload.order.id,
-          provisionalStatusOrder: 'Pendiente',
-        });
-
-        await orderUseCase.updateStatusOrder(
-          payload.order,
-          payload.previousStatus,
-          payload.newStatus,
-          payload.responsible
-        );
-      }
-
-      if (payload.newStatus === 'EN_OBSERVACION') {
-        await orderUseCase.updateProvisionalStatusOrder({
-          id: payload.order.id,
-          provisionalStatusOrder: 'Pendiente',
-        });
-
-        await orderUseCase.updateStatusOrder(
-          payload.order,
-          payload.previousStatus,
-          payload.newStatus,
-          payload.responsible
-        );
-      }
-
-      if (payload.newStatus === 'CANCELADO') {
-        await orderUseCase.updateProvisionalStatusOrder({
-          id: payload.order.id,
-          provisionalStatusOrder: 'Pendiente',
-        });
-
-        await orderUseCase.updateStatusOrder(
-          payload.order,
-          payload.previousStatus,
-          payload.newStatus,
-          payload.responsible
-        );
-      }
-    }
-
-    if (origin === 'admin' && action === 'actualizar-provisional-status-order') {
-      await orderUseCase.updateProvisionalStatusOrder(body as IUpdateProvisionalStatusOrder);
-    }
-
-    if (origin === 'admin' && action === 'cargar-receta')
-      await orderUseCase.uploadPrescriptionFile(body as IUploadPrescription);
-
-    if (origin === 'admin' && action === 'actualizar-estado-receta')
-      await orderUseCase.updatePrescriptionState(body as IUpdatePrescriptionState);
-
-    if (origin === 'admin' && action === 'actualizar-order-estado-obervacion') {
-      await orderUseCase.updateOrderStatusObservation(body as IUpdateStatusOderObservation);
-    }
-
-    if (origin === 'admin' && action === 'regresar-order-al-flujo') {
-      await orderUseCase.regresarOrderAlFlujo(body as IOrderBackToFlow);
-    }
-
-    if (origin === 'admin' && action === 'actualizar-estado-cedula-identidad') {
-      await orderUseCase.updateEstadoCedulaIdentidad(body as IUpdateEstadoCedulaIdentidad);
-    }
-
-    if (origin === 'admin' && action === 'cancelar-order') {
-      await orderUseCase.cancelarOrden(body as ICancelarOrder);
-    }
-
-    if (origin === 'admin' && action === 'agregar-observacion-order') {
-      await orderUseCase.addObservationToOrder(body as IAddOrderObservation);
-    }
-
-    // ---------- Documentos Tributarios ----------------
-
-    if (origin === 'documento-tributario' && action === 'asignar-documento-tributario') {
-      const bodyAction = body as IAsignarDocumentosTributarios;
-
-      if (bodyAction.type !== 'Despacho')
-        await orderUseCase.asignarDocumentosTributarios(body as IAsignarDocumentosTributarios);
-    }
-
-    // ---------- Courier ----------------
-
-    if (origin === 'courier' && action === 'asignar-courier') {
-      await orderUseCase.asignarCourier(body as IAsignarCourier);
-    }
-
-    if (origin === 'courier' && action === 'actualizar-order-status-webhook') {
-      await orderUseCase.actualizarOrderStatusWebhook(body as IActualizarOrderStatusWebhook);
-    }
-
-    // ---------- Seguro Complementario ----------------
-
-    if (origin === 'seguro-complementario' && action === 'confirmar-seguro-complementario') {
-      await orderUseCase.confirmarSeguroComplementario(body as IAsignarSeguroComplementario);
-    }
-
-    if (
-      body?.payment?.payment.status === 'Aprobado' &&
-      origin === 'ecommerce' &&
-      (action === 'actualizar-pago' || action === 'crear-order')
-    ) {
-      const ordenEncontrada = await orderRespository.findOrderById(body.id as string);
-
-      if (!ordenEncontrada) {
-        throw new ApiResponse(HttpCodes.NOT_FOUND, 'Order not found');
-      }
-
-      console.log('--- Orden Productos: ', ordenEncontrada.productsOrder);
-
-      await movementsRepository.createMovements(
-        ordenEncontrada.productsOrder.map((producto) => {
-          return {
-            batch: producto.batchId,
-            createAt: new Date(),
-            documentNumber: body.id,
-            documentType: 'Order',
-            id: uuid(),
-            movementType: 'Salida',
-            quantity: producto.qty * -1,
-            sku: producto.sku,
-            documento_referencia: body.id,
-          };
-        })
-      );
-
-      await actualizarStock(ordenEncontrada);
-    }
-
-    if (origin === 'admin' && action === 'cancelar-order') {
-      const ordenEncontrada = await orderRespository.findOrderById(body.id as string);
-
-      if (!ordenEncontrada) {
-        throw new ApiResponse(HttpCodes.NOT_FOUND, 'Order not found');
-      }
-
-      console.log('--- Orden Productos: ', ordenEncontrada.productsOrder);
-
-      await movementsRepository.createMovements(
-        ordenEncontrada.productsOrder.map((producto) => {
-          return {
-            batch: producto.batchId,
-            createAt: new Date(),
-            documentNumber: body.id,
-            documentType: 'Order',
-            id: uuid(),
-            movementType: 'Entrada',
-            quantity: producto.qty,
-            sku: producto.sku,
-            documento_referencia: body.id,
-          };
-        })
-      );
-
-      await actualizarStock(ordenEncontrada);
+      return { statusCode: 200, body: JSON.stringify(event) };
     }
 
     return { statusCode: 200, body: JSON.stringify(event) };
