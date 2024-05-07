@@ -3,7 +3,6 @@ import { EstadoCourierTracking } from './courier.interface';
 export interface OrdenEntity {
   billing: Billing;
   createdAt: Date;
-  client: IClient;
   customer: string;
   delivery: Delivery;
   documentos?: Documento[];
@@ -23,19 +22,6 @@ export interface OrdenEntity {
   observations?: Observations[];
   history: IOrderHistory[];
   extras: { referrer: string };
-}
-
-export interface IClient {
-  rut: string;
-  id: string;
-  address: string;
-  region: string;
-  comuna: string;
-  phone: string;
-  email: string;
-  name: string;
-  activity: string;
-  clientType: 'Natural' | 'Juridico';
 }
 
 export type IProvisionalStatusOrder = '' | 'Pendiente' | 'Error' | 'Aprobado';

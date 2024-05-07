@@ -405,8 +405,12 @@ export class OrdenUseCase implements IOrdenUseCase {
 
       const Payment = Joi.object({
         payment: Joi.object({
+          originCode: Joi.string(),
+          amount: Joi.number(),
+          method: Joi.string(),
           status: Joi.string().required(),
           wallet: Joi.string().required(),
+          paymentDate: Joi.number(),
         }).required(),
       });
 
@@ -489,6 +493,7 @@ export class OrdenUseCase implements IOrdenUseCase {
 
     const ResumeOrder = Joi.object({
       canal: Joi.string().required(),
+      convenio: Joi.string().required(),
       deliveryPrice: Joi.number().required(),
       discount: Discount.required(),
       subtotal: Joi.number().required(),
@@ -573,15 +578,19 @@ export class OrdenUseCase implements IOrdenUseCase {
     });
 
     const Payment = Joi.object({
+      originCode: Joi.string(),
+      amount: Joi.number(),
+      method: Joi.string(),
       status: Joi.string().required(),
       wallet: Joi.string().required(),
+      paymentDate: Joi.number(),
     });
 
     const createPartialOrderSchema = Joi.object({
       id: Joi.string().required(),
-      customer: Joi.string().required(),
+      customer: Joi.string().required().allow(''),
       delivery: Delivery.required(),
-      payments: Payment.required(),
+      payments: Joi.array().items(Payment).required(),
       productsOrder: Joi.array().items(ProductOrder).required(),
       resumeOrder: ResumeOrder.required(),
       extras: IReferrer.required(),
@@ -594,13 +603,15 @@ export class OrdenUseCase implements IOrdenUseCase {
       throw new ApiResponse(HttpCodes.BAD_REQUEST, error.message);
     }
 
-    const ordenParcial = new OrdenOValue().createPartialOrder(order);
+    const ordenParcial = new OrdenOValue().completeOrderFromAdmin(order);
 
-    const nuevaOrden = await this.ordenRepository.createPartialOrder(ordenParcial);
+    const nuevaOrden = await this.ordenRepository.createOrderFromEcommerce(ordenParcial);
 
     if (!nuevaOrden) {
       throw new ApiResponse(HttpCodes.BAD_REQUEST, nuevaOrden);
     }
+
+    await this.notificarCambioOrden(nuevaOrden.id);
   }
 
   async updatePayment(payload: IUpdatePaymentOrden, origin: IOrigin) {

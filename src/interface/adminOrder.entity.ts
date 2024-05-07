@@ -2,7 +2,7 @@ export interface AdminOrderEntity {
   id: string;
   customer: string;
   delivery: Delivery;
-  payment: Payment;
+  payments: Payment[];
   productsOrder: ProductOrder[];
   resumeOrder: ResumeOrder;
   extras: IReferrer;
@@ -48,15 +48,13 @@ export interface DeliveryAddress {
 }
 
 export interface Payment {
-  payment: {
-    originCode?: string;
-    amount?: number;
-    method?: string;
-    status: string;
-    wallet: string;
+  originCode: string;
+  amount: number;
+  method: string;
+  status: string;
+  wallet: string;
 
-    paymentDate: number;
-  };
+  paymentDate: number;
 }
 
 export interface ProductOrder {

@@ -103,6 +103,7 @@ export interface ResumeOrder {
   deliveryPrice: number;
   discount: Discount;
   subtotal: number;
+  convenio?: string;
   totalPrice: number;
   nroProducts: number;
 }

@@ -6,4 +6,6 @@ export const TipoPago: Record<string, DocumentTributarioTipoPago> = {
   credit_card: 'Credito',
   debit_card: 'Debito',
   'Venta Normal': 'Credito',
+  Debito: 'Debito',
+  Credito: 'Credito',
 };
