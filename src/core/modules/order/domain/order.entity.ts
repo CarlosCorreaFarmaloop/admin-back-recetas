@@ -11,7 +11,7 @@ export interface OrdenEntity {
   inPharmacy?: string;
   modifiedPrice?: boolean;
   note?: string;
-  paymentForms: PaymentForm[];
+  payments: Payment[];
   productsOrder: ProductOrder[];
   responsible: string;
   resumeOrder: ResumeOrder;
@@ -223,7 +223,7 @@ export interface ProductoDocumento {
 //   };
 // }
 
-export interface PaymentForm {
+export interface Payment {
   amount: number;
   method: string;
   originCode: string;

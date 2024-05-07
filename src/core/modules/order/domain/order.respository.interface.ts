@@ -7,7 +7,7 @@ import {
   IBillingType,
   ISeguroComplementarioStatus,
   OrdenEntity,
-  PaymentForm,
+  Payment,
 } from './order.entity';
 
 export interface IUpdateProvisionalStatusOrder
@@ -19,7 +19,7 @@ export interface IAsignarDocumentosTributariosPayload extends IAsignarDocumentos
 
 export interface IUpdatePaymentRepository {
   id: string;
-  paymentForm: PaymentForm;
+  payment: Payment;
 }
 
 export interface IAsignarCourierPayload {

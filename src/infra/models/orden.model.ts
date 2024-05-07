@@ -4,7 +4,7 @@ import {
   CompromisoEntrega,
   IOrderHistory,
   DeliveryTracking,
-  PaymentForm,
+  Payment,
   Details,
   Discount,
   Prescription,
@@ -144,7 +144,7 @@ const ResumeOrderSchema = new mongoose.Schema<ResumeOrder>(
   { _id: false }
 );
 
-const PaymentFormsSchema = new mongoose.Schema<PaymentForm>(
+const PaymentsSchema = new mongoose.Schema<Payment>(
   {
     amount: Number,
     method: String,
@@ -463,7 +463,7 @@ const OrderSchema = new mongoose.Schema({
   inPharmacy: String,
   modifiedPrice: Boolean,
   note: String,
-  paymentForms: [PaymentFormsSchema],
+  payments: [PaymentsSchema],
   productsOrder: [ProductOrderSchema],
   responsible: String,
   resumeOrder: ResumeOrderSchema,

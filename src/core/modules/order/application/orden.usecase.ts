@@ -573,17 +573,15 @@ export class OrdenUseCase implements IOrdenUseCase {
     });
 
     const Payment = Joi.object({
-      payment: Joi.object({
-        status: Joi.string().required(),
-        wallet: Joi.string().required(),
-      }).required(),
+      status: Joi.string().required(),
+      wallet: Joi.string().required(),
     });
 
     const createPartialOrderSchema = Joi.object({
       id: Joi.string().required(),
       customer: Joi.string().required(),
       delivery: Delivery.required(),
-      payment: Payment.required(),
+      payments: Payment.required(),
       productsOrder: Joi.array().items(ProductOrder).required(),
       resumeOrder: ResumeOrder.required(),
       extras: IReferrer.required(),
