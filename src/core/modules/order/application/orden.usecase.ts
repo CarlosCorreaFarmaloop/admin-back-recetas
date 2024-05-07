@@ -1273,7 +1273,6 @@ export class OrdenUseCase implements IOrdenUseCase {
         modifiedPrice: Joi.boolean().optional(),
         note: Joi.string().optional(),
         payment: Joi.object({}).optional(),
-        paymentForms: Joi.object({}).optional(),
         responsible: Joi.string().optional(),
         resumeOrder: Joi.object({}).optional(),
         provisionalStatusOrder: Joi.string().optional(),

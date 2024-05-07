@@ -39,7 +39,7 @@ export class OrdenMongoRepository implements IOrdenRepository {
     console.log('------Order To Update ----', JSON.stringify(payload, null, 2));
 
     return await OrderModel.findOneAndUpdate(
-      { id: payload.id, 'paymentForms.originCode': { $ne: payload.payment.originCode } },
+      { id: payload.id },
       { $set: { payments: payload.payment } },
       { new: true, upsert: true }
     )

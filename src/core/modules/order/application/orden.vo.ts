@@ -36,7 +36,7 @@ export class OrdenOValue {
       },
       customer: order.customer,
       extras: order.extras,
-      paymentForms: [nuevo_pago],
+      payments: [nuevo_pago],
       delivery: {
         delivery_address: {
           comuna: order.delivery.delivery_address.comuna,
@@ -139,7 +139,7 @@ export class OrdenOValue {
       },
       customer: order.customer,
       extras: order.extras,
-      paymentForms: [
+      payments: [
         {
           amount: 0,
           method: '',

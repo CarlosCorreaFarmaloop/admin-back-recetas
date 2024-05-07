@@ -12,7 +12,7 @@ export type ICrearOrden = Pick<
   OrdenEntity,
   | 'id'
   | 'seguroComplementario'
-  | 'paymentForms'
+  | 'payments'
   | 'customer'
   | 'extras'
   | 'productsOrder'
@@ -34,7 +34,7 @@ export type ICrearPartialOrden = Pick<
   | 'resumeOrder'
   | 'statusOrder'
   | 'delivery'
-  | 'paymentForms'
+  | 'payments'
   | 'billing'
   | 'provisionalStatusOrder'
   | 'createdAt'
