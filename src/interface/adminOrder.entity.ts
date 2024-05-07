@@ -100,6 +100,7 @@ export type PrescriptionType =
 
 export interface ResumeOrder {
   canal: string;
+  convenio: string;
   deliveryPrice: number;
   discount: Discount;
   subtotal: number;
