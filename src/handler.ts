@@ -25,6 +25,7 @@ import {
   IUpdateProvisionalStatusOrder,
   IUploadPrescription,
 } from './core/modules/order/application/interface';
+import { AdminOrderEntity } from './interface/adminOrder.entity';
 
 // event can be event: EventBridgeEvent<string, IEventDetail> or event: EventBridgeEvent<string, IEventDetail>  {body: IEventDetail}
 export const handler = async (event: SQSEvent | APIGatewayProxyEvent) => {
@@ -69,7 +70,8 @@ export const handler = async (event: SQSEvent | APIGatewayProxyEvent) => {
 
       if (origin === 'ecommerce' && action === 'actualizar-pago') await orderUseCase.updatePayment(body, origin);
 
-      if (origin === 'admin' && action === 'crear-order') await orderUseCase.createOrderFromAdmin(body, origin);
+      if (origin === 'admin' && action === 'crear-order')
+        await orderUseCase.createOrderFromAdmin(body as AdminOrderEntity, origin);
 
       if (origin === 'admin' && action === 'actualizar-estado') {
         const payload = body as IUpdateStatusOrder;
