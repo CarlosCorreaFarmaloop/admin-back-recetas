@@ -586,7 +586,7 @@ export class OrdenUseCase implements IOrdenUseCase {
       paymentDate: Joi.number(),
     });
 
-    const createPartialOrderSchema = Joi.object({
+    const createCompleteOrderSchema = Joi.object({
       id: Joi.string().required(),
       customer: Joi.string().required().allow(''),
       delivery: Delivery.required(),
@@ -595,9 +595,12 @@ export class OrdenUseCase implements IOrdenUseCase {
       resumeOrder: ResumeOrder.required(),
       extras: IReferrer.required(),
       seguroComplementario: ISeguroComplementario.optional(),
+      billing: Joi.object({
+        type: Joi.string().optional().allow(''),
+      }).optional(),
     });
 
-    const { error } = createPartialOrderSchema.validate(order);
+    const { error } = createCompleteOrderSchema.validate(order);
 
     if (error) {
       throw new ApiResponse(HttpCodes.BAD_REQUEST, error.message);

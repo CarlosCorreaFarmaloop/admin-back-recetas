@@ -10,9 +10,11 @@ export interface GenerarBoletaPayload {
   id_interno: string;
   productos: Producto[];
   proveedor: Emisor;
-  tipo_documento: 'Boleta';
+  tipo_documento: TipoDocumento;
   tipo_pago: DocumentTributarioTipoPago;
 }
+
+export type TipoDocumento = 'Boleta' | 'Factura' | 'Despacho';
 
 interface Producto {
   cantidad: number;

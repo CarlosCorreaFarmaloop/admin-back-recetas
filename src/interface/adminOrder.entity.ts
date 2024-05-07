@@ -1,6 +1,9 @@
 export interface AdminOrderEntity {
   id: string;
   customer: string;
+  billing: {
+    type: IBillingType;
+  };
   delivery: Delivery;
   payments: Payment[];
   productsOrder: ProductOrder[];
@@ -8,6 +11,8 @@ export interface AdminOrderEntity {
   extras: IReferrer;
   seguroComplementario?: ISeguroComplementario;
 }
+
+export type IBillingType = 'Boleta' | 'Factura' | 'Despacho' | '';
 
 export interface Delivery {
   cost: number;

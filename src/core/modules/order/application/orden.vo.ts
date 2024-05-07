@@ -134,7 +134,7 @@ export class OrdenOValue {
       billing: {
         emitter: '',
         number: '',
-        type: '',
+        type: order.billing?.type ?? '',
         status: '',
         urlBilling: '',
       },
@@ -437,7 +437,7 @@ export class OrdenOValue {
         };
       }),
       proveedor: 'Bsale',
-      tipo_documento: 'Boleta',
+      tipo_documento: order.billing.type !== '' ? order.billing.type : 'Boleta',
       tipo_pago: TipoPago[order.payments.length > 0 ? order?.payments[0].method : 'Venta Débito'] ?? 'Debito',
     };
 
