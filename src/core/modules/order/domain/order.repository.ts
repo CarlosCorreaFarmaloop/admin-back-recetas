@@ -35,8 +35,8 @@ export interface IOrdenRepository {
   updateOrderBillingStatus: (id: string, payload: IUpdateBillingStatus) => Promise<OrdenEntity | null>;
   updateOrderProvider: (id: string, payload: IUpdateProvider) => Promise<OrdenEntity | null>;
   updateProvisionalStatusOrder: (payload: IUpdateProvisionalStatusOrder) => Promise<OrdenEntity | null>;
-  uploadPrescriptionFile: (payload: IUploadPrescription) => Promise<OrdenEntity>;
-  updatePrescriptionState: (payload: IUpdatePrescriptionState) => Promise<OrdenEntity>;
+  uploadPrescriptionFile: (payload: IUploadPrescription) => Promise<OrdenEntity | null>;
+  updatePrescriptionState: (payload: IUpdatePrescriptionState) => Promise<OrdenEntity | null>;
   updateEstadoCedulaIdentidad: (payload: IUpdateEstadoCedulaIdentidadPayload) => Promise<OrdenEntity>;
   addOrderObservation: (payload: IAddOrderdObservation) => Promise<OrdenEntity>;
   updateCanalConvenio: (payload: IUpdateCanalConvenio) => Promise<OrdenEntity>;

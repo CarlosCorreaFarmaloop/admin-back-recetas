@@ -148,7 +148,7 @@ export class OrdenMongoRepository implements IOrdenRepository {
           'productsOrder.$.prescription.validation.rut': '',
         },
       },
-      { new: true, upsert: true }
+      { new: true }
     );
   };
 
@@ -167,7 +167,7 @@ export class OrdenMongoRepository implements IOrdenRepository {
           'productsOrder.$.prescription.validation': payload.productOrder.prescription.validation,
         },
       },
-      { new: true, upsert: true }
+      { new: true }
     );
   };
 

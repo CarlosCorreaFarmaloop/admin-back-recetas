@@ -630,6 +630,8 @@ export class OrdenUseCase implements IOrdenUseCase {
       // };
     }
 
+    console.log('------ Order Created ------', nuevaOrden);
+
     await this.notificarCambioOrden(nuevaOrden.id);
 
     // Notificar Cliente Email
