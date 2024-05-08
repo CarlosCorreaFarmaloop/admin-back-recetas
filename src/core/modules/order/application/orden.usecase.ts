@@ -632,6 +632,11 @@ export class OrdenUseCase implements IOrdenUseCase {
 
     await this.notificarCambioOrden(nuevaOrden.id);
 
+    // Notificar Cliente Email
+    await notificarEstadoDeOrden(nuevaOrden, false);
+
+    await actualizarOrdenEccomerce(nuevaOrden);
+
     return {
       statusCode: HttpCodes.CREATED,
       body: JSON.stringify(nuevaOrden),
