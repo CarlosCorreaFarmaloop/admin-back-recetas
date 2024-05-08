@@ -333,6 +333,7 @@ export const handler = async (event: SQSEvent) => {
     return { statusCode: 200, body: JSON.stringify(event) };
   } catch (error) {
     console.log('--- Error: ', error);
-    return { statusCode: 400, body: JSON.stringify(error) };
+    throw new Error('Error en lambda');
+    // return { statusCode: 400, body: JSON.stringify(error) };
   }
 };
