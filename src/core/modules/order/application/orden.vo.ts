@@ -132,6 +132,45 @@ export class OrdenOValue {
   completeOrderFromAdmin = (order: AdminOrderEntity): ICrearOrden => {
     const createdDate = new Date();
 
+    const products: ProductOrder[] = order.productsOrder.map((product) => {
+      return {
+        batchId: product.batchId,
+        bioequivalent: product.bioequivalent,
+        cooled: product.cooled,
+        ean: product.ean,
+        fullName: product.fullName,
+        price: product.price,
+        qty: product.qty,
+        sku: product.sku,
+        expiration: product.expiration,
+        shortName: '',
+        laboratoryName: product.laboratoryName,
+        normalUnitPrice: product.normalUnitPrice,
+        prescription: {
+          file: product?.prescription?.file ?? '',
+          state: product.requirePrescription ? 'Pending' : '',
+          stateDate: new Date().getTime(),
+          validation: {
+            comments: '',
+            rut: '',
+            responsible: '',
+          },
+        },
+        requirePrescription: product.requirePrescription,
+        liquid: product?.liquid ?? false,
+        pharmaceuticalForm: product.pharmaceuticalForm,
+        photoURL: product.photoURL,
+        prescriptionType: product.prescriptionType,
+        presentation: product.presentation,
+        productCategory: product.productCategory,
+        productSubCategory: product.productSubCategory,
+        quantityPerContainer: product.quantityPerContainer,
+        recommendations: product.recommendations,
+        discountPerUnit: product.discountPerUnit,
+        pricePaidPerUnit: product.pricePaidPerUnit,
+      };
+    });
+
     const ordenCompleta: ICrearOrden = {
       id: order.id,
       billing: {
@@ -179,44 +218,7 @@ export class OrdenOValue {
         discount: order.delivery.discount,
         pricePaid: order.delivery.pricePaid,
       },
-      productsOrder: order.productsOrder.map((product) => {
-        return {
-          batchId: product.batchId,
-          bioequivalent: product.bioequivalent,
-          cooled: product.cooled,
-          ean: product.ean,
-          fullName: product.fullName,
-          price: product.price,
-          qty: product.qty,
-          sku: product.sku,
-          expiration: product.expiration,
-          shortName: '',
-          laboratoryName: product.laboratoryName,
-          normalUnitPrice: product.normalUnitPrice,
-          prescription: {
-            file: product?.prescription?.file ?? '',
-            state: product.requirePrescription ? 'Pending' : '',
-            stateDate: new Date().getTime(),
-            validation: {
-              comments: '',
-              rut: '',
-              responsible: '',
-            },
-          },
-          requirePrescription: product.requirePrescription,
-          liquid: product?.liquid ?? false,
-          pharmaceuticalForm: product.pharmaceuticalForm,
-          photoURL: product.photoURL,
-          prescriptionType: product.prescriptionType,
-          presentation: product.presentation,
-          productCategory: product.productCategory,
-          productSubCategory: product.productSubCategory,
-          quantityPerContainer: product.quantityPerContainer,
-          recommendations: product.recommendations,
-          discountPerUnit: product.discountPerUnit,
-          pricePaidPerUnit: product.pricePaidPerUnit,
-        };
-      }),
+      productsOrder: products,
       resumeOrder: {
         ...order.resumeOrder,
         convenio: order.resumeOrder.convenio,
@@ -234,7 +236,7 @@ export class OrdenOValue {
           total: order.resumeOrder.discount.total,
         },
       },
-      statusOrder: 'VALIDANDO_RECETA',
+      statusOrder: generateInitialStatusOrder(products),
       provisionalStatusOrder: '',
       createdAt: createdDate,
     };
