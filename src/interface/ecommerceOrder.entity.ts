@@ -1,6 +1,9 @@
+import { Status, Wallet } from '../core/modules/order/domain/order.entity';
+
 export interface EcommerceOrderEntity {
   id: string;
   customer: string;
+  clasification?: string;
   delivery: Delivery;
   payment: Payment;
   productsOrder: ProductOrder[];
@@ -52,8 +55,8 @@ export interface Payment {
     originCode?: string;
     amount?: number;
     method?: string;
-    status: string;
-    wallet: string;
+    status: Status;
+    wallet: Wallet;
 
     paymentDate: number;
   };

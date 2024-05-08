@@ -6,6 +6,8 @@ import {
   IBillingStatus,
   ProductOrder,
   StatePrescription,
+  Status,
+  Wallet,
 } from '../domain/order.entity';
 
 export type ICrearOrden = Pick<
@@ -15,6 +17,7 @@ export type ICrearOrden = Pick<
   | 'payments'
   | 'customer'
   | 'extras'
+  | 'clasification'
   | 'productsOrder'
   | 'resumeOrder'
   | 'statusOrder'
@@ -52,8 +55,8 @@ export interface Payment {
     originCode?: string;
     paymentDate?: number;
 
-    status: string;
-    wallet: string;
+    status: Status;
+    wallet: Wallet;
   };
 }
 

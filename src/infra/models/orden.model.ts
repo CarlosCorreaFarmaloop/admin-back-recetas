@@ -465,6 +465,7 @@ const OrderSchema = new mongoose.Schema({
   note: String,
   payments: [PaymentsSchema],
   productsOrder: [ProductOrderSchema],
+  clasification: String,
   responsible: String,
   resumeOrder: ResumeOrderSchema,
   statusOrder: String,

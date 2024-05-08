@@ -1,3 +1,5 @@
+import { Status, Wallet } from '../core/modules/order/domain/order.entity';
+
 export interface CreateCompleteOrderEntity {
   id: string;
   customer: string;
@@ -6,6 +8,7 @@ export interface CreateCompleteOrderEntity {
   };
   delivery: Delivery;
   payments: Payment[];
+  clasification: string;
   productsOrder: ProductOrder[];
   resumeOrder: ResumeOrder;
   extras: IReferrer;
@@ -55,8 +58,8 @@ export interface Payment {
   originCode: string;
   amount: number;
   method: string;
-  status: string;
-  wallet: string;
+  status: Status;
+  wallet: Wallet;
   paymentDate: number;
 }
 

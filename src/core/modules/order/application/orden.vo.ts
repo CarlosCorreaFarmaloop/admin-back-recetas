@@ -1,5 +1,5 @@
 import { EcommerceOrderEntity } from 'src/interface/ecommerceOrder.entity';
-import { OrdenEntity, Payment, ProductOrder, StatusOrder } from '../domain/order.entity';
+import { OrdenEntity, Payment, ProductOrder, StatusOrder, Wallet, Status } from '../domain/order.entity';
 import { validateNumberType, validateStringType } from '../domain/utils/validate';
 import { IAddObservation, ICrearOrden, ICrearPartialOrden, IUpdatePaymentOrden } from './interface';
 import { GenerarBoletaPayload } from '../domain/documentos_tributarios.interface';
@@ -23,8 +23,8 @@ export class OrdenOValue {
       amount: validateNumberType(order?.payment?.payment.amount),
       method: validateStringType(order?.payment?.payment.method),
       originCode: validateStringType(order?.payment?.payment.originCode),
-      status: validateStringType(order?.payment?.payment.status),
-      wallet: validateStringType(order?.payment?.payment.wallet),
+      status: validateStringType(order?.payment?.payment.status) as Status,
+      wallet: validateStringType(order?.payment?.payment.wallet) as Wallet,
       paymentDate: order?.payment?.payment.paymentDate,
     };
 
@@ -37,6 +37,7 @@ export class OrdenOValue {
         status: '',
         urlBilling: '',
       },
+      clasification: order?.clasification ?? '',
       customer: order.customer,
       extras: order.extras,
       payments: [nuevo_pago],
@@ -140,6 +141,7 @@ export class OrdenOValue {
         status: '',
         urlBilling: '',
       },
+      clasification: order?.clasification ?? '',
       customer: order.customer,
       extras: order.extras,
       payments: order.payments.map((payment) => {
@@ -291,6 +293,7 @@ export class OrdenOValue {
         status: '',
         urlBilling: '',
       },
+      clasification: order?.clasification ?? '',
       customer: order.customer,
       extras: order.extras,
       payments: order.payments.map((payment) => {
@@ -374,8 +377,8 @@ export class OrdenOValue {
           method: '',
           originCode: '',
           paymentDate: 0,
-          status: validateStringType(order?.payment?.payment.status),
-          wallet: validateStringType(order?.payment?.payment.wallet),
+          status: validateStringType(order?.payment?.payment.status) as Status,
+          wallet: validateStringType(order?.payment?.payment.wallet) as Wallet,
         },
       ],
       productsOrder: order.productsOrder.map((product) => {

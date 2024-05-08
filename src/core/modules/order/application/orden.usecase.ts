@@ -764,6 +764,7 @@ export class OrdenUseCase implements IOrdenUseCase {
       delivery: Delivery.required(),
       payments: Joi.array().items(Payment).required(),
       productsOrder: Joi.array().items(ProductOrder).required(),
+      clasification: Joi.string().required().allow(''),
       resumeOrder: ResumeOrder.required(),
       extras: IReferrer.required(),
       seguroComplementario: ISeguroComplementario.optional(),

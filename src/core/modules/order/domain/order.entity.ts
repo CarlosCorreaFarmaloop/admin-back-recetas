@@ -13,6 +13,7 @@ export interface OrdenEntity {
   payments: Payment[];
   productsOrder: ProductOrder[];
   responsible: string;
+  clasification: string;
   resumeOrder: ResumeOrder;
   statusOrder: StatusOrder;
   provisionalStatusOrder: IProvisionalStatusOrder;
@@ -215,9 +216,13 @@ export interface Payment {
   originCode: string;
   paymentDate: number;
 
-  status: string;
-  wallet: string;
+  status: Status;
+  wallet: Wallet;
 }
+
+export type Status = 'Cancelado' | 'Aprobado' | 'Pendiente';
+
+export type Wallet = 'Transbank' | 'Mercadopago' | 'Integracion';
 
 export interface ProductOrder {
   batchId: string;
