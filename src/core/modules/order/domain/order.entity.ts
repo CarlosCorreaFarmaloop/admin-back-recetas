@@ -232,6 +232,7 @@ export interface ProductOrder {
   expiration: number;
   laboratoryName: string;
   lineNumber?: number;
+  liquid: boolean;
   modified?: boolean;
   fullName: string;
   normalUnitPrice: number;
