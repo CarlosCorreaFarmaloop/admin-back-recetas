@@ -75,7 +75,9 @@ export const handler = async (event: SQSEvent | APIGatewayProxyEvent): Promise<A
         await orderUseCase.createCompleteOrder(body as CreateCompleteOrderEntity, origin);
 
       if (origin === 'admin' && action === 'crear-order') {
-        await orderUseCase.createOrderFromAdmin(body as AdminOrderEntity, origin);
+        const response = await orderUseCase.createOrderFromAdmin(body as AdminOrderEntity, origin);
+
+        return response;
       }
       if (origin === 'admin' && action === 'actualizar-estado') {
         const payload = body as IUpdateStatusOrder;

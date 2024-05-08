@@ -53,6 +53,7 @@ import {
 } from '../../../../interface/seguroComplementario.interface';
 import { AdminOrderEntity } from '../../../../interface/adminOrder.entity';
 import { CreateCompleteOrderEntity } from '../../../../interface/crearOrdenCompleta';
+import { APIGatewayProxyResult } from 'aws-lambda';
 
 export class OrdenUseCase implements IOrdenUseCase {
   constructor(
@@ -447,7 +448,7 @@ export class OrdenUseCase implements IOrdenUseCase {
     }
   }
 
-  async createOrderFromAdmin(order: AdminOrderEntity, origin: IOrigin) {
+  async createOrderFromAdmin(order: AdminOrderEntity, origin: IOrigin): Promise<APIGatewayProxyResult> {
     const Documento = Joi.string().valid('bill', 'dispatch_note');
     const Producto = Joi.object({
       sku: Joi.string().required(),
@@ -604,7 +605,12 @@ export class OrdenUseCase implements IOrdenUseCase {
     const { error } = createCompleteOrderSchema.validate(order);
 
     if (error) {
-      throw new ApiResponse(HttpCodes.BAD_REQUEST, error.message);
+      const response = new ApiResponse(HttpCodes.BAD_REQUEST, error.message);
+
+      return {
+        statusCode: response.status,
+        body: JSON.stringify(response),
+      };
     }
 
     const ordenParcial = new OrdenOValue().completeOrderFromAdmin(order);
