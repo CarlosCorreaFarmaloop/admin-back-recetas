@@ -34,10 +34,12 @@ import {
   IUploadPrescription,
 } from './interface';
 import { AdminOrderEntity } from 'src/interface/adminOrder.entity';
+import { CreateCompleteOrderEntity } from 'src/interface/crearOrdenCompleta';
 
 export interface IOrdenUseCase {
   createOrderFromEcommerce: (order: EcommerceOrderEntity, origin: IOrigin) => Promise<void>;
   createOrderFromAdmin: (order: AdminOrderEntity, origin: IOrigin) => Promise<void>;
+  createCompleteOrder: (order: CreateCompleteOrderEntity, origin: IOrigin) => Promise<void>;
   updatePayment: (order: IUpdatePaymentOrden, origin: IOrigin) => Promise<void>;
   updateStatusOrder: (
     order: OrdenEntity,

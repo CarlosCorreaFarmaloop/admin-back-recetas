@@ -25,6 +25,7 @@ import {
 export interface IOrdenRepository {
   createOrderFromEcommerce: (payload: ICrearOrden) => Promise<OrdenEntity>;
   createPartialOrder: (payload: ICrearPartialOrden) => Promise<OrdenEntity>;
+  createCompleteOrder: (payload: ICrearOrden) => Promise<OrdenEntity>;
   updatePayment: (payload: IUpdatePaymentRepository) => Promise<OrdenEntity>;
   findOrderById: (id: string) => Promise<OrdenEntity | null | undefined>;
   updateOrderStatus: (id: string, status: StatusOrder) => Promise<OrdenEntity>;

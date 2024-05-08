@@ -35,6 +35,11 @@ export class OrdenMongoRepository implements IOrdenRepository {
     return await OrderModel.create(payload);
   };
 
+  createCompleteOrder = async (payload: ICrearOrden) => {
+    console.log('------Order To Create ----', JSON.stringify(payload, null, 2));
+    return await OrderModel.create(payload);
+  };
+
   updatePayment = async (payload: IUpdatePaymentRepository) => {
     console.log('------Order To Update ----', JSON.stringify(payload, null, 2));
 

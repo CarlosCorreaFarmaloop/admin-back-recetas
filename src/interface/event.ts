@@ -13,7 +13,13 @@ export interface IEventDetail {
   action: IAction;
 }
 
-export type IOrigin = 'ecommerce' | 'admin' | 'courier' | 'documento-tributario' | 'seguro-complementario';
+export type IOrigin =
+  | 'ecommerce'
+  | 'admin'
+  | 'courier'
+  | 'documento-tributario'
+  | 'seguro-complementario'
+  | 'auto-gestion';
 
 export type IAction =
   | 'crear-order'

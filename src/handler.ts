@@ -26,6 +26,7 @@ import {
   IUploadPrescription,
 } from './core/modules/order/application/interface';
 import { AdminOrderEntity } from './interface/adminOrder.entity';
+import { CreateCompleteOrderEntity } from './interface/crearOrdenCompleta';
 
 // event can be event: EventBridgeEvent<string, IEventDetail> or event: EventBridgeEvent<string, IEventDetail>  {body: IEventDetail}
 export const handler = async (event: SQSEvent | APIGatewayProxyEvent) => {
@@ -69,6 +70,9 @@ export const handler = async (event: SQSEvent | APIGatewayProxyEvent) => {
       if (origin === 'ecommerce' && action === 'crear-order') await orderUseCase.createOrderFromEcommerce(body, origin);
 
       if (origin === 'ecommerce' && action === 'actualizar-pago') await orderUseCase.updatePayment(body, origin);
+
+      if (origin === 'auto-gestion' && action === 'crear-order')
+        await orderUseCase.createCompleteOrder(body as CreateCompleteOrderEntity, origin);
 
       if (origin === 'admin' && action === 'crear-order')
         await orderUseCase.createOrderFromAdmin(body as AdminOrderEntity, origin);

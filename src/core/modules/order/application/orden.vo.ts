@@ -1,5 +1,5 @@
 import { EcommerceOrderEntity } from 'src/interface/ecommerceOrder.entity';
-import { OrdenEntity, Payment, StatusOrder } from '../domain/order.entity';
+import { OrdenEntity, Payment, ProductOrder, StatusOrder } from '../domain/order.entity';
 import { validateNumberType, validateStringType } from '../domain/utils/validate';
 import { IAddObservation, ICrearOrden, ICrearPartialOrden, IUpdatePaymentOrden } from './interface';
 import { GenerarBoletaPayload } from '../domain/documentos_tributarios.interface';
@@ -12,6 +12,8 @@ import {
   IGuardarSeguroComplementario,
 } from 'src/interface/seguroComplementario.interface';
 import { AdminOrderEntity } from 'src/interface/adminOrder.entity';
+import { CreateCompleteOrderEntity } from 'src/interface/crearOrdenCompleta';
+import { generateInitialStatusOrder } from '../domain/utils/generateInitialStatusOrder';
 
 export class OrdenOValue {
   completeOrderFromEcommerce = (order: EcommerceOrderEntity): ICrearOrden => {
@@ -231,6 +233,120 @@ export class OrdenOValue {
         },
       },
       statusOrder: 'VALIDANDO_RECETA',
+      provisionalStatusOrder: '',
+      createdAt: createdDate,
+    };
+
+    return ordenCompleta;
+  };
+
+  createCompleteOrder = (order: CreateCompleteOrderEntity): ICrearOrden => {
+    const createdDate = new Date();
+
+    const products: ProductOrder[] = order.productsOrder.map((product) => {
+      return {
+        batchId: product.batchId,
+        bioequivalent: product.bioequivalent,
+        cooled: product.cooled,
+        ean: product.ean,
+        fullName: product.fullName,
+        price: product.price,
+        qty: product.qty,
+        sku: product.sku,
+        expiration: product.expiration,
+        shortName: '',
+        laboratoryName: product.laboratoryName,
+        normalUnitPrice: product.normalUnitPrice,
+        prescription: {
+          file: product?.prescription?.file ?? '',
+          state: product.requirePrescription ? 'Pending' : '',
+          stateDate: new Date().getTime(),
+          validation: {
+            comments: '',
+            rut: '',
+            responsible: '',
+          },
+        },
+        requirePrescription: product.requirePrescription,
+        liquid: product.liquid,
+        pharmaceuticalForm: product.pharmaceuticalForm,
+        photoURL: product.photoURL,
+        prescriptionType: product.prescriptionType,
+        presentation: product.presentation,
+        productCategory: product.productCategory,
+        productSubCategory: product.productSubCategory,
+        quantityPerContainer: product.quantityPerContainer,
+        recommendations: product.recommendations,
+        discountPerUnit: product.discountPerUnit,
+        pricePaidPerUnit: product.pricePaidPerUnit,
+      };
+    });
+
+    const ordenCompleta: ICrearOrden = {
+      id: order.id,
+      billing: {
+        emitter: '',
+        number: '',
+        type: order.billing?.type ?? '',
+        status: '',
+        urlBilling: '',
+      },
+      customer: order.customer,
+      extras: order.extras,
+      payments: order.payments.map((payment) => {
+        return {
+          amount: payment.amount,
+          method: payment.method,
+          originCode: payment.originCode,
+          status: payment.status,
+          wallet: payment.wallet,
+          paymentDate: payment.paymentDate,
+        };
+      }),
+      delivery: {
+        delivery_address: {
+          comuna: order.delivery.delivery_address.comuna,
+          dpto: order.delivery.delivery_address.dpto ?? '',
+          firstName: order.delivery.delivery_address.firstName,
+          homeType: order.delivery.delivery_address.homeType,
+          phone: order.delivery.delivery_address.phone,
+          region: order.delivery.delivery_address.region,
+          streetName: order.delivery.delivery_address.streetName,
+        },
+        method: order.delivery.method,
+        type: order.delivery.type,
+        cost: order.delivery.cost,
+        compromiso_entrega: order.delivery.compromiso_entrega,
+        provider: {
+          status: '',
+          provider: '',
+          urlLabel: '',
+          trackingNumber: '',
+          note: '',
+        },
+        deliveryTracking: [],
+        discount: order.delivery.discount,
+        pricePaid: order.delivery.pricePaid,
+      },
+      productsOrder: products,
+      resumeOrder: {
+        ...order.resumeOrder,
+        convenio: order.resumeOrder.convenio,
+        discount: {
+          details: order.resumeOrder.discount.details.map((detail) => {
+            return {
+              ...detail,
+              discount: detail.discount ?? 0,
+              promotionCode: detail.promotionCode ?? '',
+              descuentos_unitarios: [],
+              reference: detail.reference ?? '',
+              type: detail.type ?? '',
+            };
+          }),
+          total: order.resumeOrder.discount.total,
+        },
+      },
+      statusOrder: generateInitialStatusOrder(products),
       provisionalStatusOrder: '',
       createdAt: createdDate,
     };
