@@ -605,12 +605,14 @@ export class OrdenUseCase implements IOrdenUseCase {
     const { error } = createCompleteOrderSchema.validate(order);
 
     if (error) {
-      const response = new ApiResponse(HttpCodes.BAD_REQUEST, error.message);
+      throw new Error(error.message);
 
-      return {
-        statusCode: response.status,
-        body: JSON.stringify(response),
-      };
+      // const response = new ApiResponse(HttpCodes.BAD_REQUEST, error.message);
+
+      // return {
+      //   statusCode: response.status,
+      //   body: JSON.stringify(response),
+      // };
     }
 
     const ordenParcial = new OrdenOValue().completeOrderFromAdmin(order);
@@ -618,12 +620,14 @@ export class OrdenUseCase implements IOrdenUseCase {
     const nuevaOrden = await this.ordenRepository.createOrderFromEcommerce(ordenParcial);
 
     if (!nuevaOrden) {
-      const response = new ApiResponse(HttpCodes.BAD_REQUEST, nuevaOrden);
+      throw new Error(`Error al crear la orden`);
 
-      return {
-        statusCode: response.status,
-        body: JSON.stringify(response),
-      };
+      // const response = new ApiResponse(HttpCodes.BAD_REQUEST, nuevaOrden);
+
+      // return {
+      //   statusCode: response.status,
+      //   body: JSON.stringify(response),
+      // };
     }
 
     await this.notificarCambioOrden(nuevaOrden.id);
