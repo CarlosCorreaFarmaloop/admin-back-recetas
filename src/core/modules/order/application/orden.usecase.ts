@@ -612,10 +612,20 @@ export class OrdenUseCase implements IOrdenUseCase {
     const nuevaOrden = await this.ordenRepository.createOrderFromEcommerce(ordenParcial);
 
     if (!nuevaOrden) {
-      throw new ApiResponse(HttpCodes.BAD_REQUEST, nuevaOrden);
+      const response = new ApiResponse(HttpCodes.BAD_REQUEST, nuevaOrden);
+
+      return {
+        statusCode: response.status,
+        body: JSON.stringify(response),
+      };
     }
 
     await this.notificarCambioOrden(nuevaOrden.id);
+
+    return {
+      statusCode: HttpCodes.CREATED,
+      body: JSON.stringify(nuevaOrden),
+    };
   }
 
   async createCompleteOrder(order: CreateCompleteOrderEntity, origin: IOrigin) {

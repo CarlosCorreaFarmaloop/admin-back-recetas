@@ -1,4 +1,4 @@
-import { SQSEvent, EventBridgeEvent, APIGatewayProxyEvent } from 'aws-lambda';
+import { SQSEvent, EventBridgeEvent, APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { OrdenUseCase } from './core/modules/order/application/orden.usecase';
 import { OrdenMongoRepository } from './infra/repository/orden/orden.mongo.repository';
 import { connectoToMongoDB } from './infra/db/mongo';
@@ -29,7 +29,7 @@ import { AdminOrderEntity } from './interface/adminOrder.entity';
 import { CreateCompleteOrderEntity } from './interface/crearOrdenCompleta';
 
 // event can be event: EventBridgeEvent<string, IEventDetail> or event: EventBridgeEvent<string, IEventDetail>  {body: IEventDetail}
-export const handler = async (event: SQSEvent | APIGatewayProxyEvent) => {
+export const handler = async (event: SQSEvent | APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
   // Connect to Mongo
   try {
     await connectoToMongoDB();
@@ -74,9 +74,9 @@ export const handler = async (event: SQSEvent | APIGatewayProxyEvent) => {
       if (origin === 'auto-gestion' && action === 'crear-order')
         await orderUseCase.createCompleteOrder(body as CreateCompleteOrderEntity, origin);
 
-      if (origin === 'admin' && action === 'crear-order')
+      if (origin === 'admin' && action === 'crear-order') {
         await orderUseCase.createOrderFromAdmin(body as AdminOrderEntity, origin);
-
+      }
       if (origin === 'admin' && action === 'actualizar-estado') {
         const payload = body as IUpdateStatusOrder;
 
