@@ -251,7 +251,7 @@ export class OrdenMongoRepository implements IOrdenRepository {
           'delivery.deliveryTracking': payload.deliveryTracking,
         },
       },
-      { new: true, upsert: true }
+      { new: true }
     );
   };
 

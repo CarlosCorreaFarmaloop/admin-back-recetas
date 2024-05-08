@@ -43,7 +43,7 @@ export interface IOrdenRepository {
   asignarDocumentosTributarios: (payload: IAsignarDocumentosTributariosPayload) => Promise<OrdenEntity>;
 
   asignarCourier: (payload: IAsignarCourierPayload) => Promise<OrdenEntity>;
-  actualizarOrderDeliveryTracking: (payload: IActualizarOrderStatusWebhookPayload) => Promise<OrdenEntity>;
+  actualizarOrderDeliveryTracking: (payload: IActualizarOrderStatusWebhookPayload) => Promise<OrdenEntity | null>;
 
   guardarSeguroComplementario: (payload: IGuardarSeguroComplementario) => Promise<OrdenEntity | null>;
   confirmarSeguroComplementario: (payload: IAsignarSeguroComplementarioPayload) => Promise<OrdenEntity | null>;
