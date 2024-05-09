@@ -1,4 +1,4 @@
-import { SQSEvent, EventBridgeEvent } from 'aws-lambda';
+import { SQSEvent, EventBridgeEvent, Context, Callback } from 'aws-lambda';
 import { OrdenUseCase } from './core/modules/order/application/orden.usecase';
 import { OrdenMongoRepository } from './infra/repository/orden/orden.mongo.repository';
 import { connectoToMongoDB } from './infra/db/mongo';
@@ -29,7 +29,7 @@ import { AdminOrderEntity } from './interface/adminOrder.entity';
 import { CreateCompleteOrderEntity } from './interface/crearOrdenCompleta';
 
 // event can be event: EventBridgeEvent<string, IEventDetail> or event: EventBridgeEvent<string, IEventDetail>  {body: IEventDetail}
-export const handler = async (event: SQSEvent) => {
+export const handler = async (event: SQSEvent, context: Context, callback: Callback) => {
   // Connect to Mongo
   try {
     await connectoToMongoDB();

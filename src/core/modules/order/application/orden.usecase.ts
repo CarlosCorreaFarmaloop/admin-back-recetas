@@ -885,6 +885,12 @@ export class OrdenUseCase implements IOrdenUseCase {
     try {
       console.log('----- Intentando Actualizar Orden: ', order.id, ' de ', previousStatus, ' a ', newStatus);
 
+      // Check if previous status is the same as the new status
+      if (previousStatus === newStatus) {
+        console.log(`----- Orden con el mismo estado: ${previousStatus}`);
+        return;
+      }
+
       await this.notificarCambioOrden(order.id);
 
       if (!ordenStateMachine(previousStatus, newStatus, order))
@@ -920,10 +926,8 @@ export class OrdenUseCase implements IOrdenUseCase {
         },
       });
 
-      if (previousStatus !== newStatus) {
-        // Notificar Cliente Email
-        await notificarEstadoDeOrden(ordenStatusActualizada, false);
-      }
+      // Notificar Cliente Email
+      await notificarEstadoDeOrden(ordenStatusActualizada, false);
 
       await actualizarOrdenEccomerce(ordenStatusActualizada);
 
@@ -1674,6 +1678,24 @@ export class OrdenUseCase implements IOrdenUseCase {
       throw new ApiResponse(HttpCodes.BAD_REQUEST, generarDocumentosTributariosSchema, error.message);
     }
 
+    // Check if the order has already a billing
+    const ordenConBilling = await this.ordenRepository.findOrderById(payload.payload.id_interno);
+
+    if (!ordenConBilling)
+      throw new ApiResponse(
+        HttpCodes.BAD_REQUEST,
+        ordenConBilling,
+        'Error al buscar la orden para generar documentos.'
+      );
+
+    if (ordenConBilling.billing.urlBilling.length > 0 && ordenConBilling.billing.number.length > 0) {
+      console.log(
+        '----- Orden ya se encuentra con Documentos Tributarios no se volvera a emitir otro documento: ',
+        ordenConBilling
+      );
+      return;
+    }
+
     await emitirDocumentoTributario(payload);
   };
 
@@ -1755,6 +1777,20 @@ export class OrdenUseCase implements IOrdenUseCase {
 
     if (error) {
       throw new ApiResponse(HttpCodes.BAD_REQUEST, generarCourierSchema, error.message);
+    }
+
+    // Check if the order has already a courier
+    const ordenConCourier = await this.ordenRepository.findOrderById(payload.payload.id_interno);
+
+    if (!ordenConCourier)
+      throw new ApiResponse(HttpCodes.BAD_REQUEST, ordenConCourier, 'Error al buscar la orden para generar courier.');
+
+    if (
+      ordenConCourier.delivery.provider.urlLabel.length > 0 &&
+      ordenConCourier.delivery.provider.trackingNumber.length > 0
+    ) {
+      console.log('----- Orden ya se encuentra con Courier no se volvera a emitir otro courier: ', ordenConCourier);
+      return;
     }
 
     await generarCourierEvent(payload);
