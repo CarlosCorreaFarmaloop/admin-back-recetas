@@ -814,7 +814,14 @@ export class OrdenUseCase implements IOrdenUseCase {
       throw new ApiResponse(HttpCodes.BAD_REQUEST, nuevaOrden);
     }
 
+    console.log('------ Order Created ------', nuevaOrden);
+
     await this.notificarCambioOrden(nuevaOrden.id);
+
+    // Notificar Cliente Email
+    await notificarEstadoDeOrden(nuevaOrden, false);
+
+    await actualizarOrdenEccomerce(nuevaOrden);
   }
 
   async updatePayment(payload: IUpdatePaymentOrden, origin: IOrigin) {
