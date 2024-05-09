@@ -920,18 +920,10 @@ export class OrdenUseCase implements IOrdenUseCase {
         },
       });
 
-      // Hasta Aqui termina
-
-      if (previousStatus === 'PREPARANDO' && newStatus === 'ASIGNAR_A_DELIVERY') {
-        // Caso de uso Generado updatePreparandoToDelivery
+      if (previousStatus !== newStatus) {
+        // Notificar Cliente Email
+        await notificarEstadoDeOrden(ordenStatusActualizada, false);
       }
-
-      if (previousStatus === 'PREPARANDO' && newStatus === 'LISTO_PARA_RETIRO') {
-        // Caso de use Generado updatePreparandoToRetiro
-      }
-
-      // Notificar Cliente Email
-      await notificarEstadoDeOrden(ordenStatusActualizada, false);
 
       await actualizarOrdenEccomerce(ordenStatusActualizada);
 
