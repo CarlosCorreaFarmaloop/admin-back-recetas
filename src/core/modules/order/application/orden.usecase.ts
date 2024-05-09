@@ -961,10 +961,9 @@ export class OrdenUseCase implements IOrdenUseCase {
 
     if (!isSeguroConfirmado) {
       await this.preparandoToDeliverySeguroComplementario(payload);
-      return;
     }
 
-    await this.updateStatusOrder(payload.order, payload.order.statusOrder, 'ASIGNAR_A_DELIVERY', payload.responsible);
+    // await this.updateStatusOrder(payload.order, payload.order.statusOrder, 'ASIGNAR_A_DELIVERY', payload.responsible);
   };
 
   preparandoToDelivery = async (payload: IUpdatePreparandoToDelivery) => {
