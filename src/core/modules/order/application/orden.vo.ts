@@ -6,7 +6,7 @@ import { GenerarBoletaPayload } from '../domain/documentos_tributarios.interface
 import { TipoPago } from '../domain/utils/diccionario/tipoPago';
 import { GenerarOrdenDeCourierPayload } from '../domain/courier.interface';
 import { getTipoDelivery } from '../domain/utils/diccionario/tipoDelivery';
-import { IUpdateStatusOderObservation } from 'src/interface/event';
+import { IAsignarCourier, IUpdateStatusOderObservation } from 'src/interface/event';
 import {
   IGenerarSeguroComplementario,
   IGuardarSeguroComplementario,
@@ -678,6 +678,22 @@ export class OrdenOValue {
         }),
       },
       proveedor: 'Yapp',
+    };
+  };
+
+  generarCourierManual = (order: OrdenEntity): IAsignarCourier => {
+    return {
+      orderId: order.id,
+      provider: order.delivery.provider.provider,
+      trackingNumber: order.delivery.provider.trackingNumber,
+      deliveryTracking: {
+        estado: 'Creado',
+        fecha: new Date().getTime(),
+        comentario: '',
+        evidencias: [],
+      },
+      urlLabel: 'label_manual.pdf',
+      emissionDate: new Date().getTime(),
     };
   };
 }

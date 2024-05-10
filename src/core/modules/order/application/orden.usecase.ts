@@ -1017,6 +1017,16 @@ export class OrdenUseCase implements IOrdenUseCase {
         statusDate: new Date(),
       });
 
+      if (
+        payload.order.delivery.provider.provider === 'Chibra' ||
+        payload.order.delivery.provider.provider === 'Cabify'
+      ) {
+        const courierManual = new OrdenOValue().generarCourierManual(payload.order);
+
+        await this.asignarCourier(courierManual);
+        return;
+      }
+
       // Emitir Courier
       const courierVO = new OrdenOValue().generarCourier(payload.order);
 
@@ -1056,16 +1066,25 @@ export class OrdenUseCase implements IOrdenUseCase {
         statusDate: new Date(),
       });
 
-      // Emitir Courier
-      const courierVO = new OrdenOValue().generarCourier(payload.order);
+      if (
+        payload.order.delivery.provider.provider === 'Chibra' ||
+        payload.order.delivery.provider.provider === 'Cabify'
+      ) {
+        const courierManual = new OrdenOValue().generarCourierManual(payload.order);
 
-      console.log('----- Generar Courier: ', courierVO);
+        await this.asignarCourier(courierManual);
+      } else {
+        // Emitir Courier
+        const courierVO = new OrdenOValue().generarCourier(payload.order);
 
-      await this.generarCourier({
-        accion: 'generar-orden-de-courier',
-        origen: 'SISTEMA ORDENES',
-        payload: courierVO,
-      });
+        console.log('----- Generar Courier: ', courierVO);
+
+        await this.generarCourier({
+          accion: 'generar-orden-de-courier',
+          origen: 'SISTEMA ORDENES',
+          payload: courierVO,
+        });
+      }
     }
 
     await this.orderSeguroComplementario(payload.order);
