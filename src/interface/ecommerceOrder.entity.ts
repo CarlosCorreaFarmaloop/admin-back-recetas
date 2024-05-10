@@ -3,7 +3,6 @@ import { Status, Wallet } from '../core/modules/order/domain/order.entity';
 export interface EcommerceOrderEntity {
   id: string;
   customer: string;
-  clasification?: string;
   delivery: Delivery;
   payment: Payment;
   productsOrder: ProductOrder[];
@@ -109,6 +108,7 @@ export interface ResumeOrder {
   convenio?: string;
   totalPrice: number;
   nroProducts: number;
+  clasification?: string;
 }
 
 export interface Discount {

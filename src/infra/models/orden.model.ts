@@ -140,6 +140,7 @@ const ResumeOrderSchema = new mongoose.Schema<ResumeOrder>(
     subtotal: Number,
     tipoDespacho: String,
     totalPrice: Number,
+    clasification: String,
   },
   { _id: false }
 );
@@ -465,7 +466,6 @@ const OrderSchema = new mongoose.Schema({
   note: String,
   payments: [PaymentsSchema],
   productsOrder: [ProductOrderSchema],
-  clasification: String,
   responsible: String,
   resumeOrder: ResumeOrderSchema,
   statusOrder: String,

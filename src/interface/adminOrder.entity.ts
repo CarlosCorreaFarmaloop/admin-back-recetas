@@ -6,7 +6,6 @@ export interface AdminOrderEntity {
   billing: {
     type: IBillingType;
   };
-  clasification?: string;
   delivery: Delivery;
   payments: Payment[];
   productsOrder: ProductOrder[];
@@ -112,6 +111,7 @@ export interface ResumeOrder {
   subtotal: number;
   totalPrice: number;
   nroProducts: number;
+  clasification?: string;
 }
 
 export interface Discount {

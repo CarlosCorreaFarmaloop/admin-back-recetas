@@ -13,7 +13,6 @@ export interface OrdenEntity {
   payments: Payment[];
   productsOrder: ProductOrder[];
   responsible: string;
-  clasification: string;
   resumeOrder: ResumeOrder;
   statusOrder: StatusOrder;
   provisionalStatusOrder: IProvisionalStatusOrder;
@@ -281,6 +280,7 @@ export interface ResumeOrder {
   subtotal: number;
   tipoDespacho?: string;
   totalPrice: number;
+  clasification: string;
 }
 
 export interface Discount {

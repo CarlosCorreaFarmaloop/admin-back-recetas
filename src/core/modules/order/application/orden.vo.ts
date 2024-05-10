@@ -37,7 +37,6 @@ export class OrdenOValue {
         status: '',
         urlBilling: '',
       },
-      clasification: order?.clasification ?? '',
       customer: order.customer,
       extras: order.extras,
       payments: [nuevo_pago],
@@ -106,6 +105,8 @@ export class OrdenOValue {
       }),
       resumeOrder: {
         ...order.resumeOrder,
+        clasification: order?.resumeOrder?.clasification ?? '',
+        nroProducts: order.productsOrder.length,
         convenio: '',
         discount: {
           details: order.resumeOrder.discount.details.map((detail) => {
@@ -180,7 +181,6 @@ export class OrdenOValue {
         status: '',
         urlBilling: '',
       },
-      clasification: order?.clasification ?? '',
       customer: order.customer,
       extras: order.extras,
       payments: order.payments.map((payment) => {
@@ -221,6 +221,8 @@ export class OrdenOValue {
       productsOrder: products,
       resumeOrder: {
         ...order.resumeOrder,
+        clasification: order?.resumeOrder?.clasification ?? '',
+        nroProducts: order.productsOrder.length,
         convenio: order.resumeOrder.convenio,
         discount: {
           details: order.resumeOrder.discount.details.map((detail) => {
@@ -295,7 +297,6 @@ export class OrdenOValue {
         status: '',
         urlBilling: '',
       },
-      clasification: order?.clasification ?? '',
       customer: order.customer,
       extras: order.extras,
       payments: order.payments.map((payment) => {
@@ -336,6 +337,8 @@ export class OrdenOValue {
       productsOrder: products,
       resumeOrder: {
         ...order.resumeOrder,
+        clasification: order?.resumeOrder?.clasification ?? '',
+        nroProducts: order.productsOrder.length,
         convenio: order.resumeOrder.convenio,
         discount: {
           details: order.resumeOrder.discount.details.map((detail) => {
@@ -423,6 +426,7 @@ export class OrdenOValue {
       }),
       resumeOrder: {
         ...order.resumeOrder,
+        clasification: order?.resumeOrder?.clasification ?? '',
         convenio: order.resumeOrder.convenio ?? '',
         discount: {
           details: order.resumeOrder.discount.details.map((detail) => {

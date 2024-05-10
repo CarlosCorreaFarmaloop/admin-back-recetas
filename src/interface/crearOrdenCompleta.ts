@@ -8,7 +8,6 @@ export interface CreateCompleteOrderEntity {
   };
   delivery: Delivery;
   payments: Payment[];
-  clasification: string;
   productsOrder: ProductOrder[];
   resumeOrder: ResumeOrder;
   extras: IReferrer;
@@ -110,6 +109,7 @@ export interface ResumeOrder {
   subtotal: number;
   totalPrice: number;
   nroProducts: number;
+  clasification: string;
 }
 
 export interface Discount {

@@ -17,7 +17,6 @@ export type ICrearOrden = Pick<
   | 'payments'
   | 'customer'
   | 'extras'
-  | 'clasification'
   | 'productsOrder'
   | 'resumeOrder'
   | 'statusOrder'
