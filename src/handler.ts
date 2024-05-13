@@ -271,9 +271,10 @@ export const handler = async (event: SQSEvent, context: Context, callback: Callb
     }
 
     if (
-      body?.payment?.payment.status === 'Aprobado' &&
-      origin === 'ecommerce' &&
-      (action === 'actualizar-pago' || action === 'crear-order')
+      (body?.payment?.payment?.status === 'Aprobado' &&
+        origin === 'ecommerce' &&
+        (action === 'actualizar-pago' || action === 'crear-order')) ||
+      (origin === 'admin' && action === 'crear-order')
     ) {
       const ordenEncontrada = await orderRespository.findOrderById(body.id as string);
 
