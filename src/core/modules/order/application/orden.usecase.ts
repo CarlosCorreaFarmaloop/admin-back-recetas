@@ -1484,6 +1484,8 @@ export class OrdenUseCase implements IOrdenUseCase {
       sku: Joi.string().required(),
       pricePaidPerUnit: Joi.number().optional(),
       discountPerUnit: Joi.number().optional(),
+      referenceId: Joi.number().optional().allow(null),
+      lineNumber: Joi.number().optional().allow(null),
     });
 
     const Billing = Joi.object({}).optional();
