@@ -74,9 +74,7 @@ export const handler = async (event: SQSEvent, context: Context, callback: Callb
       await orderUseCase.createCompleteOrder(body as CreateCompleteOrderEntity, origin);
 
     if (origin === 'admin' && action === 'crear-order') {
-      const response = await orderUseCase.createOrderFromAdmin(body as AdminOrderEntity, origin);
-
-      return response;
+      await orderUseCase.createOrderFromAdmin(body as AdminOrderEntity, origin);
     }
 
     if (origin === 'admin' && action === 'actualizar-estado') {
