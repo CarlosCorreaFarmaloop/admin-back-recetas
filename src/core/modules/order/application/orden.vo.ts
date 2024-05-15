@@ -558,7 +558,7 @@ export class OrdenOValue {
           cantidad: product.qty,
           descuento: 0,
           precio_unitario: product.pricePaidPerUnit,
-          titulo: product.fullName,
+          titulo: `${product.sku} ${product.fullName} ${product.batchId}`,
         };
       }),
       proveedor: 'Bsale',
