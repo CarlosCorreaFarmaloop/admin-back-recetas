@@ -122,8 +122,8 @@ export interface DeliveryAddress {
   phone: string;
   region: string;
 
-  streetName?: string;
-  streetNumber?: string;
+  streetName: string;
+  streetNumber: string;
 }
 
 export interface CompromisoEntrega {
