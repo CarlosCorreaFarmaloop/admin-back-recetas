@@ -288,6 +288,8 @@ export interface ResumeOrder {
   tipoDespacho?: string;
   totalPrice: number;
   clasification: string;
+  seller: string;
+  cartId: string;
 }
 
 export interface Discount {
