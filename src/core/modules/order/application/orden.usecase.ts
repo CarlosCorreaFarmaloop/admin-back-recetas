@@ -1545,82 +1545,72 @@ export class OrdenUseCase implements IOrdenUseCase {
   };
 
   cancelarOrden = async (payload: ICancelarOrder) => {
-    try {
-      const cancelarOrdenSchema = Joi.object({
-        id: Joi.string().required(),
-        responsible: Joi.string().required(),
-        reason: Joi.string().required(),
-        toPos: Joi.boolean().required(),
-      });
+    const cancelarOrdenSchema = Joi.object({
+      id: Joi.string().required(),
+      responsible: Joi.string().required(),
+      reason: Joi.string().required(),
+      toPos: Joi.boolean().required(),
+    });
 
-      const { error } = cancelarOrdenSchema.validate(payload);
+    const { error } = cancelarOrdenSchema.validate(payload);
 
-      if (error) {
-        throw new ApiResponse(HttpCodes.BAD_REQUEST, cancelarOrdenSchema, error.message);
-      }
-
-      // Actualizar Provisional Status Order a Pendiente
-      await this.updateProvisionalStatusOrder({
-        id: payload.id,
-        provisionalStatusOrder: 'Pendiente',
-      });
-
-      await this.notificarCambioOrden(payload.id);
-
-      const ordenACancelar = await this.ordenRepository.findOrderById(payload.id);
-
-      if (!ordenACancelar)
-        throw new ApiResponse(HttpCodes.BAD_REQUEST, ordenACancelar, 'Error al buscar la orden a cancelar.');
-
-      console.log('----- Orden a Cancelar: ', ordenACancelar.id, ' con estado: ', ordenACancelar.statusOrder);
-
-      if (!ordenStateMachine(ordenACancelar.statusOrder, 'CANCELADO', ordenACancelar))
-        throw new ApiResponse(HttpCodes.BAD_REQUEST, ordenACancelar, 'Error en la maquina de estados.');
-
-      const ordenCancelada = await this.ordenRepository.updateOrderStatus(payload.id, 'CANCELADO');
-
-      if (!ordenCancelada) throw new ApiResponse(HttpCodes.BAD_REQUEST, ordenCancelada, 'Error al cancelar la orden.');
-
-      console.log('----- Orden Cancelada: ', ordenCancelada.id, ' con estado: ', ordenCancelada.statusOrder);
-
-      await this.updateOrderTracking({
-        id: payload.id,
-        responsible: payload.responsible,
-        statusOrder: 'CANCELADO',
-        reason: payload.reason,
-      });
-
-      await this.updateOrderHistory({
-        id: payload.id,
-        type: 'status',
-        responsible: payload.responsible,
-        changeFrom: ordenACancelar.statusOrder,
-        changeTo: 'CANCELADO',
-        aditionalInfo: {
-          product_sku: '',
-          comments: payload.reason,
-        },
-      });
-
-      await notificarEstadoDeOrden(ordenCancelada, payload.toPos);
-
-      await actualizarOrdenEccomerce(ordenCancelada);
-
-      await this.updateProvisionalStatusOrder({
-        id: payload.id,
-        provisionalStatusOrder: '',
-      });
-
-      await this.notificarCambioOrden(payload.id);
-    } catch (error) {
-      // Actualizar Provisional Status Order a Pendiente
-      await this.updateProvisionalStatusOrder({
-        id: payload.id,
-        provisionalStatusOrder: 'Error',
-      });
-
-      await this.notificarCambioOrden(payload.id);
+    if (error) {
+      throw new ApiResponse(HttpCodes.BAD_REQUEST, cancelarOrdenSchema, error.message);
     }
+
+    // Actualizar Provisional Status Order a Pendiente
+    await this.updateProvisionalStatusOrder({
+      id: payload.id,
+      provisionalStatusOrder: 'Pendiente',
+    });
+
+    await this.notificarCambioOrden(payload.id);
+
+    const ordenACancelar = await this.ordenRepository.findOrderById(payload.id);
+
+    if (!ordenACancelar)
+      throw new ApiResponse(HttpCodes.BAD_REQUEST, ordenACancelar, 'Error al buscar la orden a cancelar.');
+
+    console.log('----- Orden a Cancelar: ', ordenACancelar.id, ' con estado: ', ordenACancelar.statusOrder);
+
+    if (!ordenStateMachine(ordenACancelar.statusOrder, 'CANCELADO', ordenACancelar))
+      throw new ApiResponse(HttpCodes.BAD_REQUEST, ordenACancelar, 'Error en la maquina de estados.');
+
+    const ordenCancelada = await this.ordenRepository.updateOrderStatus(payload.id, 'CANCELADO');
+
+    if (!ordenCancelada) throw new ApiResponse(HttpCodes.BAD_REQUEST, ordenCancelada, 'Error al cancelar la orden.');
+
+    console.log('----- Orden Cancelada: ', ordenCancelada.id, ' con estado: ', ordenCancelada.statusOrder);
+
+    await this.updateOrderTracking({
+      id: payload.id,
+      responsible: payload.responsible,
+      statusOrder: 'CANCELADO',
+      reason: payload.reason,
+    });
+
+    await this.updateOrderHistory({
+      id: payload.id,
+      type: 'status',
+      responsible: payload.responsible,
+      changeFrom: ordenACancelar.statusOrder,
+      changeTo: 'CANCELADO',
+      aditionalInfo: {
+        product_sku: '',
+        comments: payload.reason,
+      },
+    });
+
+    await notificarEstadoDeOrden(ordenCancelada, payload.toPos);
+
+    await actualizarOrdenEccomerce(ordenCancelada);
+
+    await this.updateProvisionalStatusOrder({
+      id: payload.id,
+      provisionalStatusOrder: '',
+    });
+
+    await this.notificarCambioOrden(payload.id);
   };
 
   orderSeguroComplementario = async (order: OrdenEntity) => {
