@@ -858,8 +858,6 @@ export class OrdenUseCase implements IOrdenUseCase {
     if (ordenActualizada.payments[0].status !== 'Aprobado') {
       console.log('----- Orden Cancelada por estado del Pago Cancelado: ', JSON.stringify(ordenActualizada));
 
-      await this.updateStatusOrder(ordenActualizada, ordenActualizada.statusOrder, 'CANCELADO', 'SISTEMA');
-
       return;
     }
 
