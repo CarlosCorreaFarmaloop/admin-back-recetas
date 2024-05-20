@@ -213,7 +213,7 @@ export class OrdenUseCase implements IOrdenUseCase {
           originCode: Joi.string(),
           amount: Joi.number(),
           method: Joi.string(),
-          status: Joi.string().required(),
+          status: Joi.string().required().valid('Aprobado'),
           wallet: Joi.string().required(),
           paymentDate: Joi.number(),
         }).required(),
@@ -594,7 +594,7 @@ export class OrdenUseCase implements IOrdenUseCase {
       originCode: Joi.string(),
       amount: Joi.number(),
       method: Joi.string(),
-      status: Joi.string().required(),
+      status: Joi.string().required().valid('Aprobado'),
       wallet: Joi.string().required(),
       paymentDate: Joi.number(),
     });
@@ -789,7 +789,7 @@ export class OrdenUseCase implements IOrdenUseCase {
       originCode: Joi.string(),
       amount: Joi.number(),
       method: Joi.string(),
-      status: Joi.string().required(),
+      status: Joi.string().required().valid('Aprobado'),
       wallet: Joi.string().required(),
       paymentDate: Joi.number(),
     });
@@ -861,34 +861,49 @@ export class OrdenUseCase implements IOrdenUseCase {
       throw new ApiResponse(HttpCodes.BAD_REQUEST, ordenActualizada, 'Error al actualizar la orden.');
     }
 
-    if (
-      ordenActualizada.productsOrder
-        .filter(({ requirePrescription }) => requirePrescription)
-        .filter(
-          (product) =>
-            product.prescription.file !== '' &&
-            (product.prescription.state === '' || product.prescription.state === 'Pending')
-        ).length !== 0
-    )
-      await this.updateStatusOrder(ordenActualizada, ordenActualizada.statusOrder, 'VALIDANDO_RECETA', 'SISTEMA'); // Llamas Actualiza Estado Usecase (orden, CREADO, VALIDANDO_RECETA)
+    if (ordenActualizada.payments[0].status !== 'Aprobado') {
+      console.log('----- Orden Cancelada por estado del Pago Cancelado: ', JSON.stringify(ordenActualizada));
 
-    if (
-      ordenActualizada.productsOrder.filter(
-        (producto) => producto.requirePrescription && producto.prescription.file === ''
-      ).length !== 0
-    )
-      await this.updateStatusOrder(ordenActualizada, ordenActualizada.statusOrder, 'OBSERVACIONES_RECETAS', 'SISTEMA'); // Llamas Actualiza Estado Usecase (orden, CREADO, OBSERVACIONES_RECETAS)
+      await this.updateStatusOrder(ordenActualizada, ordenActualizada.statusOrder, 'CANCELADO', 'SISTEMA');
 
-    if (
-      !ordenActualizada.productsOrder.some(
-        (producto) =>
-          (producto.requirePrescription && producto.prescription.file === '') ||
-          (producto.requirePrescription &&
-            producto.prescription.state !== 'Approved' &&
-            producto.prescription.state !== 'Approved_With_Comments')
+      return;
+    }
+
+    if (ordenActualizada.payments[0].status === 'Aprobado') {
+      if (
+        ordenActualizada.productsOrder
+          .filter(({ requirePrescription }) => requirePrescription)
+          .filter(
+            (product) =>
+              product.prescription.file !== '' &&
+              (product.prescription.state === '' || product.prescription.state === 'Pending')
+          ).length !== 0
       )
-    )
-      await this.updateStatusOrder(ordenActualizada, ordenActualizada.statusOrder, 'RECETA_VALIDADA', 'SISTEMA'); // Llamas Actualiza Estado Usecase (orden, CREADO, APROBADA)
+        await this.updateStatusOrder(ordenActualizada, ordenActualizada.statusOrder, 'VALIDANDO_RECETA', 'SISTEMA'); // Llamas Actualiza Estado Usecase (orden, CREADO, VALIDANDO_RECETA)
+
+      if (
+        ordenActualizada.productsOrder.filter(
+          (producto) => producto.requirePrescription && producto.prescription.file === ''
+        ).length !== 0
+      )
+        await this.updateStatusOrder(
+          ordenActualizada,
+          ordenActualizada.statusOrder,
+          'OBSERVACIONES_RECETAS',
+          'SISTEMA'
+        ); // Llamas Actualiza Estado Usecase (orden, CREADO, OBSERVACIONES_RECETAS)
+
+      if (
+        !ordenActualizada.productsOrder.some(
+          (producto) =>
+            (producto.requirePrescription && producto.prescription.file === '') ||
+            (producto.requirePrescription &&
+              producto.prescription.state !== 'Approved' &&
+              producto.prescription.state !== 'Approved_With_Comments')
+        )
+      )
+        await this.updateStatusOrder(ordenActualizada, ordenActualizada.statusOrder, 'RECETA_VALIDADA', 'SISTEMA'); // Llamas Actualiza Estado Usecase (orden, CREADO, APROBADA)
+    }
   }
 
   updateStatusOrder = async (
