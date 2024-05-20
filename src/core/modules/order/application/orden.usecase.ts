@@ -855,6 +855,11 @@ export class OrdenUseCase implements IOrdenUseCase {
       throw new ApiResponse(HttpCodes.BAD_REQUEST, ordenActualizada, 'Error al actualizar la orden.');
     }
 
+    if (ordenActualizada.payments[0].status === 'Cancelado') {
+      await this.updateStatusOrder(ordenActualizada, ordenActualizada.statusOrder, 'CANCELADO', 'SISTEMA');
+      return;
+    }
+
     if (
       ordenActualizada.productsOrder
         .filter(({ requirePrescription }) => requirePrescription)
