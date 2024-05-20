@@ -602,7 +602,7 @@ export class OrdenOValue {
       direccion: {
         calle: order.delivery.delivery_address.streetName ?? '',
         comuna: order.delivery.delivery_address.comuna,
-        numero_calle: '',
+        numero_calle: order.delivery.delivery_address.streetNumber ?? '',
         pais: 'Chile',
         referencias: `${order.delivery.delivery_address.homeType} ${order.delivery.delivery_address.dpto}`,
         region: order.delivery.delivery_address.region,
