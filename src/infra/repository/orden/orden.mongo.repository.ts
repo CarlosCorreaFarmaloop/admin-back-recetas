@@ -21,6 +21,7 @@ import {
   IUpdateStatusSeguroComplementarioPayload,
   IUpdateCanalConvenio,
   IUpdatePaymentRepository,
+  IUpdateTrackingNumber,
 } from '../../../core/modules/order/domain/order.respository.interface';
 import { IGuardarSeguroComplementario } from 'src/interface/seguroComplementario.interface';
 
@@ -266,6 +267,20 @@ export class OrdenMongoRepository implements IOrdenRepository {
         },
       },
       { new: true, upsert: true }
+    );
+  };
+
+  updateTrackingNumber = async (payload: IUpdateTrackingNumber) => {
+    console.log('------Order To Update Tracking Number ---- ', payload);
+
+    return await OrderModel.findOneAndUpdate(
+      { id: payload.id },
+      {
+        $set: {
+          'delivery.provider.trackingNumber': payload.trackingNumber,
+        },
+      },
+      { new: true }
     );
   };
 

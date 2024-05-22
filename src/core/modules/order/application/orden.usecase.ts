@@ -17,6 +17,7 @@ import {
   IUpdatePreparandoToRetiro,
   IUpdateStatusOderObservation,
   IUpdateStatusSeguroComplementario,
+  IUpdateTrackingNumber,
 } from '.././../../../interface/event';
 import { MovementRepository } from '../../../modules/movements/domain/movements.repositoy';
 import { EcommerceOrderEntity } from '../../../../interface/ecommerceOrder.entity';
@@ -1620,6 +1621,41 @@ export class OrdenUseCase implements IOrdenUseCase {
     await this.updateProvisionalStatusOrder({
       id: payload.id,
       provisionalStatusOrder: '',
+    });
+
+    await this.notificarCambioOrden(payload.id);
+  };
+
+  updateTrackingNumber = async (payload: IUpdateTrackingNumber) => {
+    const updateTrackingNumberSchema = Joi.object({
+      id: Joi.string().required(),
+      trackingNumber: Joi.string().required(),
+      responsible: Joi.string().required(),
+    });
+
+    const { error } = updateTrackingNumberSchema.validate(payload);
+
+    if (error) {
+      throw new ApiResponse(HttpCodes.BAD_REQUEST, updateTrackingNumberSchema, error.message);
+    }
+
+    const ordenActualizada = await this.ordenRepository.updateTrackingNumber(payload);
+
+    if (!ordenActualizada)
+      throw new ApiResponse(HttpCodes.BAD_REQUEST, ordenActualizada, 'Error al actualizar el tracking de la orden.');
+
+    console.log('----- Tracking Number Actualizado: ', ordenActualizada.id, ' con numero: ', ordenActualizada.delivery.provider.trackingNumber);
+
+    await this.updateOrderHistory({
+      id: payload.id,
+      type: 'numero-seguimiento',
+      responsible: payload.responsible,
+      changeFrom: '',
+      changeTo: payload.trackingNumber,
+      aditionalInfo: {
+        product_sku: '',
+        comments: '',
+      },
     });
 
     await this.notificarCambioOrden(payload.id);

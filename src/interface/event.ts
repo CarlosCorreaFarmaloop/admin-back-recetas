@@ -36,7 +36,8 @@ export type IAction =
   | 'cancelar-order'
   | 'confirmar-seguro-complementario'
   | 'actualizar-estado-cedula-identidad'
-  | 'agregar-observacion-order';
+  | 'agregar-observacion-order'
+  | 'actualizar-numero-seguimiento';
 
 export interface IAsignacionCourier {
   id: string;
@@ -161,4 +162,10 @@ export interface IUpdateCanalConvenio {
   id: string;
   convenio: string;
   canal: string;
+}
+
+export interface IUpdateTrackingNumber {
+  id: string;
+  trackingNumber: string;
+  responsible: string;
 }

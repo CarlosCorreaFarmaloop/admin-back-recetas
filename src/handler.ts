@@ -17,6 +17,7 @@ import {
   IEventDetail,
   IOrderBackToFlow,
   IUpdateEstadoCedulaIdentidad,
+  IUpdateTrackingNumber,
   IUpdateStatusOderObservation,
   IUpdateStatusOrder,
 } from './interface/event';
@@ -241,6 +242,10 @@ export const handler = async (event: SQSEvent, context: Context, callback: Callb
 
     if (origin === 'admin' && action === 'agregar-observacion-order') {
       await orderUseCase.addObservationToOrder(body as IAddOrderObservation);
+    }
+
+    if (origin === 'admin' && action === 'actualizar-numero-seguimiento') {
+      await orderUseCase.updateTrackingNumber(body as IUpdateTrackingNumber);
     }
 
     // ---------- Documentos Tributarios ----------------
