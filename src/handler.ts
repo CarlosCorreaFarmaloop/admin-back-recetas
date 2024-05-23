@@ -260,6 +260,12 @@ export const handler = async (event: SQSEvent, context: Context, callback: Callb
     // ---------- Courier ----------------
 
     if (origin === 'courier' && action === 'asignar-courier') {
+      const payload = body as IAsignarCourier;
+
+      if (!payload.orderId.startsWith('CL-E') && !payload.orderId.startsWith('CL-CC')) {
+        console.log('--- No es una orden de permitida en el flujo ---', payload.orderId);
+        return { statusCode: 200, body: JSON.stringify(event) };
+      }
       await orderUseCase.asignarCourier(body as IAsignarCourier);
     }
 
