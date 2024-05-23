@@ -264,6 +264,12 @@ export const handler = async (event: SQSEvent, context: Context, callback: Callb
     }
 
     if (origin === 'courier' && action === 'actualizar-order-status-webhook') {
+      const payload = body as IActualizarOrderStatusWebhook;
+      if (!payload.orderId.startsWith('CL-E') && !payload.orderId.startsWith('CL-CC')) {
+        console.log('--- No es una orden de permitida en el flujo ---', payload.orderId);
+        return { statusCode: 200, body: JSON.stringify(event) };
+      }
+
       await orderUseCase.actualizarOrderStatusWebhook(body as IActualizarOrderStatusWebhook);
     }
 

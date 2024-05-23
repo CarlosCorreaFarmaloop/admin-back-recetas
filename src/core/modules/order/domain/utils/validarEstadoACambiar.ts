@@ -15,6 +15,8 @@ export const validateStatusChange = (currentStatus: string, toStatus: string) =>
       'RECETA_VALIDADA',
       'EN_DELIVERY',
       'CANCELADO',
+      'LISTO_PARA_RETIRO',
+      'ASIGNAR_A_DELIVERY',
     ],
     CANCELADO: ['VALIDANDO_RECETA', 'OBSERVACIONES_RECETAS', 'EN_OBSERVACION', 'RECETA_VALIDADA', 'CREADO'],
     CREADO: [],
