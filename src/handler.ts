@@ -264,7 +264,7 @@ export const handler = async (event: SQSEvent, context: Context, callback: Callb
 
       if (!payload.orderId.startsWith('CL-E') && !payload.orderId.startsWith('CL-CC')) {
         console.log('--- No es una orden de permitida en el flujo ---', payload.orderId);
-        return { statusCode: 200, body: JSON.stringify(event) };
+        return;
       }
       await orderUseCase.asignarCourier(body as IAsignarCourier);
     }
@@ -273,7 +273,7 @@ export const handler = async (event: SQSEvent, context: Context, callback: Callb
       const payload = body as IActualizarOrderStatusWebhook;
       if (!payload.orderId.startsWith('CL-E') && !payload.orderId.startsWith('CL-CC')) {
         console.log('--- No es una orden de permitida en el flujo ---', payload.orderId);
-        return { statusCode: 200, body: JSON.stringify(event) };
+        return;
       }
 
       await orderUseCase.actualizarOrderStatusWebhook(body as IActualizarOrderStatusWebhook);
