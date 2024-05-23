@@ -262,7 +262,7 @@ export const handler = async (event: SQSEvent, context: Context, callback: Callb
     if (origin === 'courier' && action === 'asignar-courier') {
       const payload = body as IAsignarCourier;
 
-      if (!payload.orderId.startsWith('CL-E') && !payload.orderId.startsWith('CL-CC')) {
+      if (!isOrdenPermitada(payload.orderId)) {
         console.log('--- No es una orden de permitida en el flujo ---', payload.orderId);
         return;
       }
@@ -271,7 +271,7 @@ export const handler = async (event: SQSEvent, context: Context, callback: Callb
 
     if (origin === 'courier' && action === 'actualizar-order-status-webhook') {
       const payload = body as IActualizarOrderStatusWebhook;
-      if (!payload.orderId.startsWith('CL-E') && !payload.orderId.startsWith('CL-CC')) {
+      if (!isOrdenPermitada(payload.orderId)) {
         console.log('--- No es una orden de permitida en el flujo ---', payload.orderId);
         return;
       }
@@ -352,4 +352,8 @@ export const handler = async (event: SQSEvent, context: Context, callback: Callb
     throw new Error('Error en lambda');
     // return { statusCode: 400, body: JSON.stringify(error) };
   }
+};
+
+const isOrdenPermitada = (orderId: string) => {
+  return orderId.startsWith('CL-E') || orderId.startsWith('CL-CC');
 };
