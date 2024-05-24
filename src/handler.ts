@@ -17,6 +17,7 @@ import {
   IEventDetail,
   IOrderBackToFlow,
   IUpdateEstadoCedulaIdentidad,
+  IUpdateTrackingNumber,
   IUpdateStatusOderObservation,
   IUpdateStatusOrder,
 } from './interface/event';
@@ -243,6 +244,10 @@ export const handler = async (event: SQSEvent, context: Context, callback: Callb
       await orderUseCase.addObservationToOrder(body as IAddOrderObservation);
     }
 
+    if (origin === 'admin' && action === 'actualizar-numero-seguimiento') {
+      await orderUseCase.updateTrackingNumber(body as IUpdateTrackingNumber);
+    }
+
     // ---------- Documentos Tributarios ----------------
 
     if (origin === 'documento-tributario' && action === 'asignar-documento-tributario') {
@@ -255,10 +260,22 @@ export const handler = async (event: SQSEvent, context: Context, callback: Callb
     // ---------- Courier ----------------
 
     if (origin === 'courier' && action === 'asignar-courier') {
+      const payload = body as IAsignarCourier;
+
+      if (!isOrdenPermitada(payload.orderId)) {
+        console.log('--- No es una orden de permitida en el flujo ---', payload.orderId);
+        return;
+      }
       await orderUseCase.asignarCourier(body as IAsignarCourier);
     }
 
     if (origin === 'courier' && action === 'actualizar-order-status-webhook') {
+      const payload = body as IActualizarOrderStatusWebhook;
+      if (!isOrdenPermitada(payload.orderId)) {
+        console.log('--- No es una orden de permitida en el flujo ---', payload.orderId);
+        return;
+      }
+
       await orderUseCase.actualizarOrderStatusWebhook(body as IActualizarOrderStatusWebhook);
     }
 
@@ -335,4 +352,8 @@ export const handler = async (event: SQSEvent, context: Context, callback: Callb
     throw new Error('Error en lambda');
     // return { statusCode: 400, body: JSON.stringify(error) };
   }
+};
+
+const isOrdenPermitada = (orderId: string) => {
+  return orderId.startsWith('CL-E') || orderId.startsWith('CL-CC');
 };

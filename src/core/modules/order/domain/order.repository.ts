@@ -20,6 +20,7 @@ import {
   IUpdatePaymentRepository,
   IUpdateProvisionalStatusOrder,
   IUpdateStatusSeguroComplementarioPayload,
+  IUpdateTrackingNumber,
 } from './order.respository.interface';
 
 export interface IOrdenRepository {
@@ -43,6 +44,7 @@ export interface IOrdenRepository {
   asignarDocumentosTributarios: (payload: IAsignarDocumentosTributariosPayload) => Promise<OrdenEntity>;
 
   asignarCourier: (payload: IAsignarCourierPayload) => Promise<OrdenEntity>;
+  updateTrackingNumber: (payload: IUpdateTrackingNumber) => Promise<OrdenEntity | null>;
   actualizarOrderDeliveryTracking: (payload: IActualizarOrderStatusWebhookPayload) => Promise<OrdenEntity | null>;
 
   guardarSeguroComplementario: (payload: IGuardarSeguroComplementario) => Promise<OrdenEntity | null>;

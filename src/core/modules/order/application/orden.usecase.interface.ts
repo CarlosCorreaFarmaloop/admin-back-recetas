@@ -14,6 +14,7 @@ import {
   IOrigin,
   IUpdateCanalConvenio,
   IUpdateEstadoCedulaIdentidad,
+  IUpdateTrackingNumber,
   IUpdatePreparandoToDelivery,
   IUpdatePreparandoToRetiro,
   IUpdateStatusOderObservation,
@@ -69,6 +70,7 @@ export interface IOrdenUseCase {
   addObservationToOrder: (payload: IAddOrderObservation) => Promise<void>;
   updateCanalConvenio: (payload: IUpdateCanalConvenio) => Promise<void>;
   orderSeguroComplementario: (order: OrdenEntity) => Promise<void>;
+  updateTrackingNumber: (payload: IUpdateTrackingNumber) => Promise<void>;
 
   // Documentos Tributarios
   generarDocumentosTributarios: (payload: IDocumentoTributarioEventInput) => Promise<void>;

@@ -110,3 +110,9 @@ export interface IUpdateCanalConvenio {
   convenio: string;
   canal: string;
 }
+
+export interface IUpdateTrackingNumber {
+  id: string;
+  trackingNumber: string;
+  responsible: string;
+}

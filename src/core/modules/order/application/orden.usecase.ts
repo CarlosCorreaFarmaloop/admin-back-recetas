@@ -17,6 +17,7 @@ import {
   IUpdatePreparandoToRetiro,
   IUpdateStatusOderObservation,
   IUpdateStatusSeguroComplementario,
+  IUpdateTrackingNumber,
 } from '.././../../../interface/event';
 import { MovementRepository } from '../../../modules/movements/domain/movements.repositoy';
 import { EcommerceOrderEntity } from '../../../../interface/ecommerceOrder.entity';
@@ -213,7 +214,7 @@ export class OrdenUseCase implements IOrdenUseCase {
           originCode: Joi.string(),
           amount: Joi.number(),
           method: Joi.string(),
-          status: Joi.string().required(),
+          status: Joi.string().required().valid('Aprobado'),
           wallet: Joi.string().required(),
           paymentDate: Joi.number(),
         }).required(),
@@ -594,7 +595,7 @@ export class OrdenUseCase implements IOrdenUseCase {
       originCode: Joi.string(),
       amount: Joi.number(),
       method: Joi.string(),
-      status: Joi.string().required(),
+      status: Joi.string().required().valid('Aprobado'),
       wallet: Joi.string().required(),
       paymentDate: Joi.number(),
     });
@@ -789,7 +790,7 @@ export class OrdenUseCase implements IOrdenUseCase {
       originCode: Joi.string(),
       amount: Joi.number(),
       method: Joi.string(),
-      status: Joi.string().required(),
+      status: Joi.string().required().valid('Aprobado'),
       wallet: Joi.string().required(),
       paymentDate: Joi.number(),
     });
@@ -861,34 +862,47 @@ export class OrdenUseCase implements IOrdenUseCase {
       throw new ApiResponse(HttpCodes.BAD_REQUEST, ordenActualizada, 'Error al actualizar la orden.');
     }
 
-    if (
-      ordenActualizada.productsOrder
-        .filter(({ requirePrescription }) => requirePrescription)
-        .filter(
-          (product) =>
-            product.prescription.file !== '' &&
-            (product.prescription.state === '' || product.prescription.state === 'Pending')
-        ).length !== 0
-    )
-      await this.updateStatusOrder(ordenActualizada, ordenActualizada.statusOrder, 'VALIDANDO_RECETA', 'SISTEMA'); // Llamas Actualiza Estado Usecase (orden, CREADO, VALIDANDO_RECETA)
+    if (ordenActualizada.payments[0].status !== 'Aprobado') {
+      console.log('----- Orden Cancelada por estado del Pago Cancelado: ', JSON.stringify(ordenActualizada));
 
-    if (
-      ordenActualizada.productsOrder.filter(
-        (producto) => producto.requirePrescription && producto.prescription.file === ''
-      ).length !== 0
-    )
-      await this.updateStatusOrder(ordenActualizada, ordenActualizada.statusOrder, 'OBSERVACIONES_RECETAS', 'SISTEMA'); // Llamas Actualiza Estado Usecase (orden, CREADO, OBSERVACIONES_RECETAS)
+      return;
+    }
 
-    if (
-      !ordenActualizada.productsOrder.some(
-        (producto) =>
-          (producto.requirePrescription && producto.prescription.file === '') ||
-          (producto.requirePrescription &&
-            producto.prescription.state !== 'Approved' &&
-            producto.prescription.state !== 'Approved_With_Comments')
+    if (ordenActualizada.payments[0].status === 'Aprobado') {
+      if (
+        ordenActualizada.productsOrder
+          .filter(({ requirePrescription }) => requirePrescription)
+          .filter(
+            (product) =>
+              product.prescription.file !== '' &&
+              (product.prescription.state === '' || product.prescription.state === 'Pending')
+          ).length !== 0
       )
-    )
-      await this.updateStatusOrder(ordenActualizada, ordenActualizada.statusOrder, 'RECETA_VALIDADA', 'SISTEMA'); // Llamas Actualiza Estado Usecase (orden, CREADO, APROBADA)
+        await this.updateStatusOrder(ordenActualizada, ordenActualizada.statusOrder, 'VALIDANDO_RECETA', 'SISTEMA'); // Llamas Actualiza Estado Usecase (orden, CREADO, VALIDANDO_RECETA)
+
+      if (
+        ordenActualizada.productsOrder.filter(
+          (producto) => producto.requirePrescription && producto.prescription.file === ''
+        ).length !== 0
+      )
+        await this.updateStatusOrder(
+          ordenActualizada,
+          ordenActualizada.statusOrder,
+          'OBSERVACIONES_RECETAS',
+          'SISTEMA'
+        ); // Llamas Actualiza Estado Usecase (orden, CREADO, OBSERVACIONES_RECETAS)
+
+      if (
+        !ordenActualizada.productsOrder.some(
+          (producto) =>
+            (producto.requirePrescription && producto.prescription.file === '') ||
+            (producto.requirePrescription &&
+              producto.prescription.state !== 'Approved' &&
+              producto.prescription.state !== 'Approved_With_Comments')
+        )
+      )
+        await this.updateStatusOrder(ordenActualizada, ordenActualizada.statusOrder, 'RECETA_VALIDADA', 'SISTEMA'); // Llamas Actualiza Estado Usecase (orden, CREADO, APROBADA)
+    }
   }
 
   updateStatusOrder = async (
@@ -1613,6 +1627,41 @@ export class OrdenUseCase implements IOrdenUseCase {
     await this.updateProvisionalStatusOrder({
       id: payload.id,
       provisionalStatusOrder: '',
+    });
+
+    await this.notificarCambioOrden(payload.id);
+  };
+
+  updateTrackingNumber = async (payload: IUpdateTrackingNumber) => {
+    const updateTrackingNumberSchema = Joi.object({
+      id: Joi.string().required(),
+      trackingNumber: Joi.string().required(),
+      responsible: Joi.string().required(),
+    });
+
+    const { error } = updateTrackingNumberSchema.validate(payload);
+
+    if (error) {
+      throw new ApiResponse(HttpCodes.BAD_REQUEST, updateTrackingNumberSchema, error.message);
+    }
+
+    const ordenActualizada = await this.ordenRepository.updateTrackingNumber(payload);
+
+    if (!ordenActualizada)
+      throw new ApiResponse(HttpCodes.BAD_REQUEST, ordenActualizada, 'Error al actualizar el tracking de la orden.');
+
+    console.log('----- Tracking Number Actualizado: ', ordenActualizada.id, ' con numero: ', ordenActualizada.delivery.provider.trackingNumber);
+
+    await this.updateOrderHistory({
+      id: payload.id,
+      type: 'numero-seguimiento',
+      responsible: payload.responsible,
+      changeFrom: '',
+      changeTo: payload.trackingNumber,
+      aditionalInfo: {
+        product_sku: '',
+        comments: '',
+      },
     });
 
     await this.notificarCambioOrden(payload.id);

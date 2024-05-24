@@ -21,6 +21,7 @@ import {
   IUpdateStatusSeguroComplementarioPayload,
   IUpdateCanalConvenio,
   IUpdatePaymentRepository,
+  IUpdateTrackingNumber,
 } from '../../../core/modules/order/domain/order.respository.interface';
 import { IGuardarSeguroComplementario } from 'src/interface/seguroComplementario.interface';
 
@@ -140,15 +141,18 @@ export class OrdenMongoRepository implements IOrdenRepository {
       },
       {
         $set: {
-          'productsOrder.$.prescription.file': payload.productOrder.prescription.file,
-          'productsOrder.$.prescription.state': 'Pending',
-          'productsOrder.$.prescription.stateDate': new Date().getTime(),
-          'productsOrder.$.prescription.validation.comments': '',
-          'productsOrder.$.prescription.validation.responsible': '',
-          'productsOrder.$.prescription.validation.rut': '',
+          'productsOrder.$[elem].prescription.file': payload.productOrder.prescription.file,
+          'productsOrder.$[elem].prescription.state': 'Pending',
+          'productsOrder.$[elem].prescription.stateDate': new Date().getTime(),
+          'productsOrder.$[elem].prescription.validation.comments': '',
+          'productsOrder.$[elem].prescription.validation.responsible': '',
+          'productsOrder.$[elem].prescription.validation.rut': '',
         },
       },
-      { new: true }
+      {
+        new: true,
+        arrayFilters: [{ 'elem.sku': payload.productOrder.sku, 'elem.batchId': payload.productOrder.batchId }],
+      }
     );
   };
 
@@ -163,11 +167,19 @@ export class OrdenMongoRepository implements IOrdenRepository {
       },
       {
         $set: {
-          'productsOrder.$.prescription.state': payload.productOrder.prescription.state,
-          'productsOrder.$.prescription.validation': payload.productOrder.prescription.validation,
+          'productsOrder.$[elem].prescription.state': payload.productOrder.prescription.state,
+          'productsOrder.$[elem].prescription.validation': payload.productOrder.prescription.validation,
         },
       },
-      { new: true }
+      {
+        new: true,
+        arrayFilters: [
+          {
+            'elem.sku': payload.productOrder.sku,
+            'elem.batchId': payload.productOrder.batchId,
+          },
+        ],
+      }
     );
   };
 
@@ -266,6 +278,20 @@ export class OrdenMongoRepository implements IOrdenRepository {
         },
       },
       { new: true, upsert: true }
+    );
+  };
+
+  updateTrackingNumber = async (payload: IUpdateTrackingNumber) => {
+    console.log('------Order To Update Tracking Number ---- ', payload);
+
+    return await OrderModel.findOneAndUpdate(
+      { id: payload.id },
+      {
+        $set: {
+          'delivery.provider.trackingNumber': payload.trackingNumber,
+        },
+      },
+      { new: true }
     );
   };
 
