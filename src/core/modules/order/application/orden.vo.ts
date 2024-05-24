@@ -6,7 +6,7 @@ import { GenerarBoletaPayload } from '../domain/documentos_tributarios.interface
 import { TipoPago } from '../domain/utils/diccionario/tipoPago';
 import { GenerarOrdenDeCourierPayload } from '../domain/courier.interface';
 import { getTipoDelivery } from '../domain/utils/diccionario/tipoDelivery';
-import { IAsignarCourier, IUpdateStatusOderObservation } from 'src/interface/event';
+import { IAsignarCourier, IAsignarDocumentosTributarios, IUpdateStatusOderObservation } from 'src/interface/event';
 import {
   IGenerarSeguroComplementario,
   IGuardarSeguroComplementario,
@@ -14,6 +14,7 @@ import {
 import { AdminOrderEntity } from 'src/interface/adminOrder.entity';
 import { CreateCompleteOrderEntity } from 'src/interface/crearOrdenCompleta';
 import { generateInitialStatusOrder } from '../domain/utils/generateInitialStatusOrder';
+import { IAsignarDocumentosTributariosPayload } from '../domain/order.respository.interface';
 
 export class OrdenOValue {
   completeOrderFromEcommerce = (order: EcommerceOrderEntity): ICrearOrden => {
@@ -698,6 +699,34 @@ export class OrdenOValue {
       },
       urlLabel: 'label_manual.pdf',
       emissionDate: new Date().getTime(),
+    };
+  };
+
+  asignarDocumentosTributarios = (
+    order: OrdenEntity,
+    payload: IAsignarDocumentosTributarios
+  ): IAsignarDocumentosTributariosPayload => {
+    return {
+      status: 'Aprobado',
+      orderId: payload.orderId,
+      referenceDocumentId: payload.referenceDocumentId,
+      emissionDate: payload.emissionDate,
+      emitter: payload.emitter,
+      number: payload.number,
+      type: payload.type,
+      urlBilling: payload.urlBilling,
+      urlTimbre: payload.urlTimbre,
+      billingDelivery: {
+        lineNumber: payload.detallesProductoEnvio.delivery.lineNumber,
+        referenceId: payload.detallesProductoEnvio.delivery.referenceId,
+      },
+      productsOrder: order.productsOrder.map((product, index) => {
+        return {
+          ...product,
+          lineNumber: payload.detallesProductoEnvio.productos[index].lineNumber,
+          referenceId: payload.detallesProductoEnvio.productos[index].referenceId,
+        };
+      }),
     };
   };
 }

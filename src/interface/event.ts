@@ -85,6 +85,7 @@ export interface IAsignarDocumentosTributarios {
   urlTimbre: string;
   emissionDate: Date;
   referenceDocumentId: string;
+  detallesProductoEnvio: DocumentoDetalleProductoEnvio;
 }
 
 export interface IAsignarCourier {
@@ -168,4 +169,14 @@ export interface IUpdateTrackingNumber {
   id: string;
   trackingNumber: string;
   responsible: string;
+}
+
+export interface DocumentoDetalleProductoEnvio {
+  delivery: Detalle;
+  productos: Detalle[];
+}
+
+export interface Detalle {
+  lineNumber: number;
+  referenceId: number;
 }

@@ -1644,7 +1644,12 @@ export class OrdenUseCase implements IOrdenUseCase {
     if (!ordenActualizada)
       throw new ApiResponse(HttpCodes.BAD_REQUEST, ordenActualizada, 'Error al actualizar el tracking de la orden.');
 
-    console.log('----- Tracking Number Actualizado: ', ordenActualizada.id, ' con numero: ', ordenActualizada.delivery.provider.trackingNumber);
+    console.log(
+      '----- Tracking Number Actualizado: ',
+      ordenActualizada.id,
+      ' con numero: ',
+      ordenActualizada.delivery.provider.trackingNumber
+    );
 
     await this.updateOrderHistory({
       id: payload.id,
@@ -1769,6 +1774,21 @@ export class OrdenUseCase implements IOrdenUseCase {
   };
 
   asignarDocumentosTributarios = async (payload: IAsignarDocumentosTributarios) => {
+    const detallesProductoEnvioSchema = Joi.object({
+      delivery: Joi.object({
+        lineNumber: Joi.number().required(),
+        referenceId: Joi.number().required(),
+      }).required(),
+      productos: Joi.array()
+        .items(
+          Joi.object({
+            lineNumber: Joi.number().required(),
+            referenceId: Joi.number().required(),
+          })
+        )
+        .required(),
+    });
+
     const asignarDocumentosTributariosSchema = Joi.object({
       orderId: Joi.string().required(),
       emitter: Joi.string().required(),
@@ -1778,6 +1798,7 @@ export class OrdenUseCase implements IOrdenUseCase {
       urlTimbre: Joi.string().required().allow(''),
       emissionDate: Joi.date().required(),
       referenceDocumentId: Joi.string().required(),
+      detallesProductoEnvio: detallesProductoEnvioSchema.required(),
     });
 
     const { error } = asignarDocumentosTributariosSchema.validate(payload);
@@ -1786,10 +1807,18 @@ export class OrdenUseCase implements IOrdenUseCase {
       throw new ApiResponse(HttpCodes.BAD_REQUEST, asignarDocumentosTributariosSchema, error.message);
     }
 
-    const ordenConBilling = await this.ordenRepository.asignarDocumentosTributarios({
-      ...payload,
-      status: 'Aprobado',
-    });
+    const ordenDb = await this.ordenRepository.findOrderById(payload.orderId);
+
+    if (!ordenDb)
+      throw new ApiResponse(
+        HttpCodes.BAD_REQUEST,
+        ordenDb,
+        'Error al buscar la orden para asignar documentos tributarios.'
+      );
+
+    const ordenConBillingVO = new OrdenOValue().asignarDocumentosTributarios(ordenDb, payload);
+
+    const ordenConBilling = await this.ordenRepository.asignarDocumentosTributarios(ordenConBillingVO);
 
     if (!ordenConBilling)
       throw new ApiResponse(HttpCodes.BAD_REQUEST, ordenConBilling, 'Error al asignar documentos tributarios.');

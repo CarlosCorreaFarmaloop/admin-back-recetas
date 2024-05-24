@@ -227,6 +227,8 @@ export class OrdenMongoRepository implements IOrdenRepository {
           'billing.emissionDate': payload.emissionDate,
           'billing.referenceDocumentId': payload.referenceDocumentId,
           'billing.status': payload.status,
+          'billing.delivery': payload.billingDelivery,
+          productsOrder: payload.productsOrder,
         },
       },
       { new: true, upsert: true }

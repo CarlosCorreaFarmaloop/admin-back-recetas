@@ -1,6 +1,6 @@
-import { IAsignarDocumentosTributarios } from '../../../../interface/event';
 import {
   Billing,
+  BillingDelivery,
   DeliveryTracking,
   EstadoCredencial,
   IBillingStatus,
@@ -8,15 +8,25 @@ import {
   ISeguroComplementarioStatus,
   OrdenEntity,
   Payment,
+  ProductOrder,
 } from './order.entity';
 
 export interface IUpdateProvisionalStatusOrder
   extends Pick<OrdenEntity, 'id' | 'provisionalStatusOrder' | 'provisionalStatusOrderDate'> {}
 
-export interface IAsignarDocumentosTributariosPayload extends IAsignarDocumentosTributarios {
+export interface IAsignarDocumentosTributariosPayload {
   status: IBillingStatus;
+  orderId: string;
+  emitter: string;
+  number: string;
+  type: 'Boleta' | 'Factura' | 'Despacho';
+  urlBilling: string;
+  urlTimbre: string;
+  emissionDate: Date;
+  referenceDocumentId: string;
+  billingDelivery: BillingDelivery;
+  productsOrder: ProductOrder[];
 }
-
 export interface IUpdatePaymentRepository {
   id: string;
   payment: Payment;
