@@ -127,7 +127,7 @@ export class OrdenUseCase implements IOrdenUseCase {
         totalPrice: Joi.number().required(),
         nroProducts: Joi.number().required(),
         clasification: Joi.string().required().allow(''),
-        seller: Joi.string().required(),
+        seller: Joi.string().required().allow(''),
         cartId: Joi.string().required(),
       });
 
@@ -333,7 +333,7 @@ export class OrdenUseCase implements IOrdenUseCase {
         totalPrice: Joi.number().required(),
         nroProducts: Joi.number().required(),
         clasification: Joi.string().required().allow(''),
-        seller: Joi.string().required(),
+        seller: Joi.string().required().allow(''),
         cartId: Joi.string().required(),
       });
 
