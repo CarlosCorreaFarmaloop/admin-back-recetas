@@ -107,9 +107,11 @@ export class OrdenOValue {
       }),
       resumeOrder: {
         ...order.resumeOrder,
-        clasification: order?.resumeOrder?.clasification ?? '',
         nroProducts: order.productsOrder.length,
         convenio: '',
+        clasification: order?.resumeOrder?.clasification ?? '',
+        seller: order?.resumeOrder?.seller ?? '',
+        cartId: order?.resumeOrder?.cartId ?? '',
         discount: {
           details: order.resumeOrder.discount.details.map((detail) => {
             return {
@@ -225,6 +227,8 @@ export class OrdenOValue {
       resumeOrder: {
         ...order.resumeOrder,
         clasification: order?.resumeOrder?.clasification ?? '',
+        seller: '',
+        cartId: '',
         nroProducts: order.productsOrder.length,
         convenio: order.resumeOrder.convenio,
         discount: {
@@ -342,6 +346,8 @@ export class OrdenOValue {
       resumeOrder: {
         ...order.resumeOrder,
         clasification: order?.resumeOrder?.clasification ?? '',
+        seller: '',
+        cartId: '',
         nroProducts: order.productsOrder.length,
         convenio: order.resumeOrder.convenio,
         discount: {
@@ -431,6 +437,8 @@ export class OrdenOValue {
       resumeOrder: {
         ...order.resumeOrder,
         clasification: order?.resumeOrder?.clasification ?? '',
+        seller: order?.resumeOrder?.seller ?? '',
+        cartId: order?.resumeOrder?.cartId ?? '',
         convenio: order.resumeOrder.convenio ?? '',
         discount: {
           details: order.resumeOrder.discount.details.map((detail) => {

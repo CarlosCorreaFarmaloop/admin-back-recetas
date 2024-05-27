@@ -141,6 +141,8 @@ const ResumeOrderSchema = new mongoose.Schema<ResumeOrder>(
     tipoDespacho: String,
     totalPrice: Number,
     clasification: String,
+    seller: String,
+    cartId: String,
   },
   { _id: false }
 );

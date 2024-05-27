@@ -108,7 +108,9 @@ export interface ResumeOrder {
   convenio?: string;
   totalPrice: number;
   nroProducts: number;
-  clasification?: string;
+  clasification: string;
+  seller: string;
+  cartId: string;
 }
 
 export interface Discount {

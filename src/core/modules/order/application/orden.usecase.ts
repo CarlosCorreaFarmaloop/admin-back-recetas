@@ -126,6 +126,9 @@ export class OrdenUseCase implements IOrdenUseCase {
         subtotal: Joi.number().required(),
         totalPrice: Joi.number().required(),
         nroProducts: Joi.number().required(),
+        clasification: Joi.string().required().allow(''),
+        seller: Joi.string().required().allow(''),
+        cartId: Joi.string().required(),
       });
 
       const Prescription = Joi.object({
@@ -329,6 +332,9 @@ export class OrdenUseCase implements IOrdenUseCase {
         subtotal: Joi.number().required(),
         totalPrice: Joi.number().required(),
         nroProducts: Joi.number().required(),
+        clasification: Joi.string().required().allow(''),
+        seller: Joi.string().required().allow(''),
+        cartId: Joi.string().required(),
       });
 
       const Prescription = Joi.object({
