@@ -783,6 +783,7 @@ export class OrdenOValue {
         isExactAddress: payload.deliveryAddress.isExactAddress,
         latitude: payload.deliveryAddress.latitude,
         longitude: payload.deliveryAddress.longitude,
+        fullAddress: payload.deliveryAddress.fullAddress ?? '',
       },
     };
   };

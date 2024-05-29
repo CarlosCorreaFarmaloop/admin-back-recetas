@@ -307,7 +307,8 @@ export class OrdenMongoRepository implements IOrdenRepository {
         $set: {
           'delivery.delivery_address': payload.deliveryAddress,
         },
-      }
+      },
+      {new: true}
     );
   };
 
