@@ -1757,6 +1757,8 @@ export class OrdenUseCase implements IOrdenUseCase {
         comments: '',
       },
     });
+
+    await this.notificarCambioOrden(payload.orderId);
   };
 
   orderSeguroComplementario = async (order: OrdenEntity) => {
