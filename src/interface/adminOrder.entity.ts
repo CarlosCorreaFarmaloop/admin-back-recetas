@@ -50,8 +50,12 @@ export interface DeliveryAddress {
   phone: string;
   region: string;
   streetName: string;
-
   streetNumber: string;
+
+  placeId: string;
+  isExactAddress: boolean;
+  latitude: string;
+  longitude: string;
 }
 
 export interface Payment {

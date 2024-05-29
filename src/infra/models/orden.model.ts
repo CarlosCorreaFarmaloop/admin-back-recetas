@@ -17,6 +17,7 @@ import {
   Documento,
   Delivery,
   ISeguroComplementario,
+  DeliveryAddress,
 } from '../../core/modules/order/domain/order.entity';
 
 const TrackingSchema = new mongoose.Schema<Tracking>(
@@ -254,7 +255,7 @@ const ProviderSchema = new mongoose.Schema(
   { _id: false }
 );
 
-const DeliveryAddressSchema = new mongoose.Schema(
+const DeliveryAddressSchema = new mongoose.Schema<DeliveryAddress>(
   {
     comuna: String,
     dpto: String,
@@ -265,6 +266,10 @@ const DeliveryAddressSchema = new mongoose.Schema(
     region: String,
     streetName: String,
     streetNumber: String,
+    placeId: String,
+    isExactAddress: Boolean,
+    latitude: String,
+    longitude: String,
   },
   { _id: false }
 );

@@ -182,6 +182,10 @@ export class OrdenUseCase implements IOrdenUseCase {
         region: Joi.string().required().allow(''),
         streetName: Joi.string().required().allow(''),
         streetNumber: Joi.string().required().allow(''),
+        placeId: Joi.string().required().allow(''),
+        isExactAddress: Joi.boolean().required(),
+        latitude: Joi.string().required().allow(''),
+        longitude: Joi.string().required().allow(''),
       });
 
       const DeliveryMethod = Joi.string().valid('DELIVERY', 'STORE');
@@ -388,6 +392,10 @@ export class OrdenUseCase implements IOrdenUseCase {
         region: Joi.string().required().allow(''),
         streetName: Joi.string().required().allow(''),
         streetNumber: Joi.string().required().allow(''),
+        placeId: Joi.string().required().allow(''),
+        isExactAddress: Joi.boolean().required(),
+        latitude: Joi.string().required().allow(''),
+        longitude: Joi.string().required().allow(''),
       });
 
       const DeliveryMethod = Joi.string().valid('DELIVERY', 'STORE');
@@ -564,6 +572,10 @@ export class OrdenUseCase implements IOrdenUseCase {
       region: Joi.string().required().allow(''),
       streetName: Joi.string().required().allow(''),
       streetNumber: Joi.string().required().allow(''),
+      placeId: Joi.string().required().allow(''),
+      isExactAddress: Joi.boolean().required(),
+      latitude: Joi.string().required().allow(''),
+      longitude: Joi.string().required().allow(''),
     });
 
     const DeliveryMethod = Joi.string().valid('DELIVERY', 'STORE');
@@ -759,6 +771,10 @@ export class OrdenUseCase implements IOrdenUseCase {
       region: Joi.string().required().allow(''),
       streetName: Joi.string().required().allow(''),
       streetNumber: Joi.string().required().allow(''),
+      placeId: Joi.string().required().allow(''),
+      isExactAddress: Joi.boolean().required(),
+      latitude: Joi.string().required().allow(''),
+      longitude: Joi.string().required().allow(''),
     });
 
     const DeliveryMethod = Joi.string().valid('DELIVERY', 'STORE');
@@ -1173,7 +1189,7 @@ export class OrdenUseCase implements IOrdenUseCase {
 
   updateOrderTracking = async (payload: IUpdateOrderTracking) => {
     const ordenTrackingActualizado = await this.ordenRepository.updateOrderTracking(payload.id, {
-      date: new Date(),
+      date: new Date().getTime(),
       responsible: payload.responsible,
       toStatus: payload.statusOrder,
       reason: payload.reason,

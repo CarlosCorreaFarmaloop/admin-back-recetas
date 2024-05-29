@@ -124,6 +124,11 @@ export interface DeliveryAddress {
 
   streetName: string;
   streetNumber: string;
+
+  placeId: string;
+  isExactAddress: boolean;
+  latitude: string;
+  longitude: string;
 }
 
 export interface CompromisoEntrega {
@@ -316,7 +321,7 @@ export interface DescuentosUnitarios {
 }
 
 export interface Tracking {
-  date: Date;
+  date: number;
   responsible: string;
   toStatus: string;
   reason?: string;
