@@ -19,6 +19,7 @@ import {
   IUpdatePreparandoToRetiro,
   IUpdateStatusOderObservation,
   IUpdateStatusSeguroComplementario,
+  IUpdateDeliveryAddress,
 } from '.././../../../interface/event';
 import { ICourierEventInput } from '../domain/courier.interface';
 import { IDocumentoTributarioEventInput } from '../domain/documentos_tributarios.interface';
@@ -71,6 +72,7 @@ export interface IOrdenUseCase {
   updateCanalConvenio: (payload: IUpdateCanalConvenio) => Promise<void>;
   orderSeguroComplementario: (order: OrdenEntity) => Promise<void>;
   updateTrackingNumber: (payload: IUpdateTrackingNumber) => Promise<void>;
+  updateDeliveryAddress: (payload: IUpdateDeliveryAddress) => Promise<void>;
 
   // Documentos Tributarios
   generarDocumentosTributarios: (payload: IDocumentoTributarioEventInput) => Promise<void>;

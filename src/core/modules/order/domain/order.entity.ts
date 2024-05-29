@@ -370,7 +370,8 @@ export type IHistoryType =
   | 'courier'
   | 'courier-envio'
   | 'numero-seguimiento'
-  | 'observacion';
+  | 'observacion'
+  | 'direccion-entrega';
 
 export interface IDeliveryTransport {
   id: string;

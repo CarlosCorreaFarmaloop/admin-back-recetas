@@ -1,4 +1,5 @@
 import {
+  DeliveryAddress,
   DeliveryTracking,
   EstadoCredencial,
   IBillingType,
@@ -37,7 +38,8 @@ export type IAction =
   | 'confirmar-seguro-complementario'
   | 'actualizar-estado-cedula-identidad'
   | 'agregar-observacion-order'
-  | 'actualizar-numero-seguimiento';
+  | 'actualizar-numero-seguimiento'
+  | 'actualizar-direccion-delivery';
 
 export interface IAsignacionCourier {
   id: string;
@@ -179,4 +181,10 @@ export interface DocumentoDetalleProductoEnvio {
 export interface Detalle {
   lineNumber: number;
   referenceId: number;
+}
+
+export interface IUpdateDeliveryAddress {
+  orderId: string;
+  deliveryAddress: DeliveryAddress;
+  responsible: string;
 }

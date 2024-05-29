@@ -22,6 +22,7 @@ import {
   IUpdateCanalConvenio,
   IUpdatePaymentRepository,
   IUpdateTrackingNumber,
+  IUpdateDeliveryAddressPayload,
 } from '../../../core/modules/order/domain/order.respository.interface';
 import { IGuardarSeguroComplementario } from 'src/interface/seguroComplementario.interface';
 
@@ -294,6 +295,19 @@ export class OrdenMongoRepository implements IOrdenRepository {
         },
       },
       { new: true }
+    );
+  };
+
+  updateDeliveryAddress = async (payload: IUpdateDeliveryAddressPayload) => {
+    console.log('------Order To Update Delivery Address ---- ', payload);
+
+    return await OrderModel.findOneAndUpdate(
+      { id: payload.orderId },
+      {
+        $set: {
+          'delivery.delivery_address': payload.deliveryAddress,
+        },
+      }
     );
   };
 

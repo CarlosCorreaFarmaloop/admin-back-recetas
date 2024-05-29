@@ -16,6 +16,7 @@ import {
   IAsignarDocumentosTributariosPayload,
   IAsignarSeguroComplementarioPayload,
   IUpdateCanalConvenio,
+  IUpdateDeliveryAddressPayload,
   IUpdateEstadoCedulaIdentidadPayload,
   IUpdatePaymentRepository,
   IUpdateProvisionalStatusOrder,
@@ -42,6 +43,7 @@ export interface IOrdenRepository {
   addOrderObservation: (payload: IAddOrderdObservation) => Promise<OrdenEntity>;
   updateCanalConvenio: (payload: IUpdateCanalConvenio) => Promise<OrdenEntity>;
   asignarDocumentosTributarios: (payload: IAsignarDocumentosTributariosPayload) => Promise<OrdenEntity>;
+  updateDeliveryAddress: (payload: IUpdateDeliveryAddressPayload) => Promise<OrdenEntity | null>;
 
   asignarCourier: (payload: IAsignarCourierPayload) => Promise<OrdenEntity>;
   updateTrackingNumber: (payload: IUpdateTrackingNumber) => Promise<OrdenEntity | null>;

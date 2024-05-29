@@ -12,6 +12,7 @@ import {
   IOrderBackToFlow,
   IOrigin,
   IUpdateCanalConvenio,
+  IUpdateDeliveryAddress,
   IUpdateEstadoCedulaIdentidad,
   IUpdatePreparandoToDelivery,
   IUpdatePreparandoToRetiro,
@@ -54,6 +55,7 @@ import {
 } from '../../../../interface/seguroComplementario.interface';
 import { AdminOrderEntity } from '../../../../interface/adminOrder.entity';
 import { CreateCompleteOrderEntity } from '../../../../interface/crearOrdenCompleta';
+import { generateFullAdress } from '../domain/utils/generateFullAdress';
 
 export class OrdenUseCase implements IOrdenUseCase {
   constructor(
@@ -1686,6 +1688,74 @@ export class OrdenUseCase implements IOrdenUseCase {
     });
 
     await this.notificarCambioOrden(payload.id);
+  };
+
+  updateDeliveryAddress = async (payload: IUpdateDeliveryAddress) => {
+    const updateDeliveryAddressSchema = Joi.object({
+      orderId: Joi.string().required(),
+      responsible: Joi.string().required(),
+      deliveryAddress: Joi.object({
+        comuna: Joi.string().required(),
+        dpto: Joi.string().required(),
+        firstName: Joi.string().required(),
+        homeType: Joi.string().required(),
+        phone: Joi.string().required(),
+        region: Joi.string().required(),
+        fullAddress: Joi.string().required().allow(''),
+        streetName: Joi.string().required(),
+        streetNumber: Joi.string().required(),
+        placeId: Joi.string().required(),
+        isExactAddress: Joi.boolean().required(),
+        latitude: Joi.string().required(),
+        longitude: Joi.string().required(),
+      }),
+    });
+
+    const { error } = updateDeliveryAddressSchema.validate(payload);
+
+    if (error) {
+      throw new ApiResponse(HttpCodes.BAD_REQUEST, updateDeliveryAddressSchema, error.message);
+    }
+
+    const ordenAntigua = await this.ordenRepository.findOrderById(payload.orderId);
+
+    if (!ordenAntigua)
+      throw new ApiResponse(
+        HttpCodes.BAD_REQUEST,
+        ordenAntigua,
+        `Error al buscar la orden con id: ${payload.orderId} para actualizar la dirección de entrega.`
+      );
+
+    const updateDeliveryVO = new OrdenOValue().updateDeliveryAddress(payload);
+
+    const ordenActualizada = await this.ordenRepository.updateDeliveryAddress(updateDeliveryVO);
+
+    if (!ordenActualizada) {
+      throw new ApiResponse(
+        HttpCodes.BAD_REQUEST,
+        ordenActualizada,
+        'Error al actualizar la dirección de entrega de la orden.'
+      );
+    }
+
+    console.log(
+      '----- Dirección de Entrega Actualizada: ',
+      ordenActualizada.id,
+      ' con dirección: ',
+      ordenActualizada.delivery.delivery_address
+    );
+
+    await this.updateOrderHistory({
+      id: payload.orderId,
+      type: 'direccion-entrega',
+      responsible: payload.responsible,
+      changeFrom: generateFullAdress(ordenAntigua.delivery.delivery_address),
+      changeTo: generateFullAdress(ordenActualizada.delivery.delivery_address),
+      aditionalInfo: {
+        product_sku: '',
+        comments: '',
+      },
+    });
   };
 
   orderSeguroComplementario = async (order: OrdenEntity) => {

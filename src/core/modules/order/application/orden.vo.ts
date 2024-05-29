@@ -6,7 +6,12 @@ import { GenerarBoletaPayload } from '../domain/documentos_tributarios.interface
 import { TipoPago } from '../domain/utils/diccionario/tipoPago';
 import { GenerarOrdenDeCourierPayload } from '../domain/courier.interface';
 import { getTipoDelivery } from '../domain/utils/diccionario/tipoDelivery';
-import { IAsignarCourier, IAsignarDocumentosTributarios, IUpdateStatusOderObservation } from 'src/interface/event';
+import {
+  IAsignarCourier,
+  IAsignarDocumentosTributarios,
+  IUpdateDeliveryAddress,
+  IUpdateStatusOderObservation,
+} from 'src/interface/event';
 import {
   IGenerarSeguroComplementario,
   IGuardarSeguroComplementario,
@@ -14,7 +19,11 @@ import {
 import { AdminOrderEntity } from 'src/interface/adminOrder.entity';
 import { CreateCompleteOrderEntity } from 'src/interface/crearOrdenCompleta';
 import { generateInitialStatusOrder } from '../domain/utils/generateInitialStatusOrder';
-import { IAsignarDocumentosTributariosPayload } from '../domain/order.respository.interface';
+import {
+  IAsignarDocumentosTributariosPayload,
+  IUpdateDeliveryAddressPayload,
+} from '../domain/order.respository.interface';
+import { generateFullAdress } from '../domain/utils/generateFullAdress';
 
 export class OrdenOValue {
   completeOrderFromEcommerce = (order: EcommerceOrderEntity): ICrearOrden => {
@@ -48,6 +57,7 @@ export class OrdenOValue {
           firstName: order.delivery.delivery_address.firstName,
           homeType: order.delivery.delivery_address.homeType,
           phone: order.delivery.delivery_address.phone,
+          fullAddress: generateFullAdress(order.delivery.delivery_address),
           region: order.delivery.delivery_address.region,
           streetName: order.delivery.delivery_address.streetName,
           streetNumber: order.delivery.delivery_address.streetNumber,
@@ -209,6 +219,7 @@ export class OrdenOValue {
           homeType: order.delivery.delivery_address.homeType,
           phone: order.delivery.delivery_address.phone,
           region: order.delivery.delivery_address.region,
+          fullAddress: generateFullAdress(order.delivery.delivery_address),
           streetName: order.delivery.delivery_address.streetName,
           streetNumber: order.delivery.delivery_address.streetNumber,
           placeId: order.delivery.delivery_address.placeId,
@@ -332,6 +343,7 @@ export class OrdenOValue {
           homeType: order.delivery.delivery_address.homeType,
           phone: order.delivery.delivery_address.phone,
           region: order.delivery.delivery_address.region,
+          fullAddress: generateFullAdress(order.delivery.delivery_address),
           streetName: order.delivery.delivery_address.streetName,
           streetNumber: order.delivery.delivery_address.streetNumber,
           placeId: order.delivery.delivery_address.placeId,
@@ -476,6 +488,7 @@ export class OrdenOValue {
           phone: order.delivery.delivery_address.phone,
           region: order.delivery.delivery_address.region,
           streetName: order.delivery.delivery_address.streetName,
+          fullAddress: generateFullAdress(order.delivery.delivery_address),
           streetNumber: order.delivery.delivery_address.streetNumber,
           placeId: order.delivery.delivery_address.placeId,
           isExactAddress: order.delivery.delivery_address.isExactAddress,
@@ -751,6 +764,26 @@ export class OrdenOValue {
           referenceId: payload.detallesProductoEnvio.productos[index].referenceId,
         };
       }),
+    };
+  };
+
+  updateDeliveryAddress = (payload: IUpdateDeliveryAddress): IUpdateDeliveryAddressPayload => {
+    return {
+      orderId: payload.orderId,
+      deliveryAddress: {
+        comuna: payload.deliveryAddress.comuna,
+        dpto: payload.deliveryAddress.dpto,
+        firstName: payload.deliveryAddress.firstName,
+        homeType: payload.deliveryAddress.homeType,
+        phone: payload.deliveryAddress.phone,
+        region: payload.deliveryAddress.region,
+        streetName: payload.deliveryAddress.streetName,
+        streetNumber: payload.deliveryAddress.streetNumber,
+        placeId: payload.deliveryAddress.placeId,
+        isExactAddress: payload.deliveryAddress.isExactAddress,
+        latitude: payload.deliveryAddress.latitude,
+        longitude: payload.deliveryAddress.longitude,
+      },
     };
   };
 }

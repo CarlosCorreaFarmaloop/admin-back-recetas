@@ -1,6 +1,7 @@
 import {
   Billing,
   BillingDelivery,
+  DeliveryAddress,
   DeliveryTracking,
   EstadoCredencial,
   IBillingStatus,
@@ -125,4 +126,9 @@ export interface IUpdateTrackingNumber {
   id: string;
   trackingNumber: string;
   responsible: string;
+}
+
+export interface IUpdateDeliveryAddressPayload {
+  orderId: string;
+  deliveryAddress: DeliveryAddress;
 }

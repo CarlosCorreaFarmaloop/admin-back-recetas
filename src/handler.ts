@@ -20,6 +20,7 @@ import {
   IUpdateTrackingNumber,
   IUpdateStatusOderObservation,
   IUpdateStatusOrder,
+  IUpdateDeliveryAddress,
 } from './interface/event';
 import {
   IUpdatePrescriptionState,
@@ -54,12 +55,12 @@ export const handler = async (event: SQSEvent, context: Context, callback: Callb
     //   return { statusCode: 200, body: JSON.stringify(event) };
     // }
 
-    const bodyEvent: EventBridgeEvent<string, IEventDetail> = JSON.parse(event.Records[0].body);
-    const { origin, body, action } = bodyEvent.detail;
+    // const bodyEvent: EventBridgeEvent<string, IEventDetail> = JSON.parse(event.Records[0].body);
+    // const { origin, body, action } = bodyEvent.detail;
 
     // Only Development Environment
-    // const bodyDetail = JSON.parse(event.body);
-    // const { origin, body, action } = bodyDetail;
+    const bodyDetail = JSON.parse(event.body);
+    const { origin, body, action } = bodyDetail;
 
     const orderRespository = new OrdenMongoRepository();
     const cotizacionRespository = new CotizacionRepository();
@@ -246,6 +247,10 @@ export const handler = async (event: SQSEvent, context: Context, callback: Callb
 
     if (origin === 'admin' && action === 'actualizar-numero-seguimiento') {
       await orderUseCase.updateTrackingNumber(body as IUpdateTrackingNumber);
+    }
+
+    if (origin === 'admin' && action === 'actualizar-direccion-delivery') {
+      await orderUseCase.updateDeliveryAddress(body as IUpdateDeliveryAddress);
     }
 
     // ---------- Documentos Tributarios ----------------
