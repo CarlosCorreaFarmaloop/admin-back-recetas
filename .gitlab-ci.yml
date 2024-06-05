@@ -5,5 +5,5 @@ include:
 
 variables:
   LAMBDA_RUNTIME: 'nodejs16.x'
-  APP_NAME: 'create-order'
+  APP_NAME: 'admin-back-subscription-core'
   REGIONS: 'us-east-1'

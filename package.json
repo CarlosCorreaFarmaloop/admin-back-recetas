@@ -1,5 +1,5 @@
 {
-  "name": "create-order",
+  "name": "admin-back-subscription-core",
   "main": "handler.js",
   "scripts": {
     "dev": "serverless offline start --reloadHandler",
@@ -9,18 +9,16 @@
     "prettier": "prettier --check ./src"
   },
   "dependencies": {
-    "@aws-sdk/client-eventbridge": "^3.554.0",
-    "@aws-sdk/client-sqs": "^3.556.0",
-    "aws-lambda": "^1.0.7",
-    "joi": "^17.12.3",
-    "mongodb": "6.3.0",
-    "mongoose": "^8.3.1",
-    "uuid": "^9.0.1"
+    "@aws-sdk/client-eventbridge": "3.554.0",
+    "aws-lambda": "1.0.7",
+    "joi": "17.12.3",
+    "mongoose": "8.3.1",
+    "uuid": "9.0.1"
   },
   "devDependencies": {
-    "@types/aws-lambda": "^8.10.137",
+    "@types/aws-lambda": "8.10.137",
     "@types/jest": "29.5.2",
-    "@types/uuid": "^9.0.8",
+    "@types/uuid": "9.0.8",
     "@typescript-eslint/eslint-plugin": "5.61.0",
     "eslint": "8.44.0",
     "eslint-config-prettier": "8.8.0",

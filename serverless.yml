@@ -1,4 +1,4 @@
-service: admin-back-order-core
+service: admin-back-subscription-core
 frameworkVersion: '3'
 
 provider:
@@ -22,5 +22,5 @@ functions:
     timeout: 12
     events:
       - http:
-          method: POST
-          path: /create-order
+          method: ANY
+          path: /
