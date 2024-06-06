@@ -17,12 +17,12 @@ export const handler = async (event: SQSEvent, _context: Context, _callback: Cal
 
     await connectoToMongoDB();
 
-    const { accion, payload } = bodyEvent;
+    const { action, payload } = bodyEvent;
 
     const subscriptionRepository = new SubscriptionMongoRepository();
     const subscriptionUseCase = new SubscriptionUseCase(subscriptionRepository);
 
-    if (accion === 'crear-suscripcion') {
+    if (action === 'crear-suscripcion') {
       const { message, status } = Create_Subscription_Dto(payload);
       if (!status) {
         console.log('Error en Dto: ', JSON.stringify({ message }, null, 2));
