@@ -176,4 +176,4 @@ const SubscriptionSchema = new mongoose.Schema(
   { _id: false }
 );
 
-export const SubscriptionModel = model<SubscriptionEntity>('movements', SubscriptionSchema);
+export const SubscriptionModel = model<SubscriptionEntity>('subscriptions', SubscriptionSchema);

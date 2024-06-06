@@ -3,7 +3,7 @@ import { CreateSubscriptionPayload } from '../core/modules/subscription/domain/s
 export type EventInput = CreateSubscriptionEventInput;
 
 export interface CreateSubscriptionEventInput {
-  accion: 'generar-suscripcion';
+  accion: 'crear-suscripcion';
   origen: string;
   payload: CreateSubscriptionPayload;
 }

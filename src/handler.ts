@@ -22,7 +22,7 @@ export const handler = async (event: SQSEvent, _context: Context, _callback: Cal
     const subscriptionRepository = new SubscriptionMongoRepository();
     const subscriptionUseCase = new SubscriptionUseCase(subscriptionRepository);
 
-    if (accion === 'generar-suscripcion') {
+    if (accion === 'crear-suscripcion') {
       const { message, status } = Create_Subscription_Dto(payload);
       if (!status) {
         console.log('Error en Dto: ', JSON.stringify({ message }, null, 2));
