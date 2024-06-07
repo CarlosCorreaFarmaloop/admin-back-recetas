@@ -41,7 +41,6 @@ const createSchema = Joi.object({
         bioequivalent: Joi.boolean().required(),
         cooled: Joi.boolean().required(),
         ean: Joi.string().required().allow(''),
-        expiration: Joi.number().required(),
         fullName: Joi.string().required(),
         laboratoryName: Joi.string().required().allow(''),
         liquid: Joi.boolean().required(),

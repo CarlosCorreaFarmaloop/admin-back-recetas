@@ -48,7 +48,6 @@ const ProductSchema = new mongoose.Schema(
     bioequivalent: Boolean,
     cooled: Boolean,
     ean: String,
-    expiration: Number,
     fullName: String,
     laboratoryName: String,
     liquid: Boolean,
