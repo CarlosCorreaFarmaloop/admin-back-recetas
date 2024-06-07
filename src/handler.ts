@@ -4,7 +4,10 @@ import { connectoToMongoDB } from './infra/db/mongo';
 import { EventInput } from './interfaces/event';
 import { SubscriptionUseCase } from './core/modules/subscription/application/subscription.usecase';
 import { SubscriptionMongoRepository } from './infra/repository/subscription/subscription.mongo.repository';
+import { TokenManagerService } from './infra/services/tokenManager/tokenManager.service';
+import { TransbankService } from './infra/services/transbank/transbank.service';
 import { Create_Subscription_Dto } from './infra/dto/subscription/create.dto';
+import { Charge_Subscription_Dto } from './infra/dto/subscription/charge.dto';
 
 export const handler = async (event: SQSEvent, _context: Context, _callback: Callback) => {
   try {
@@ -19,8 +22,11 @@ export const handler = async (event: SQSEvent, _context: Context, _callback: Cal
 
     const { action, payload } = bodyEvent;
 
+    const tokenManagerService = new TokenManagerService();
+    const transbankService = new TransbankService();
+
     const subscriptionRepository = new SubscriptionMongoRepository();
-    const subscriptionUseCase = new SubscriptionUseCase(subscriptionRepository);
+    const subscriptionUseCase = new SubscriptionUseCase(subscriptionRepository, tokenManagerService, transbankService);
 
     if (action === 'crear-suscripcion') {
       const { message, status } = Create_Subscription_Dto(payload);
@@ -30,6 +36,17 @@ export const handler = async (event: SQSEvent, _context: Context, _callback: Cal
       }
 
       const response = await subscriptionUseCase.createSubscription(payload);
+      return { statusCode: response.status, body: JSON.stringify({ message: response.message, data: response.data }) };
+    }
+
+    if (action === 'cobrar-suscripcion') {
+      const { message, status } = Charge_Subscription_Dto(payload);
+      if (!status) {
+        console.log('Error en Dto: ', JSON.stringify({ message }, null, 2));
+        throw new Error(message);
+      }
+
+      const response = await subscriptionUseCase.generateCharge(payload.id);
       return { statusCode: response.status, body: JSON.stringify({ message: response.message, data: response.data }) };
     }
 

@@ -14,7 +14,11 @@ export class AdminNotificationService implements IAdminNotificationService {
     this.eventBridgeClient = new EventBridgeClient({ region: 'us-east-1' });
   }
 
-  public async notifyPaidSubscription(subscription: SubscriptionEntity) {
+  public async notifyOrderSubscription(
+    subscription: SubscriptionEntity,
+    shipmentSchedule: ShipmentSchedule,
+    newId: string
+  ) {
     try {
       const params = new PutEventsCommand({
         Entries: [
@@ -31,6 +35,7 @@ export class AdminNotificationService implements IAdminNotificationService {
 
       if (response?.FailedEntryCount && response?.FailedEntryCount > 0) {
         console.error('Error al notificar suscripcion pagada: ', JSON.stringify({ params, response }, null, 2));
+        return false;
       }
 
       return true;
@@ -47,7 +52,7 @@ export class AdminNotificationService implements IAdminNotificationService {
     shipmentSchedule: ShipmentSchedule,
     attempt: Attempt
   ): SubscriptionOrder {
-    const { customer, delivery, resume } = subscription;
+    const { customer, delivery, discount, resume } = subscription;
 
     return {
       customer,
@@ -89,6 +94,19 @@ export class AdminNotificationService implements IAdminNotificationService {
           status: 'Aprobado',
           wallet: 'Transbank',
         },
+      },
+      productsOrder: [],
+      resumeOrder: {
+        canal: '',
+        cartId: '',
+        clasification: '',
+        convenio: '',
+        deliveryPrice: delivery.pricePaid,
+        discount,
+        nroProducts: resume.numberOfProducts,
+        seller: '',
+        subtotal: resume.subtotal,
+        totalPrice: resume.total,
       },
     };
   }

@@ -2,9 +2,9 @@ import { SubscriptionEntity, ShipmentSchedule } from '../../../core/modules/subs
 
 export interface IAdminNotificationService {
   notifyOrderSubscription: (
-    newId: string,
     subscription: SubscriptionEntity,
-    shipmentSchedule: ShipmentSchedule
+    shipmentSchedule: ShipmentSchedule,
+    newId: string
   ) => Promise<boolean>;
 }
 
