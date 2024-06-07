@@ -97,7 +97,9 @@ const ShipmentScheduleSchema = new mongoose.Schema(
       new mongoose.Schema({
         cardNumber: String,
         externalCode: String,
+        externalMessage: String,
         externalStatus: String,
+        paymentMethod: String,
         status: String,
         transactionDate: Number,
       }),
@@ -162,6 +164,7 @@ const SubscriptionSchema = new mongoose.Schema(
     nextPaymentDate: Number,
     nextShipmentDate: Number,
     currentPaymentId: String,
+    currentShipmentId: String,
     generalStatus: String,
     paymentStatus: String,
     progressStatus: String,

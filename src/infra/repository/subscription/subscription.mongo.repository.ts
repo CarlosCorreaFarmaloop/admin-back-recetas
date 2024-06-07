@@ -8,8 +8,8 @@ export class SubscriptionMongoRepository implements SubscriptionRepository {
       return await SubscriptionModel.create(subscription);
     } catch (error) {
       const err = error as Error;
-      console.log('Error al crear suscripcion en MongoDB: ', err.message);
-      throw new Error(err.message);
+      console.log('Error when creating subscription in MongoDB: ', err.message);
+      throw new Error('Error when creating subscription in MongoDB');
     }
   }
 
@@ -18,15 +18,32 @@ export class SubscriptionMongoRepository implements SubscriptionRepository {
       const response = await SubscriptionModel.findOne({ id });
 
       if (!response?.toObject()) {
-        console.log(`No se encontro la suscripcion: ${id}`);
-        throw new Error('No se encontro la suscripcion.');
+        console.log(`Subscription not found: ${id}`);
+        throw new Error('Subscription not found.');
       }
 
       return response?.toObject();
     } catch (error) {
       const err = error as Error;
-      console.log('Error al obtener suscripcion de MongoDB: ', err.message);
-      throw new Error(err.message);
+      console.log('Error getting MongoDB subscription: ', err.message);
+      throw new Error('Error getting MongoDB subscription');
+    }
+  }
+
+  async update(id: string, toUpdate: Partial<SubscriptionEntity>) {
+    try {
+      const response = await SubscriptionModel.findOneAndUpdate({ id }, { $set: toUpdate });
+
+      if (!response?.toObject()) {
+        console.log(`Subscription to update not found: ${id}`);
+        throw new Error('Subscription to update not found.');
+      }
+
+      return response?.toObject();
+    } catch (error) {
+      const err = error as Error;
+      console.log('Error updating database subscription: ', JSON.stringify(err.message, null, 2));
+      throw new Error('Error updating database subscription.');
     }
   }
 }

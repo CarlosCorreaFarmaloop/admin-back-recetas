@@ -14,6 +14,7 @@ export interface SubscriptionEntity {
   nextPaymentDate: number;
   nextShipmentDate: number;
   currentPaymentId: string;
+  currentShipmentId: string;
   generalStatus: GeneralStatus;
   paymentStatus: PaymentStatus;
   progressStatus: ProgressStatus;
@@ -145,13 +146,17 @@ export interface ShipmentSchedule {
 
   numberOfAttempts: number;
   maxAttempts: number;
-  attempts: Array<{
-    cardNumber: string;
-    externalCode: string;
-    externalStatus: string;
-    status: AttemptStatus;
-    transactionDate: number;
-  }>;
+  attempts: Attempt[];
+}
+
+export interface Attempt {
+  cardNumber: string;
+  externalCode: string;
+  externalMessage: string;
+  externalStatus: string;
+  paymentMethod: string;
+  status: AttemptStatus;
+  transactionDate: number;
 }
 
 export interface Tracking<T> {
