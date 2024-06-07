@@ -59,7 +59,7 @@ const ProductSchema = new mongoose.Schema(
     productSubCategory: [String],
     quantityPerContainer: String,
     recommendations: String,
-    requirePrescription: Boolean,
+    requiresPrescription: Boolean,
     shortName: String,
   },
   { _id: false }

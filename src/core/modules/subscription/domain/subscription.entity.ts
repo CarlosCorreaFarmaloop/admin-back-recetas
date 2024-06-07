@@ -94,12 +94,14 @@ export interface Product {
   productSubCategory: string[];
   quantityPerContainer: string;
   recommendations: string;
-  requirePrescription: boolean;
+  requiresPrescription: boolean;
   shortName: string;
 }
 
 export interface Prescription {
   file: string;
+  maxNumberOfUses: number;
+  numberOfUses: number;
   state: 'Pending' | 'Rejected' | 'Approved' | 'Approved_With_Comments' | '';
   stateDate: number;
   validation: PrescriptionValidation;

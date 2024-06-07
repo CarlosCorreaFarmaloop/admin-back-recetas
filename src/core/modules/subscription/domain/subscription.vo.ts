@@ -13,6 +13,8 @@ export class SubscriptionVO {
         ...el,
         prescription: {
           file: el.prescription,
+          maxNumberOfUses: 0,
+          numberOfUses: 0,
           state: 'Pending',
           stateDate: todayTimestmap,
           validation: { comments: '', responsible: '', rut: '' },

@@ -52,7 +52,7 @@ const createSchema = Joi.object({
         productSubCategory: Joi.array().items(Joi.string()).required(),
         quantityPerContainer: Joi.string().required().allow(''),
         recommendations: Joi.string().required().allow(''),
-        requirePrescription: Joi.boolean().required(),
+        requiresPrescription: Joi.boolean().required(),
         shortName: Joi.string().required(),
       }).unknown()
     )
