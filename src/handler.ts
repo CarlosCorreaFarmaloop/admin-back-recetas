@@ -10,17 +10,17 @@ export const handler = async (event: SQSEvent, _context: Context, _callback: Cal
   try {
     console.log('Event: ', JSON.stringify(event, null, 2));
 
-    const { body, trigger } = validateLambdaEvent(event);
-    console.log('Parsed Event: ', JSON.stringify(event, null, 2));
+    const parsedEvent = validateLambdaEvent(event);
+    console.log('Parsed Event: ', JSON.stringify(parsedEvent, null, 2));
 
     await connectoToMongoDB();
 
-    if (trigger === 'SQS') {
-      return await SQSController(body);
+    if (parsedEvent.trigger === 'SQS') {
+      return await SQSController(parsedEvent.body);
     }
 
-    if (trigger === 'APIGateway') {
-      return await APIController(body);
+    if (parsedEvent.trigger === 'APIGateway') {
+      return await APIController(parsedEvent.body);
     }
 
     return { statusCode: 200, body: JSON.stringify(event) };
