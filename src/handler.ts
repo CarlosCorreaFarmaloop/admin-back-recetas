@@ -53,9 +53,9 @@ const validateLambdaEvent = (event: SQSEvent | APIGatewayProxyEventV2): EventInp
     }
   }
 
-  if ('body' in event && event.body) {
+  if ('requestContext' in event) {
     try {
-      const parsedEventBody = JSON.parse(event.body);
+      const parsedEventBody = event.body ? JSON.parse(event.body) : null;
       const http = event.requestContext.http;
 
       return {
