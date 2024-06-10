@@ -1,6 +1,7 @@
 import { SubscriptionModel } from '../../models/subscription.model';
 import { SubscriptionRepository } from '../../../core/modules/subscription/domain/subscription.repository';
 import {
+  Delivery,
   GeneralStatus,
   Prescription,
   SubscriptionEntity,
@@ -36,7 +37,7 @@ export class SubscriptionMongoRepository implements SubscriptionRepository {
 
   async update(id: string, toUpdate: Partial<SubscriptionEntity>) {
     try {
-      const response = await SubscriptionModel.findOneAndUpdate({ id }, { $set: toUpdate });
+      const response = await SubscriptionModel.findOneAndUpdate({ id }, { $set: toUpdate }, { new: true });
 
       if (!response?.toObject()) {
         console.log(`Subscription to update not found: ${id}`);
@@ -46,8 +47,8 @@ export class SubscriptionMongoRepository implements SubscriptionRepository {
       return response.toObject();
     } catch (error) {
       const err = error as Error;
-      console.log('Error updating database subscription: ', JSON.stringify(err.message, null, 2));
-      throw new Error('Error updating database subscription.');
+      console.log('Error updating MongoDB subscription: ', JSON.stringify(err.message, null, 2));
+      throw new Error('Error updating MongoDB subscription.');
     }
   }
 
@@ -77,8 +78,37 @@ export class SubscriptionMongoRepository implements SubscriptionRepository {
       return response.toObject();
     } catch (error) {
       const err = error as Error;
-      console.log('Error updating database subscription prescription: ', JSON.stringify(err.message, null, 2));
-      throw new Error('Error updating database subscription prescription.');
+      console.log('Error updating MongoDB subscription prescription: ', JSON.stringify(err.message, null, 2));
+      throw new Error('Error updating MongoDB subscription prescription.');
     }
+  }
+
+  async updateDelivery(id: string, toUpdate: Partial<Delivery>) {
+    try {
+      const setObject = this.buildSetObject('delivery', toUpdate);
+
+      const response = await SubscriptionModel.findOneAndUpdate({ id }, { $set: setObject }, { new: true });
+
+      if (!response?.toObject()) {
+        console.log(`Subscription to update not found: ${id}`);
+        throw new Error('Subscription to update not found.');
+      }
+
+      return response.toObject();
+    } catch (error) {
+      const err = error as Error;
+      console.log('Error updating MongoDB subscription delivery: ', JSON.stringify(err.message, null, 2));
+      throw new Error('Error updating MongoDB subscription delivery.');
+    }
+  }
+
+  private buildSetObject(path: string, updates: Partial<any>): Record<string, any> {
+    const setObject: Record<string, any> = {};
+
+    Object.keys(updates).forEach((key) => {
+      setObject[`${path}.${key}`] = updates[key];
+    });
+
+    return setObject;
   }
 }

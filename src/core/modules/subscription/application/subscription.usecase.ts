@@ -4,7 +4,7 @@ import { SubscriptionRepository } from '../domain/subscription.repository';
 import { CreateSubscriptionPayload, SubscriptionVO } from '../domain/subscription.vo';
 import { ApiResponse, HttpCodes } from './api.response';
 import { ISubscriptionUseCase } from './subscription.usecase.interface';
-import { GeneralStatus, SubscriptionEntity } from '../domain/subscription.entity';
+import { Delivery, GeneralStatus, SubscriptionEntity } from '../domain/subscription.entity';
 
 export class SubscriptionUseCase implements ISubscriptionUseCase {
   constructor(
@@ -70,6 +70,16 @@ export class SubscriptionUseCase implements ISubscriptionUseCase {
     }
 
     return { data: response, message: 'Successfully obtained subscriptions.', status: HttpCodes.OK };
+  }
+
+  async updateDelivery(id: string, deliveryToUpdate: Omit<Delivery, 'discount' | 'price' | 'pricePaid'>) {
+    const response = await this.subscriptionRepository.updateDelivery(id, deliveryToUpdate);
+
+    if (!response) {
+      throw new ApiResponse(HttpCodes.BAD_REQUEST, response, 'Error updating subscription delivery.');
+    }
+
+    return { data: response, message: 'Subscription delivery successfully updated.', status: HttpCodes.OK };
   }
 
   private validateIsLastCharge(subscription: SubscriptionEntity) {

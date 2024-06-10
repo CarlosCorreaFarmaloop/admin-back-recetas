@@ -23,4 +23,4 @@ functions:
     events:
       - http:
           method: ANY
-          path: /
+          path: /{proxy+}

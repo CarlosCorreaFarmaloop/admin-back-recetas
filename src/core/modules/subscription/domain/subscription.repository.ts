@@ -1,4 +1,4 @@
-import { GeneralStatus, Prescription, SubscriptionEntity } from './subscription.entity';
+import { Delivery, GeneralStatus, Prescription, SubscriptionEntity } from './subscription.entity';
 
 export interface SubscriptionRepository {
   create: (subscription: SubscriptionEntity) => Promise<SubscriptionEntity>;
@@ -6,4 +6,5 @@ export interface SubscriptionRepository {
   getByGeneralStatus: (generalStatus: GeneralStatus) => Promise<SubscriptionEntity[]>;
   update: (id: string, toUpdate: Partial<SubscriptionEntity>) => Promise<SubscriptionEntity>;
   updateProductPrescription: (id: string, sku: string, prescription: Prescription) => Promise<SubscriptionEntity>;
+  updateDelivery: (id: string, toUpdate: Partial<Delivery>) => Promise<SubscriptionEntity>;
 }
