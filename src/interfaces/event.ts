@@ -1,9 +1,9 @@
-import { ApiGatewayEventInput } from './apigateway';
+import { APIGatewayEventInput } from './apigateway';
 import { SQSEventInput } from './sqs';
 
 export type EventInput =
   | {
-      body: ApiGatewayEventInput;
+      body: APIGatewayEventInput;
       trigger: 'APIGateway';
     }
   | {
