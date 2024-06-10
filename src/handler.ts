@@ -1,4 +1,4 @@
-import { SQSEvent, EventBridgeEvent, Context, Callback, APIGatewayProxyEvent } from 'aws-lambda';
+import { SQSEvent, EventBridgeEvent, Context, Callback, APIGatewayProxyEventV2 } from 'aws-lambda';
 
 import { EventInput } from './interfaces/event';
 import { SQSEventInput } from './interfaces/sqs';
@@ -37,7 +37,7 @@ export const handler = async (event: SQSEvent, _context: Context, _callback: Cal
   }
 };
 
-const validateLambdaEvent = (event: SQSEvent | APIGatewayProxyEvent): EventInput => {
+const validateLambdaEvent = (event: SQSEvent | APIGatewayProxyEventV2): EventInput => {
   if ('Records' in event && event.Records.length > 0) {
     try {
       const parsedEventBody = JSON.parse(event.Records[0].body) as EventBridgeEvent<string, SQSEventInput>;
@@ -52,12 +52,13 @@ const validateLambdaEvent = (event: SQSEvent | APIGatewayProxyEvent): EventInput
   if ('body' in event && event.body) {
     try {
       const parsedEventBody = JSON.parse(event.body);
+      const http = event.requestContext.http;
 
       return {
         body: {
           body: parsedEventBody,
-          method: event.httpMethod,
-          path: event.path,
+          method: http.method,
+          path: http.path,
         },
         trigger: 'APIGateway',
       };
