@@ -146,36 +146,33 @@ const ResumeSchema = new mongoose.Schema(
   { _id: false }
 );
 
-const SubscriptionSchema = new mongoose.Schema(
-  {
-    id: String,
-    createdAt: Number,
-    updatedAt: Number,
+const SubscriptionSchema = new mongoose.Schema({
+  id: String,
+  createdAt: Number,
+  updatedAt: Number,
 
-    customer: String,
-    delivery: DeliverySchema,
-    discount: DiscountSchema,
-    products: [ProductSchema],
+  customer: String,
+  delivery: DeliverySchema,
+  discount: DiscountSchema,
+  products: [ProductSchema],
 
-    paymentMethods: [PaymentMethodSchema],
-    shipment: ShipmentSchema,
+  paymentMethods: [PaymentMethodSchema],
+  shipment: ShipmentSchema,
 
-    nextPaymentDate: Number,
-    nextShipmentDate: Number,
-    currentPaymentId: String,
-    currentShipmentId: String,
-    generalStatus: String,
-    paymentStatus: String,
-    progressStatus: String,
+  nextPaymentDate: Number,
+  nextShipmentDate: Number,
+  currentPaymentId: String,
+  currentShipmentId: String,
+  generalStatus: String,
+  paymentStatus: String,
+  progressStatus: String,
 
-    trackingGeneralStatus: [TrackingSchema],
-    trackingPaymentStatus: [TrackingSchema],
-    trackingProgressStatus: [TrackingSchema],
+  trackingGeneralStatus: [TrackingSchema],
+  trackingPaymentStatus: [TrackingSchema],
+  trackingProgressStatus: [TrackingSchema],
 
-    observations: [ObservationSchema],
-    resume: ResumeSchema,
-  },
-  { _id: false }
-);
+  observations: [ObservationSchema],
+  resume: ResumeSchema,
+});
 
 export const SubscriptionModel = model<SubscriptionEntity>('subscriptions', SubscriptionSchema);
