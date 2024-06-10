@@ -13,6 +13,10 @@ export const handler = async (event: SQSEvent, _context: Context, _callback: Cal
     const parsedEvent = validateLambdaEvent(event);
     console.log('Parsed Event: ', JSON.stringify(parsedEvent, null, 2));
 
+    if (parsedEvent.trigger === 'APIGateway' && parsedEvent.body.method === 'OPTIONS') {
+      return CORSResponse();
+    }
+
     await connectoToMongoDB();
 
     if (parsedEvent.trigger === 'SQS') {
@@ -70,4 +74,16 @@ const validateLambdaEvent = (event: SQSEvent | APIGatewayProxyEventV2): EventInp
 
   console.error('Event does not contain valid records or a proper body: ', JSON.stringify(event, null, 2));
   throw new Error('Event does not contain valid records or a proper body.');
+};
+
+const CORSResponse = () => {
+  return {
+    statusCode: 200,
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Headers': 'Content-Type,Authorization,pragma,cache-control',
+      'Access-Control-Allow-Methods': 'OPTIONS,POST,GET',
+      'Access-Control-Allow-Credentials': 'true',
+    },
+  };
 };
