@@ -1,53 +1,26 @@
 import { SQSEvent, EventBridgeEvent, Context, Callback, APIGatewayProxyEvent } from 'aws-lambda';
 
-import { connectoToMongoDB } from './infra/db/mongo';
 import { EventInput } from './interfaces/event';
-import { SubscriptionUseCase } from './core/modules/subscription/application/subscription.usecase';
-import { SubscriptionMongoRepository } from './infra/repository/subscription/subscription.mongo.repository';
-import { TokenManagerService } from './infra/services/tokenManager/tokenManager.service';
-import { TransbankService } from './infra/services/transbank/transbank.service';
-import { Create_Subscription_Dto } from './infra/dto/subscription/create.dto';
-import { Charge_Subscription_Dto } from './infra/dto/subscription/charge.dto';
+import { SQSEventInput } from './interfaces/sqs';
+import { connectoToMongoDB } from './infra/db/mongo';
+import { SQSController } from './infra/controller/sqs.controller';
+import { APIController } from './infra/controller/api.controller';
 
 export const handler = async (event: SQSEvent, _context: Context, _callback: Callback) => {
   try {
-    console.log('Evento: ', JSON.stringify(event, null, 2));
+    console.log('Event: ', JSON.stringify(event, null, 2));
 
-    const bodyEvent = validateLambdaEvent(event);
-    if (!bodyEvent) {
-      throw new Error('Datos del evento no válidos.');
-    }
+    const { body, trigger } = validateLambdaEvent(event);
+    console.log('Parsed Event: ', JSON.stringify(event, null, 2));
 
     await connectoToMongoDB();
 
-    const { action, payload } = bodyEvent;
-
-    const tokenManagerService = new TokenManagerService();
-    const transbankService = new TransbankService();
-
-    const subscriptionRepository = new SubscriptionMongoRepository();
-    const subscriptionUseCase = new SubscriptionUseCase(subscriptionRepository, tokenManagerService, transbankService);
-
-    if (action === 'crear-suscripcion') {
-      const { message, status } = Create_Subscription_Dto(payload);
-      if (!status) {
-        console.log('Error en Dto: ', JSON.stringify({ message }, null, 2));
-        throw new Error(message);
-      }
-
-      const response = await subscriptionUseCase.createSubscription(payload);
-      return { statusCode: response.status, body: JSON.stringify({ message: response.message, data: response.data }) };
+    if (trigger === 'SQS') {
+      return await SQSController(body);
     }
 
-    if (action === 'cobrar-suscripcion') {
-      const { message, status } = Charge_Subscription_Dto(payload);
-      if (!status) {
-        console.log('Error en Dto: ', JSON.stringify({ message }, null, 2));
-        throw new Error(message);
-      }
-
-      const response = await subscriptionUseCase.generateCharge(payload.id);
-      return { statusCode: response.status, body: JSON.stringify({ message: response.message, data: response.data }) };
+    if (trigger === 'APIGateway') {
+      return await APIController(body);
     }
 
     return { statusCode: 200, body: JSON.stringify(event) };
@@ -64,35 +37,36 @@ export const handler = async (event: SQSEvent, _context: Context, _callback: Cal
   }
 };
 
-const validateLambdaEvent = (event: SQSEvent | APIGatewayProxyEvent): EventInput | null => {
+const validateLambdaEvent = (event: SQSEvent | APIGatewayProxyEvent): EventInput => {
   if ('Records' in event && event.Records.length > 0) {
     try {
-      const parsedEventBody = JSON.parse(event.Records[0].body) as EventBridgeEvent<string, EventInput>;
+      const parsedEventBody = JSON.parse(event.Records[0].body) as EventBridgeEvent<string, SQSEventInput>;
 
-      if (!parsedEventBody.detail) {
-        console.error(
-          'El cuerpo del evento SQS no contiene los campos esperados: ',
-          JSON.stringify(parsedEventBody, null, 2)
-        );
-        return null;
-      }
-
-      return parsedEventBody.detail;
+      return { body: parsedEventBody.detail, trigger: 'SQS' };
     } catch (error) {
-      console.error('Error al parsear el cuerpo del evento SQS: ', error);
-      return null;
+      console.error('Error parsing the SQS event body: ', error);
+      throw new Error('Error parsing the SQS event body.');
     }
   }
 
   if ('body' in event && event.body) {
     try {
-      return JSON.parse(event.body) as EventInput;
+      const parsedEventBody = JSON.parse(event.body);
+
+      return {
+        body: {
+          body: parsedEventBody,
+          method: event.httpMethod,
+          path: event.path,
+        },
+        trigger: 'APIGateway',
+      };
     } catch (error) {
-      console.error('Error al parsear el cuerpo del evento API Gateway: ', error);
-      return null;
+      console.error('Error parsing the API Gateway event body: ', error);
+      throw new Error('Error parsing the API Gateway event body.');
     }
   }
 
-  console.error('El evento no contiene registros válidos ni un cuerpo adecuado: ', JSON.stringify(event, null, 2));
-  return null;
+  console.error('Event does not contain valid records or a proper body: ', JSON.stringify(event, null, 2));
+  throw new Error('Event does not contain valid records or a proper body.');
 };
