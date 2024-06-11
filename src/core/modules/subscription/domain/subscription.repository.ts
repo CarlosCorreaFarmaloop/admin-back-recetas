@@ -5,6 +5,6 @@ export interface SubscriptionRepository {
   get: (id: string) => Promise<SubscriptionEntity>;
   getByGeneralStatus: (generalStatus: GeneralStatus) => Promise<SubscriptionEntity[]>;
   update: (id: string, toUpdate: Partial<SubscriptionEntity>) => Promise<SubscriptionEntity>;
-  updateProductPrescription: (id: string, sku: string, prescription: Prescription) => Promise<SubscriptionEntity>;
   updateDelivery: (id: string, toUpdate: Partial<Delivery>) => Promise<SubscriptionEntity>;
+  updateProductPrescription: (id: string, sku: string, toUpdate: Partial<Prescription>) => Promise<SubscriptionEntity>;
 }

@@ -37,7 +37,6 @@ const ProductSchema = new mongoose.Schema(
     prescription: new mongoose.Schema({
       file: String,
       state: String,
-      stateDate: Number,
       validation: new mongoose.Schema({ comments: String, rut: String, responsible: String }),
     }),
     price: Number,

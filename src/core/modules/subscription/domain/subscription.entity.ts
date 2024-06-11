@@ -103,7 +103,6 @@ export interface Prescription {
   maxNumberOfUses: number;
   numberOfUses: number;
   state: 'Pending' | 'Rejected' | 'Approved' | 'Approved_With_Comments' | '';
-  stateDate: number;
   validation: PrescriptionValidation;
 }
 

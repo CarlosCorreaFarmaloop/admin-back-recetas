@@ -4,7 +4,7 @@ import { SubscriptionRepository } from '../domain/subscription.repository';
 import { CreateSubscriptionPayload, SubscriptionVO } from '../domain/subscription.vo';
 import { ApiResponse, HttpCodes } from './api.response';
 import { ISubscriptionUseCase } from './subscription.usecase.interface';
-import { Delivery, GeneralStatus, SubscriptionEntity } from '../domain/subscription.entity';
+import { Delivery, GeneralStatus, Prescription, SubscriptionEntity } from '../domain/subscription.entity';
 
 export class SubscriptionUseCase implements ISubscriptionUseCase {
   constructor(
@@ -14,7 +14,7 @@ export class SubscriptionUseCase implements ISubscriptionUseCase {
   ) {}
 
   async createSubscription(payload: CreateSubscriptionPayload) {
-    console.log('Entre subscription to create: ', JSON.stringify(payload, null, 2));
+    console.log('Enter subscription to create: ', JSON.stringify(payload, null, 2));
 
     const newSubscription = new SubscriptionVO().create(payload);
     const subscriptionDb = await this.subscriptionRepository.create(newSubscription);
@@ -80,6 +80,20 @@ export class SubscriptionUseCase implements ISubscriptionUseCase {
     }
 
     return { data: response, message: 'Subscription delivery successfully updated.', status: HttpCodes.OK };
+  }
+
+  async updatePrescription(id: string, sku: string, toUpdate: Pick<Prescription, 'file' | 'state' | 'validation'>) {
+    console.log('Enter update product prescription: ', JSON.stringify({ id, sku, toUpdate }, null, 2));
+
+    const response = await this.subscriptionRepository.updateProductPrescription(id, sku, toUpdate);
+
+    if (!response) {
+      throw new ApiResponse(HttpCodes.BAD_REQUEST, response, 'Error updating product prescription.');
+    }
+
+    console.log('Product prescription updated: ', JSON.stringify(response, null, 2));
+
+    return { data: response, message: 'Product prescription successfully updated.', status: HttpCodes.OK };
   }
 
   private validateIsLastCharge(subscription: SubscriptionEntity) {

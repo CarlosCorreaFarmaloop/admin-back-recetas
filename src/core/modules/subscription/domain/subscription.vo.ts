@@ -4,8 +4,6 @@ export class SubscriptionVO {
   create(payload: CreateSubscriptionPayload): SubscriptionEntity {
     const { products } = payload;
 
-    const todayTimestmap = new Date().getTime();
-
     return {
       ...payload,
 
@@ -16,7 +14,6 @@ export class SubscriptionVO {
           maxNumberOfUses: 0,
           numberOfUses: 0,
           state: 'Pending',
-          stateDate: todayTimestmap,
           validation: { comments: '', responsible: '', rut: '' },
         },
       })),

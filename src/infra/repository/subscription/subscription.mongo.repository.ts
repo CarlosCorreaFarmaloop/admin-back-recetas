@@ -62,27 +62,6 @@ export class SubscriptionMongoRepository implements SubscriptionRepository {
     }
   }
 
-  async updateProductPrescription(id: string, sku: string, prescription: Prescription) {
-    try {
-      const response = await SubscriptionModel.findOneAndUpdate(
-        { id },
-        { $set: { 'products.$[elem].prescription': prescription } },
-        { new: true, arrayFilters: [{ 'elem.sku': sku }] }
-      );
-
-      if (!response?.toObject()) {
-        console.log(`Subscription to update not found: ${id}`);
-        throw new Error('Subscription to update not found.');
-      }
-
-      return response.toObject();
-    } catch (error) {
-      const err = error as Error;
-      console.log('Error updating MongoDB subscription prescription: ', JSON.stringify(err.message, null, 2));
-      throw new Error('Error updating MongoDB subscription prescription.');
-    }
-  }
-
   async updateDelivery(id: string, toUpdate: Partial<Delivery>) {
     try {
       const setObject = this.buildSetObject('delivery', toUpdate);
@@ -99,6 +78,29 @@ export class SubscriptionMongoRepository implements SubscriptionRepository {
       const err = error as Error;
       console.log('Error updating MongoDB subscription delivery: ', JSON.stringify(err.message, null, 2));
       throw new Error('Error updating MongoDB subscription delivery.');
+    }
+  }
+
+  async updateProductPrescription(id: string, sku: string, toUpdate: Partial<Prescription>) {
+    try {
+      const setObject = this.buildSetObject('products.$[elem].prescription', toUpdate);
+
+      const response = await SubscriptionModel.findOneAndUpdate(
+        { id },
+        { $set: setObject },
+        { new: true, arrayFilters: [{ 'elem.sku': sku }] }
+      );
+
+      if (!response?.toObject()) {
+        console.log(`Subscription to update not found: ${id}`);
+        throw new Error('Subscription to update not found.');
+      }
+
+      return response.toObject();
+    } catch (error) {
+      const err = error as Error;
+      console.log('Error updating MongoDB subscription prescription: ', JSON.stringify(err.message, null, 2));
+      throw new Error('Error updating MongoDB subscription prescription.');
     }
   }
 

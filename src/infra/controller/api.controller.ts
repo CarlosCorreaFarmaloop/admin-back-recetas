@@ -2,6 +2,7 @@ import { SubscriptionUseCase } from '../../core/modules/subscription/application
 import { APIGatewayEventInput } from '../../interfaces/apigateway';
 import { Get_Subscription_Dto } from '../dto/subscription/getByStatus';
 import { UpdateDelivery_Subscription_Dto } from '../dto/subscription/updateDelivery.dto';
+import { UpdatePrescription_Subscription_Dto } from '../dto/subscription/updatePrescription.dto';
 import { SubscriptionMongoRepository } from '../repository/subscription/subscription.mongo.repository';
 import { TokenManagerService } from '../services/tokenManager/tokenManager.service';
 import { TransbankService } from '../services/transbank/transbank.service';
@@ -36,6 +37,17 @@ export const APIController = async (event: APIGatewayEventInput) => {
     }
 
     const response = await subscriptionUseCase.updateDelivery(body.id, body.delivery);
+    return { statusCode: response.status, body: JSON.stringify({ message: response.message, data: response.data }) };
+  }
+
+  if (path === `${basePath}/update-prescription`) {
+    const { message, status } = UpdatePrescription_Subscription_Dto(body);
+    if (!status) {
+      console.log('Error en Dto: ', JSON.stringify({ message }, null, 2));
+      throw new Error(message);
+    }
+
+    const response = await subscriptionUseCase.updatePrescription(body.id, body.sku, body.prescription);
     return { statusCode: response.status, body: JSON.stringify({ message: response.message, data: response.data }) };
   }
 

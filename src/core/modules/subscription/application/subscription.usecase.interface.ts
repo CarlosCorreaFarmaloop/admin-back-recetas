@@ -1,4 +1,4 @@
-import { Delivery, GeneralStatus, SubscriptionEntity } from '../domain/subscription.entity';
+import { Delivery, GeneralStatus, Prescription, SubscriptionEntity } from '../domain/subscription.entity';
 import { CreateSubscriptionPayload } from '../domain/subscription.vo';
 import { Respuesta } from './api.response';
 
@@ -8,6 +8,11 @@ export interface ISubscriptionUseCase {
   getSubscriptionByGeneralStatus: (generalStatus: GeneralStatus) => Promise<Respuesta<SubscriptionEntity[]>>;
   updateDelivery: (
     id: string,
-    deliveryToUpdate: Omit<Delivery, 'discount' | 'price' | 'pricePaid'>
+    toUpdate: Omit<Delivery, 'discount' | 'price' | 'pricePaid'>
+  ) => Promise<Respuesta<SubscriptionEntity>>;
+  updatePrescription: (
+    id: string,
+    sku: string,
+    toUpdate: Pick<Prescription, 'file' | 'state' | 'validation'>
   ) => Promise<Respuesta<SubscriptionEntity>>;
 }
