@@ -22,7 +22,7 @@ export const APIController = async (event: APIGatewayEventInput) => {
     const { message, status } = Get_Subscription_Dto(body);
     if (!status) {
       console.log('Error en Dto: ', JSON.stringify({ message }, null, 2));
-      throw new Error(message);
+      return { statusCode: 400, body: JSON.stringify({ message }) };
     }
 
     const response = await subscriptionUseCase.getSubscriptionByGeneralStatus(body.status);
@@ -33,7 +33,7 @@ export const APIController = async (event: APIGatewayEventInput) => {
     const { message, status } = UpdateDelivery_Subscription_Dto(body);
     if (!status) {
       console.log('Error en Dto: ', JSON.stringify({ message }, null, 2));
-      throw new Error(message);
+      return { statusCode: 400, body: JSON.stringify({ message }) };
     }
 
     const response = await subscriptionUseCase.updateDelivery(body.id, body.delivery);
@@ -44,7 +44,7 @@ export const APIController = async (event: APIGatewayEventInput) => {
     const { message, status } = UpdatePrescription_Subscription_Dto(body);
     if (!status) {
       console.log('Error en Dto: ', JSON.stringify({ message }, null, 2));
-      throw new Error(message);
+      return { statusCode: 400, body: JSON.stringify({ message }) };
     }
 
     const response = await subscriptionUseCase.updatePrescription(body.id, body.sku, body.prescription);

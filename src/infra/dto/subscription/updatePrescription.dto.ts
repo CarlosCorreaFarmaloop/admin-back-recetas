@@ -5,12 +5,10 @@ const updatePrescriptionSchema = Joi.object({
   sku: Joi.string().required(),
   prescription: Joi.object({
     file: Joi.string().required(),
-    maxNumberOfUses: Joi.number().required(),
-    numberOfUses: Joi.number().required(),
     state: Joi.string().required(),
     validation: Joi.object({
       comments: Joi.string().required().allow(''),
-      rut: Joi.string().required(),
+      rut: Joi.string().required().allow(''),
       responsible: Joi.string().required(),
     }).required(),
   }).required(),
