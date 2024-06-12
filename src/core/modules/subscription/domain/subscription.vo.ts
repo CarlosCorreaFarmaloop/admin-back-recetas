@@ -1,4 +1,12 @@
-import { Attempt, Product, SubscriptionEntity, ShipmentSchedule } from './subscription.entity';
+import {
+  Attempt,
+  Product,
+  SubscriptionEntity,
+  ShipmentSchedule,
+  Tracking,
+  GeneralStatus,
+  ProgressStatus,
+} from './subscription.entity';
 
 export class SubscriptionVO {
   create(payload: CreateSubscriptionPayload): SubscriptionEntity {
@@ -17,6 +25,39 @@ export class SubscriptionVO {
           validation: { comments: '', responsible: '', rut: '' },
         },
       })),
+    };
+  }
+
+  approve(
+    currentGeneralStatusTracking: Array<Tracking<GeneralStatus>>,
+    responsible: string
+  ): Pick<SubscriptionEntity, 'generalStatus' | 'trackingGeneralStatus'> {
+    return {
+      generalStatus: 'Approved',
+      trackingGeneralStatus: [
+        ...currentGeneralStatusTracking,
+        { date: new Date().getTime(), observation: '', responsible, status: 'Approved' },
+      ],
+    };
+  }
+
+  reject(
+    currentGeneralStatusTracking: Array<Tracking<GeneralStatus>>,
+    currentProgressStatusTracking: Array<Tracking<ProgressStatus>>,
+    responsible: string,
+    observation: string
+  ): Pick<SubscriptionEntity, 'generalStatus' | 'progressStatus' | 'trackingGeneralStatus' | 'trackingProgressStatus'> {
+    return {
+      generalStatus: 'Rejected',
+      progressStatus: 'Cancelled',
+      trackingGeneralStatus: [
+        ...currentGeneralStatusTracking,
+        { date: new Date().getTime(), observation, responsible, status: 'Rejected' },
+      ],
+      trackingProgressStatus: [
+        ...currentProgressStatusTracking,
+        { date: new Date().getTime(), observation, responsible, status: 'Cancelled' },
+      ],
     };
   }
 

@@ -15,4 +15,17 @@ export interface ISubscriptionUseCase {
     sku: string,
     toUpdate: Pick<Prescription, 'file' | 'state' | 'validation'>
   ) => Promise<Respuesta<SubscriptionEntity>>;
+  approveSubscription: (payload: ApproveSubscription) => Promise<Respuesta<SubscriptionEntity>>;
+  rejectSubscription: (payload: RejectSubscription) => Promise<Respuesta<SubscriptionEntity>>;
+}
+
+export interface ApproveSubscription {
+  id: string;
+  responsible: string;
+}
+
+export interface RejectSubscription {
+  id: string;
+  observation: string;
+  responsible: string;
 }

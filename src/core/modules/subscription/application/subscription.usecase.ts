@@ -1,9 +1,9 @@
-import { ITokenManagerService } from 'src/infra/services/tokenManager/interface';
+import { ITokenManagerService } from '../../../../infra/services/tokenManager/interface';
 import { ITransbankService } from '../../../../infra/services/transbank/interface';
 import { SubscriptionRepository } from '../domain/subscription.repository';
 import { CreateSubscriptionPayload, SubscriptionVO } from '../domain/subscription.vo';
 import { ApiResponse, HttpCodes } from './api.response';
-import { ISubscriptionUseCase } from './subscription.usecase.interface';
+import { ISubscriptionUseCase, ApproveSubscription, RejectSubscription } from './subscription.usecase.interface';
 import { Delivery, GeneralStatus, Prescription, SubscriptionEntity } from '../domain/subscription.entity';
 
 export class SubscriptionUseCase implements ISubscriptionUseCase {
@@ -94,6 +94,100 @@ export class SubscriptionUseCase implements ISubscriptionUseCase {
     console.log('Product prescription updated: ', JSON.stringify(response, null, 2));
 
     return { data: response, message: 'Product prescription successfully updated.', status: HttpCodes.OK };
+  }
+
+  async approveSubscription(payload: ApproveSubscription) {
+    const { id, responsible } = payload;
+    console.log('Enter approve subscription: ', JSON.stringify({ payload }, null, 2));
+
+    const subscriptionDb = await this.subscriptionRepository.get(id);
+    if (!subscriptionDb) {
+      console.log(`Error getting subscription ${id}.`, JSON.stringify(subscriptionDb, null, 2));
+      throw new ApiResponse(HttpCodes.BAD_REQUEST, subscriptionDb, 'Error getting subscription.');
+    }
+
+    const isValid = this.validateApproveSuscription(subscriptionDb);
+    if (!isValid) {
+      console.log(`Incorrect subscription status ${id}.`, JSON.stringify(subscriptionDb, null, 2));
+      throw new ApiResponse(HttpCodes.BAD_REQUEST, subscriptionDb, 'Incorrect subscription status.');
+    }
+
+    const newSubscription = new SubscriptionVO().approve(subscriptionDb.trackingGeneralStatus, responsible);
+    const updatedSubscription = await this.subscriptionRepository.update(id, newSubscription);
+    if (!updatedSubscription) {
+      console.log(`Error approving subscription ${id}.`, JSON.stringify(updatedSubscription, null, 2));
+      throw new ApiResponse(HttpCodes.BAD_REQUEST, updatedSubscription, 'Error approving subscription.');
+    }
+
+    console.log('Subscription approved: ', JSON.stringify(updatedSubscription, null, 2));
+
+    return { data: updatedSubscription, message: 'Subscription successfully approved.', status: HttpCodes.OK };
+  }
+
+  async rejectSubscription(payload: RejectSubscription) {
+    const { id, observation, responsible } = payload;
+
+    console.log('Enter reject subscription: ', JSON.stringify({ payload }, null, 2));
+
+    const subscriptionDb = await this.subscriptionRepository.get(id);
+    if (!subscriptionDb) {
+      console.log(`Error getting subscription ${id}.`, JSON.stringify(subscriptionDb, null, 2));
+      throw new ApiResponse(HttpCodes.BAD_REQUEST, subscriptionDb, 'Error getting subscription.');
+    }
+
+    const isValid = this.validateRejectSuscription(subscriptionDb);
+    if (!isValid) {
+      console.log(`Incorrect subscription status ${id}.`, JSON.stringify(subscriptionDb, null, 2));
+      throw new ApiResponse(HttpCodes.BAD_REQUEST, subscriptionDb, 'Incorrect subscription status.');
+    }
+
+    const newSubscription = new SubscriptionVO().reject(
+      subscriptionDb.trackingGeneralStatus,
+      subscriptionDb.trackingProgressStatus,
+      responsible,
+      observation
+    );
+    const updatedSubscription = await this.subscriptionRepository.update(id, newSubscription);
+    if (!updatedSubscription) {
+      console.log(`Error rejecting subscription ${id}.`, JSON.stringify(updatedSubscription, null, 2));
+      throw new ApiResponse(HttpCodes.BAD_REQUEST, updatedSubscription, 'Error approving subscription.');
+    }
+
+    console.log('Subscription rejected: ', JSON.stringify(updatedSubscription, null, 2));
+
+    return { data: updatedSubscription, message: 'Subscription successfully rejected.', status: HttpCodes.OK };
+  }
+
+  private validateApproveSuscription(subscription: SubscriptionEntity): boolean {
+    const { generalStatus, paymentStatus, products, progressStatus } = subscription;
+
+    if (generalStatus !== 'In Review') return false;
+    if (paymentStatus !== 'Paid') return false;
+    if (progressStatus !== 'In Progress') return false;
+
+    const isInvalid = products.some(
+      (el) =>
+        (el.requiresPrescription && !el.prescription.file) ||
+        (el.requiresPrescription && el.prescription.state === 'Pending') ||
+        (el.requiresPrescription && el.prescription.state === 'Rejected') ||
+        (el.requiresPrescription &&
+          el.prescription.state === 'Approved_With_Comments' &&
+          !el.prescription.validation.comments)
+    );
+
+    if (!isInvalid) return false;
+
+    return true;
+  }
+
+  private validateRejectSuscription(subscription: SubscriptionEntity): boolean {
+    const { generalStatus, paymentStatus, progressStatus } = subscription;
+
+    if (generalStatus !== 'In Review') return false;
+    if (paymentStatus !== 'Paid') return false;
+    if (progressStatus !== 'In Progress') return false;
+
+    return true;
   }
 
   private validateIsLastCharge(subscription: SubscriptionEntity) {
