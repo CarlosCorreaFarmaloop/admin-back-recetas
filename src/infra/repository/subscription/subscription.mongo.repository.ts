@@ -35,6 +35,16 @@ export class SubscriptionMongoRepository implements SubscriptionRepository {
     }
   }
 
+  async getAll() {
+    try {
+      return await SubscriptionModel.find({ generalStatus: { $nin: ['Created', 'Cancelled'] } });
+    } catch (error) {
+      const err = error as Error;
+      console.log('Error getting MongoDB subscriptions: ', err.message);
+      throw new Error('Error getting MongoDB subscriptions');
+    }
+  }
+
   async update(id: string, toUpdate: Partial<SubscriptionEntity>) {
     try {
       const response = await SubscriptionModel.findOneAndUpdate({ id }, { $set: toUpdate }, { new: true });

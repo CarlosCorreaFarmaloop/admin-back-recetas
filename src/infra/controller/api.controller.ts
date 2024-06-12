@@ -20,6 +20,11 @@ export const APIController = async (event: APIGatewayEventInput) => {
   const subscriptionRepository = new SubscriptionMongoRepository();
   const subscriptionUseCase = new SubscriptionUseCase(subscriptionRepository, tokenManagerService, transbankService);
 
+  if (path === `${basePath}/get-all`) {
+    const response = await subscriptionUseCase.getAllSubscriptions();
+    return { statusCode: response.status, body: JSON.stringify({ message: response.message, data: response.data }) };
+  }
+
   if (path === `${basePath}/get-subscriptions-by-status`) {
     const { message, status } = Get_Subscription_Dto(body);
     if (!status) {

@@ -62,6 +62,16 @@ export class SubscriptionUseCase implements ISubscriptionUseCase {
     return { data: true, message: 'Subscription successfully created.', status: HttpCodes.OK };
   }
 
+  async getAllSubscriptions() {
+    const response = await this.subscriptionRepository.getAll();
+
+    if (!response) {
+      throw new ApiResponse(HttpCodes.BAD_REQUEST, response, 'Error getting subscriptions.');
+    }
+
+    return { data: response, message: 'Successfully obtained subscriptions.', status: HttpCodes.OK };
+  }
+
   async getSubscriptionByGeneralStatus(generalStatus: GeneralStatus) {
     const response = await this.subscriptionRepository.getByGeneralStatus(generalStatus);
 

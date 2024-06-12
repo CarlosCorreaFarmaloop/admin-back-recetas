@@ -5,6 +5,7 @@ import { Respuesta } from './api.response';
 export interface ISubscriptionUseCase {
   createSubscription: (payload: CreateSubscriptionPayload) => Promise<Respuesta<boolean>>;
   generateCharge: (id: string) => Promise<Respuesta<boolean>>;
+  getAllSubscriptions: () => Promise<Respuesta<SubscriptionEntity[]>>;
   getSubscriptionByGeneralStatus: (generalStatus: GeneralStatus) => Promise<Respuesta<SubscriptionEntity[]>>;
   updateDelivery: (
     id: string,
