@@ -175,7 +175,7 @@ export class SubscriptionUseCase implements ISubscriptionUseCase {
           !el.prescription.validation.comments)
     );
 
-    if (!isInvalid) return false;
+    if (isInvalid) return false;
 
     return true;
   }
