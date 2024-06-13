@@ -40,6 +40,7 @@ export const SQSController = async (event: SQSEventInput) => {
       throw new Error(message);
     }
 
+    console.log('Llega aqui, por avanzar a id: ', payload.id);
     const response = await subscriptionUseCase.generateCharge(payload.id);
     return { statusCode: response.status, body: JSON.stringify({ message: response.message, data: response.data }) };
   }

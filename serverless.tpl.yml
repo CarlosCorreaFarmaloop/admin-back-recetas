@@ -12,6 +12,7 @@ provider:
 functions:
   main:
     handler: build/handler.handler
+    timeout: 30
     environment:
       MONGO_CONNECTION_STRING: ${MONGO_CONNECTION_STRING}
       MONGO_DATA_BASE: ${MONGO_DATA_BASE}
