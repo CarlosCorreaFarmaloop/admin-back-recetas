@@ -16,6 +16,8 @@ functions:
       MONGO_CONNECTION_STRING: ${MONGO_CONNECTION_STRING}
       MONGO_DATA_BASE: ${MONGO_DATA_BASE}
       ENV: ${ENV}
+      TZ: ${TZ}
+      SECRET_KEY: ${SECRET_KEY}
     vpc:
       securityGroupIds:
         - ${LAMBDA_SG}
