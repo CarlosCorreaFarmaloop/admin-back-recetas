@@ -1,7 +1,7 @@
 include:
   - project: 'farmaloop-latam/infra/gitlab-ci'
     file:
-      - 'serverlesss-whitout-tpl.yml'
+      - 'serverless-lambda-without-FC.yml'
 
 variables:
   LAMBDA_RUNTIME: 'nodejs16.x'

@@ -117,14 +117,14 @@ export class SubscriptionVO {
     const index = shipment.shipmentSchedule.findIndex((el) => el.id === currentShipmentId);
     if (index === -1) throw new Error('');
 
-    const currentShipment = shipment.shipmentSchedule[index];
+    const currentShipmentSchedule = shipment.shipmentSchedule[index];
 
     const newShipmentSchedule: ShipmentSchedule = {
-      ...currentShipment,
-      nextPaymentDate: this.addOneDayToDate(currentShipment.nextPaymentDate),
-      paymentStatus: 'Failed',
-      numberOfAttempts: currentShipment.numberOfAttempts + 1,
-      attempts: [...currentShipment.attempts, attempt],
+      ...currentShipmentSchedule,
+      nextPaymentDate: this.addOneDayToDate(currentShipmentSchedule.nextPaymentDate),
+      paymentStatus: 'Retrying',
+      numberOfAttempts: currentShipmentSchedule.numberOfAttempts + 1,
+      attempts: [...currentShipmentSchedule.attempts, attempt],
     };
     const newArr = shipment.shipmentSchedule;
     newArr[index] = newShipmentSchedule;
@@ -133,6 +133,44 @@ export class SubscriptionVO {
       updatedAt: new Date().getTime(),
       shipment: { ...shipment, shipmentSchedule: newArr },
       nextPaymentDate: newShipmentSchedule.nextPaymentDate,
+    };
+  }
+
+  updateSubscriptionFailedLastAttempt(
+    subscription: SubscriptionEntity,
+    attempt: Attempt
+  ): SubscriptionToUpdateFailedLastAttempt {
+    const { currentShipmentId, shipment } = subscription;
+
+    const index = shipment.shipmentSchedule.findIndex((el) => el.id === currentShipmentId);
+    if (index === -1) throw new Error('');
+
+    const currentShipmentSchedule = shipment.shipmentSchedule[index];
+
+    const newShipmentSchedule: ShipmentSchedule = {
+      ...currentShipmentSchedule,
+      paymentStatus: 'Failed',
+      numberOfAttempts: currentShipmentSchedule.numberOfAttempts + 1,
+      attempts: [...currentShipmentSchedule.attempts, attempt],
+    };
+    const newArr = shipment.shipmentSchedule;
+    newArr[index] = newShipmentSchedule;
+
+    const today = new Date().getTime();
+
+    return {
+      updatedAt: today,
+      shipment: { ...shipment, shipmentSchedule: newArr },
+      generalStatus: 'Cancelled',
+      progressStatus: 'Aborted',
+      trackingGeneralStatus: [
+        ...subscription.trackingGeneralStatus,
+        { date: today, observation: 'Último intento de cobro', responsible: 'Sistemas', status: 'Cancelled' },
+      ],
+      trackingProgressStatus: [
+        ...subscription.trackingProgressStatus,
+        { date: today, observation: 'Último intento de cobro', responsible: 'Sistemas', status: 'Aborted' },
+      ],
     };
   }
 
@@ -160,7 +198,20 @@ export class SubscriptionVO {
     const newArr = shipment.shipmentSchedule;
     newArr[index] = newShipmentSchedule;
 
-    return { updatedAt: today, shipment: { ...shipment, shipmentSchedule: newArr } };
+    return {
+      updatedAt: today,
+      shipment: { ...shipment, shipmentSchedule: newArr },
+      generalStatus: 'Completed',
+      progressStatus: 'Completed',
+      trackingGeneralStatus: [
+        ...subscription.trackingGeneralStatus,
+        { date: today, observation: 'Último cobro con éxito', responsible: 'Sistemas', status: 'Completed' },
+      ],
+      trackingProgressStatus: [
+        ...subscription.trackingProgressStatus,
+        { date: today, observation: 'Último cobro con éxito', responsible: 'Sistemas', status: 'Completed' },
+      ],
+    };
   }
 
   private addOneDayToDate(currentDate: number): number {
@@ -181,4 +232,12 @@ export type SubscriptionToUpdateSuccess = Pick<
 
 export type SubscriptionToUpdateFailed = Pick<SubscriptionEntity, 'updatedAt' | 'shipment' | 'nextPaymentDate'>;
 
-export type SubscriptionToUpdateComplete = Pick<SubscriptionEntity, 'updatedAt' | 'shipment'>;
+export type SubscriptionToUpdateFailedLastAttempt = Pick<
+  SubscriptionEntity,
+  'updatedAt' | 'shipment' | 'generalStatus' | 'progressStatus' | 'trackingGeneralStatus' | 'trackingProgressStatus'
+>;
+
+export type SubscriptionToUpdateComplete = Pick<
+  SubscriptionEntity,
+  'updatedAt' | 'shipment' | 'generalStatus' | 'progressStatus' | 'trackingGeneralStatus' | 'trackingProgressStatus'
+>;

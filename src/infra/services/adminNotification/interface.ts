@@ -1,6 +1,7 @@
 import { SubscriptionEntity, ShipmentSchedule } from '../../../core/modules/subscription/domain/subscription.entity';
 
 export interface IAdminNotificationService {
+  notifySubscriptionCharge: (id: string) => Promise<void>;
   notifyOrderSubscription: (
     subscription: SubscriptionEntity,
     shipmentSchedule: ShipmentSchedule,
@@ -43,6 +44,7 @@ export interface SubscriptionOrder {
 interface Delivery {
   compromiso_entrega: {
     date: number;
+    dateText: string;
   };
   cost: number;
   delivery_address: {
@@ -66,7 +68,7 @@ interface Delivery {
   type: 'Envío Estándar (48 horas hábiles)';
 }
 
-interface ProductOrder {
+export interface ProductOrder {
   batchId: string;
   bioequivalent: boolean;
   cooled: boolean;
@@ -82,11 +84,7 @@ interface ProductOrder {
   prescription: {
     file: string;
   };
-  prescriptionType:
-    | 'Presentación receta médica'
-    | 'Venta directa (Sin receta)'
-    | 'Venta bajo receta cheque'
-    | 'Receta médica retenida';
+  prescriptionType: PrescriptionType;
   presentation: string;
   price: number;
   pricePaidPerUnit: number;
@@ -109,3 +107,9 @@ interface Discount {
   }>;
   total: number;
 }
+
+export type PrescriptionType =
+  | 'Presentación receta médica'
+  | 'Venta directa (Sin receta)'
+  | 'Venta bajo receta cheque'
+  | 'Receta médica retenida';

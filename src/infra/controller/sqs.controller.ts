@@ -5,15 +5,22 @@ import { Create_Subscription_Dto } from '../dto/subscription/create.dto';
 import { SubscriptionMongoRepository } from '../repository/subscription/subscription.mongo.repository';
 import { TokenManagerService } from '../services/tokenManager/tokenManager.service';
 import { TransbankService } from '../services/transbank/transbank.service';
+import { AdminNotificationService } from '../services/adminNotification/adminNotification.service';
 
 export const SQSController = async (event: SQSEventInput) => {
   const { action, payload } = event;
 
   const tokenManagerService = new TokenManagerService();
   const transbankService = new TransbankService();
+  const adminNotificationService = new AdminNotificationService();
 
   const subscriptionRepository = new SubscriptionMongoRepository();
-  const subscriptionUseCase = new SubscriptionUseCase(subscriptionRepository, tokenManagerService, transbankService);
+  const subscriptionUseCase = new SubscriptionUseCase(
+    subscriptionRepository,
+    tokenManagerService,
+    transbankService,
+    adminNotificationService
+  );
 
   if (action === 'crear-suscripcion') {
     const { message, status } = Create_Subscription_Dto(payload);

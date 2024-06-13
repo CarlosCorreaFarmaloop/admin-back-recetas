@@ -123,11 +123,8 @@ export interface Resume {
 
 export interface Shipment {
   intervalMonth: number;
-  dayOfMonth: number;
+  dateOfFirstShipment: number;
   numberOfShipments: number;
-
-  startDate: number;
-  endDate: number;
 
   quantityShipped: number;
 
@@ -150,6 +147,7 @@ export interface ShipmentSchedule {
 }
 
 export interface Attempt {
+  amount: number;
   cardNumber: string;
   externalCode: string;
   externalMessage: string;
@@ -166,14 +164,7 @@ export interface Tracking<T> {
   status: T;
 }
 
-export type GeneralStatus =
-  | 'Created'
-  | 'In Review'
-  | 'Approved'
-  | 'Rejected'
-  | 'In Progress'
-  | 'Cancelled'
-  | 'Completed';
+export type GeneralStatus = 'Created' | 'In Review' | 'Approved' | 'Rejected' | 'Cancelled' | 'Completed';
 export type PaymentStatus = 'Pending' | 'Paid' | 'Cancelled';
 export type ProgressStatus = 'Created' | 'In Progress' | 'Cancelled' | 'Aborted' | 'Completed';
 

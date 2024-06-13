@@ -1,16 +1,18 @@
-import { ITokenManagerService } from '../../../../infra/services/tokenManager/interface';
-import { ITransbankService } from '../../../../infra/services/transbank/interface';
 import { SubscriptionRepository } from '../domain/subscription.repository';
 import { CreateSubscriptionPayload, SubscriptionVO } from '../domain/subscription.vo';
 import { ApiResponse, HttpCodes } from './api.response';
 import { ISubscriptionUseCase, ApproveSubscription, RejectSubscription } from './subscription.usecase.interface';
 import { Delivery, GeneralStatus, Prescription, SubscriptionEntity } from '../domain/subscription.entity';
+import { ITokenManagerService } from '../../../../infra/services/tokenManager/interface';
+import { ITransbankService } from '../../../../infra/services/transbank/interface';
+import { IAdminNotificationService } from '../../../../infra/services/adminNotification/interface';
 
 export class SubscriptionUseCase implements ISubscriptionUseCase {
   constructor(
     private readonly subscriptionRepository: SubscriptionRepository,
     private readonly tokenManagerService: ITokenManagerService,
-    private readonly transbankService: ITransbankService
+    private readonly transbankService: ITransbankService,
+    private readonly adminNotificationService: IAdminNotificationService
   ) {}
 
   async createSubscription(payload: CreateSubscriptionPayload) {
@@ -22,6 +24,8 @@ export class SubscriptionUseCase implements ISubscriptionUseCase {
       throw new ApiResponse(HttpCodes.BAD_REQUEST, subscriptionDb, 'Error creating subscription.');
     }
 
+    await this.adminNotificationService.notifySubscriptionCharge(subscriptionDb.id);
+
     console.log('Subscription created: ', JSON.stringify(subscriptionDb, null, 2));
 
     return { data: true, message: 'Subscription successfully created.', status: HttpCodes.OK };
@@ -30,34 +34,53 @@ export class SubscriptionUseCase implements ISubscriptionUseCase {
   async generateCharge(id: string) {
     console.log('Generate charge to subscription: ', id);
 
-    const currentSubscription = await this.subscriptionRepository.get(id);
-    if (!currentSubscription) {
-      console.log(`Error getting subscription ${id}.`, JSON.stringify(currentSubscription, null, 2));
-      throw new ApiResponse(HttpCodes.BAD_REQUEST, currentSubscription, 'Error getting subscription.');
+    const subscriptionDb = await this.subscriptionRepository.get(id);
+    if (!subscriptionDb) {
+      console.log(`Error getting subscription ${id}.`, JSON.stringify(subscriptionDb, null, 2));
+      throw new ApiResponse(HttpCodes.BAD_REQUEST, subscriptionDb, 'Error getting subscription.');
     }
 
-    const token = await this.tokenManagerService.getToken(currentSubscription.currentPaymentId);
+    const isValid = this.validateChargeSubscripton(subscriptionDb);
+    if (!isValid) {
+      console.log(`Incorrect subscription status ${id}.`, JSON.stringify(subscriptionDb, null, 2));
+      throw new ApiResponse(HttpCodes.BAD_REQUEST, subscriptionDb, 'Incorrect subscription status.');
+    }
+
+    const token = await this.tokenManagerService.getToken(subscriptionDb.currentPaymentId);
 
     const subscriptionVO = new SubscriptionVO();
     const newId = subscriptionVO.generateOrderId();
 
-    const response = await this.transbankService.authorizeTransaction(token, newId, currentSubscription);
+    const response = await this.transbankService.authorizeTransaction(token, newId, subscriptionDb);
 
     if (response.status === 'Failed') {
-      const subscriptionToUpdate = subscriptionVO.updateSubscriptionFailed(currentSubscription, response);
+      const isLastAttempt = this.validateIsLastAttempt(subscriptionDb);
+
+      if (isLastAttempt) {
+        const subscriptionToUpdate = subscriptionVO.updateSubscriptionFailedLastAttempt(subscriptionDb, response);
+        await this.subscriptionRepository.update(id, subscriptionToUpdate);
+        // Notificar al cliente que fallo el ultimo intento.
+        return { data: true, message: 'Subscription successfully created.', status: HttpCodes.OK };
+      }
+
+      const subscriptionToUpdate = subscriptionVO.updateSubscriptionFailed(subscriptionDb, response);
       await this.subscriptionRepository.update(id, subscriptionToUpdate);
+      // Notificar al cliente que fallo el cobro y se programo un nuevo intento para mañana.
       return { data: true, message: 'Subscription successfully created.', status: HttpCodes.OK };
     }
 
-    const isLastCharge = this.validateIsLastCharge(currentSubscription);
+    const isLastCharge = this.validateIsLastCharge(subscriptionDb);
     if (isLastCharge) {
-      const subscriptionToUpdate = subscriptionVO.completeSubscription(currentSubscription, response, newId);
+      const subscriptionToUpdate = subscriptionVO.completeSubscription(subscriptionDb, response, newId);
       await this.subscriptionRepository.update(id, subscriptionToUpdate);
+      // Notificar al cliente que se completo la suscripcion.
       return { data: true, message: 'Subscription successfully created.', status: HttpCodes.OK };
     }
 
-    const subscriptionToUpdate = subscriptionVO.updateSubscriptionSuccess(currentSubscription, response, newId);
+    const subscriptionToUpdate = subscriptionVO.updateSubscriptionSuccess(subscriptionDb, response, newId);
     await this.subscriptionRepository.update(id, subscriptionToUpdate);
+    // Enviar orden a administrador
+    // Notificar al cliente que se realizo el cobro.
 
     return { data: true, message: 'Subscription successfully created.', status: HttpCodes.OK };
   }
@@ -200,9 +223,36 @@ export class SubscriptionUseCase implements ISubscriptionUseCase {
     return true;
   }
 
+  private validateChargeSubscripton(subscription: SubscriptionEntity): boolean {
+    const { generalStatus, paymentStatus, progressStatus, paymentMethods, shipment } = subscription;
+
+    if (generalStatus !== 'In Review' && generalStatus !== 'Approved') return false;
+    if (paymentStatus !== 'Paid') return false;
+    if (progressStatus !== 'In Progress') return false;
+
+    const activePaymentMethod = paymentMethods.some((el) => el.status === 1);
+    if (!activePaymentMethod) return false;
+
+    if (shipment.quantityShipped >= shipment.numberOfShipments) return false;
+
+    return true;
+  }
+
   private validateIsLastCharge(subscription: SubscriptionEntity) {
     const { currentShipmentId, shipment } = subscription;
 
     return currentShipmentId === shipment.shipmentSchedule[shipment.shipmentSchedule.length - 1].id;
+  }
+
+  private validateIsLastAttempt(subscription: SubscriptionEntity): boolean {
+    const { currentShipmentId, shipment } = subscription;
+
+    const currentShipmentSchedule = shipment.shipmentSchedule.find((el) => el.id === currentShipmentId);
+    if (!currentShipmentSchedule) {
+      console.log('Shipment Schedule does not exist: ', JSON.stringify(subscription, null, 2));
+      throw new Error('Shipment Schedule does not exist.');
+    }
+
+    return currentShipmentSchedule.maxAttempts === currentShipmentSchedule.numberOfAttempts - 1;
   }
 }

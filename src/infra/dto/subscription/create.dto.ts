@@ -78,11 +78,8 @@ const createSchema = Joi.object({
     .required(),
   shipment: Joi.object({
     intervalMonth: Joi.number().required(),
-    dayOfMonth: Joi.number().required(),
+    dateOfFirstShipment: Joi.number().required(),
     numberOfShipments: Joi.number().required(),
-
-    startDate: Joi.number().required(),
-    endDate: Joi.number().required(),
 
     quantityShipped: Joi.number().required(),
 
@@ -103,6 +100,7 @@ const createSchema = Joi.object({
           attempts: Joi.array()
             .items(
               Joi.object({
+                amount: Joi.number().required(),
                 cardNumber: Joi.string().required(),
                 externalCode: Joi.string().required(),
                 externalMessage: Joi.string().required(),

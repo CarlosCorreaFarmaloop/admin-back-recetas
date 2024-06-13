@@ -29,7 +29,7 @@ export class TransbankService implements ITransbankService {
     try {
       const { delivery, resume } = subscription;
 
-      const details = [new TransactionDetail(resume.total, IntegrationCommerceCodes.ONECLICK_MALL, orderId)];
+      const details = [new TransactionDetail(resume.total, IntegrationCommerceCodes.ONECLICK_MALL_CHILD1, orderId)];
 
       const response: AuthorizeResponse = await this.mallInscription.authorize(
         delivery.fullName,
@@ -48,6 +48,7 @@ export class TransbankService implements ITransbankService {
 
   private generateAttempt(response: AuthorizeResponse): Attempt {
     return {
+      amount: response.details[0].amount,
       cardNumber: response.card_detail.card_number,
       externalCode: String(response.details[0].response_code),
       externalMessage: this.generateTransbankMessage(response.details[0].response_code),

@@ -25,7 +25,9 @@ const DeliverySchema = new mongoose.Schema(
 
 const DiscountSchema = new mongoose.Schema(
   {
-    details: [new mongoose.Schema({ discount: Number, promotionCode: String, reference: String, type: String })],
+    details: [
+      new mongoose.Schema({ discount: Number, promotionCode: String, reference: String, type: String }, { _id: false }),
+    ],
     total: Number,
   },
   { _id: false }
@@ -34,11 +36,14 @@ const DiscountSchema = new mongoose.Schema(
 const ProductSchema = new mongoose.Schema(
   {
     discountPerUnit: Number,
-    prescription: new mongoose.Schema({
-      file: String,
-      state: String,
-      validation: new mongoose.Schema({ comments: String, rut: String, responsible: String }),
-    }),
+    prescription: new mongoose.Schema(
+      {
+        file: String,
+        state: String,
+        validation: new mongoose.Schema({ comments: String, rut: String, responsible: String }, { _id: false }),
+      },
+      { _id: false }
+    ),
     price: Number,
     pricePaidPerUnit: Number,
     quantity: Number,
@@ -92,15 +97,19 @@ const ShipmentScheduleSchema = new mongoose.Schema(
     numberOfAttempts: Number,
     maxAttempts: Number,
     attempts: [
-      new mongoose.Schema({
-        cardNumber: String,
-        externalCode: String,
-        externalMessage: String,
-        externalStatus: String,
-        paymentMethod: String,
-        status: String,
-        transactionDate: Number,
-      }),
+      new mongoose.Schema(
+        {
+          amount: Number,
+          cardNumber: String,
+          externalCode: String,
+          externalMessage: String,
+          externalStatus: String,
+          paymentMethod: String,
+          status: String,
+          transactionDate: Number,
+        },
+        { _id: false }
+      ),
     ],
   },
   { _id: false }
@@ -109,11 +118,8 @@ const ShipmentScheduleSchema = new mongoose.Schema(
 const ShipmentSchema = new mongoose.Schema(
   {
     intervalMonth: Number,
-    dayOfMonth: Number,
+    dateOfFirstShipment: Number,
     numberOfShipments: Number,
-
-    startDate: Number,
-    endDate: Number,
 
     quantityShipped: Number,
 
@@ -122,7 +128,10 @@ const ShipmentSchema = new mongoose.Schema(
   { _id: false }
 );
 
-const TrackingSchema = new mongoose.Schema({ date: Number, responsible: String, observation: String, status: String });
+const TrackingSchema = new mongoose.Schema(
+  { date: Number, responsible: String, observation: String, status: String },
+  { _id: false }
+);
 
 const ObservationSchema = new mongoose.Schema(
   {
