@@ -58,29 +58,36 @@ export class SubscriptionUseCase implements ISubscriptionUseCase {
 
       if (isLastAttempt) {
         const subscriptionToUpdate = subscriptionVO.updateSubscriptionFailedLastAttempt(subscriptionDb, response);
-        await this.subscriptionRepository.update(id, subscriptionToUpdate);
+        const updatedSubscription = await this.subscriptionRepository.update(id, subscriptionToUpdate);
         // Notificar al cliente que fallo el ultimo intento.
+        console.log('Last subscription charge attempt failed: ', JSON.stringify(updatedSubscription, null, 2));
+
         return { data: true, message: 'Subscription successfully created.', status: HttpCodes.OK };
       }
 
       const subscriptionToUpdate = subscriptionVO.updateSubscriptionFailed(subscriptionDb, response);
-      await this.subscriptionRepository.update(id, subscriptionToUpdate);
+      const updatedSubscription = await this.subscriptionRepository.update(id, subscriptionToUpdate);
       // Notificar al cliente que fallo el cobro y se programo un nuevo intento para mañana.
+      console.log('Subscription charge attempt failed: ', JSON.stringify(updatedSubscription, null, 2));
+
       return { data: true, message: 'Subscription successfully created.', status: HttpCodes.OK };
     }
 
     const isLastCharge = this.validateIsLastCharge(subscriptionDb);
     if (isLastCharge) {
       const subscriptionToUpdate = subscriptionVO.completeSubscription(subscriptionDb, response, newId);
-      await this.subscriptionRepository.update(id, subscriptionToUpdate);
+      const updatedSubscription = await this.subscriptionRepository.update(id, subscriptionToUpdate);
       // Notificar al cliente que se completo la suscripcion.
+      console.log('Subscription charge was generated and completed: ', JSON.stringify(updatedSubscription, null, 2));
+
       return { data: true, message: 'Subscription successfully created.', status: HttpCodes.OK };
     }
 
     const subscriptionToUpdate = subscriptionVO.updateSubscriptionSuccess(subscriptionDb, response, newId);
-    await this.subscriptionRepository.update(id, subscriptionToUpdate);
+    const updatedSubscription = await this.subscriptionRepository.update(id, subscriptionToUpdate);
     // Enviar orden a administrador
     // Notificar al cliente que se realizo el cobro.
+    console.log('Subscription charge was generated: ', JSON.stringify(updatedSubscription, null, 2));
 
     return { data: true, message: 'Subscription successfully created.', status: HttpCodes.OK };
   }

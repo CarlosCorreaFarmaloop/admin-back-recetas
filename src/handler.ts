@@ -6,11 +6,13 @@ import { connectoToMongoDB } from './infra/db/mongo';
 import { SQSController } from './infra/controller/sqs.controller';
 import { APIController } from './infra/controller/api.controller';
 
-export const handler = async (event: SQSEvent, _context: Context, _callback: Callback) => {
+export const handler = async (event: SQSEvent | APIGatewayProxyEventV2, _context: Context, _callback: Callback) => {
+  // export const handler = async (event: any, _context: Context, _callback: Callback) => {
   try {
     console.log('Event: ', JSON.stringify(event, null, 2));
 
     const parsedEvent = validateLambdaEvent(event);
+    // const parsedEvent = JSON.parse(event.body);
     console.log('Parsed Event: ', JSON.stringify(parsedEvent, null, 2));
 
     if (parsedEvent.trigger === 'APIGateway' && parsedEvent.body.method === 'OPTIONS') {
