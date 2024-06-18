@@ -28,5 +28,5 @@ export interface GenerateSubscriptionPreOrdersEventInput {
 export interface ApprovePreorderPaymentEventInput {
   action: 'aprobar-pago-preorden';
   origin: string;
-  payload: { id: string; successAttempt: Attempt };
+  payload: { orderId: string; successAttempt: Attempt };
 }

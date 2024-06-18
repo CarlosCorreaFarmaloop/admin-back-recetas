@@ -66,7 +66,7 @@ export const SQSController = async (event: SQSEventInput) => {
       throw new Error(message);
     }
 
-    const response = await preOrderUseCase.approvePreorderPayment(payload.id, payload.successAttempt);
+    const response = await preOrderUseCase.approvePreorderPayment(payload.orderId, payload.successAttempt);
     return { statusCode: response.status, body: JSON.stringify({ message: response.message, data: response.data }) };
   }
 
