@@ -1,44 +1,15 @@
-import { SubscriptionEntity, ShipmentSchedule } from '../../../core/modules/subscription/domain/subscription.entity';
-
-export interface IAdminNotificationService {
-  notifySubscriptionCharge: (id: string) => Promise<void>;
-  notifyOrderSubscription: (
-    subscription: SubscriptionEntity,
-    shipmentSchedule: ShipmentSchedule,
-    newId: string
-  ) => Promise<boolean>;
-}
-
-export interface SubscriptionOrder {
+export interface PreOrderEntity {
+  id: string;
+  createdAt: number;
   customer: string;
   delivery: Delivery;
-  extras: {
-    referrer: string;
-  };
-  id: string;
-  payment: {
-    payment: {
-      amount: number;
-      method: string;
-      originCode: string;
-      paymentDate: number;
-      status: 'Aprobado';
-      wallet: 'Transbank';
-    };
-  };
+  extras: Extras;
+  payment?: Payment;
   productsOrder: ProductOrder[];
-  resumeOrder: {
-    canal: string;
-    cartId: string;
-    clasification: string;
-    convenio: string;
-    deliveryPrice: number;
-    discount: Discount;
-    nroProducts: number;
-    seller: string;
-    subtotal: number;
-    totalPrice: number;
-  };
+  resumeOrder: ResumeOrder;
+  status: Status;
+  subscriptionId: string;
+  tracking: Array<Tracking<Status>>;
 }
 
 interface Delivery {
@@ -68,6 +39,21 @@ interface Delivery {
   type: 'Envío Estándar (48 horas hábiles)';
 }
 
+interface Extras {
+  referrer: string;
+}
+
+export interface Payment {
+  payment: {
+    amount: number;
+    method: string;
+    originCode: string;
+    paymentDate: number;
+    status: 'Aprobado';
+    wallet: 'Transbank';
+  };
+}
+
 export interface ProductOrder {
   batchId: string;
   bioequivalent: boolean;
@@ -81,9 +67,7 @@ export interface ProductOrder {
   normalUnitPrice: number;
   pharmaceuticalForm: string;
   photoURL: string;
-  prescription: {
-    file: string;
-  };
+  prescription: Prescription;
   prescriptionType: PrescriptionType;
   presentation: string;
   price: number;
@@ -98,6 +82,31 @@ export interface ProductOrder {
   sku: string;
 }
 
+interface Prescription {
+  file: string;
+  maxNumberOfUses: number;
+  numberOfUses: number;
+  state: 'Pending' | 'Rejected' | 'Approved' | 'Approved_With_Comments' | '';
+  validation: {
+    comments: string;
+    rut: string;
+    responsible: string;
+  };
+}
+
+interface ResumeOrder {
+  canal: string;
+  cartId: string;
+  clasification: string;
+  convenio: string;
+  deliveryPrice: number;
+  discount: Discount;
+  nroProducts: number;
+  seller: string;
+  subtotal: number;
+  totalPrice: number;
+}
+
 interface Discount {
   details: Array<{
     discount: number;
@@ -108,8 +117,13 @@ interface Discount {
   total: number;
 }
 
-export type PrescriptionType =
-  | 'Presentación receta médica'
-  | 'Venta directa (Sin receta)'
-  | 'Venta bajo receta cheque'
-  | 'Receta médica retenida';
+interface Tracking<T> {
+  date: number;
+  responsible: string;
+  observation: string;
+  status: T;
+}
+
+type PrescriptionType = 'Presentación receta médica' | 'Venta directa (Sin receta)' | 'Venta bajo receta cheque' | 'Receta médica retenida';
+
+type Status = 'Created' | 'Pending' | 'Completed' | 'Cancelled';

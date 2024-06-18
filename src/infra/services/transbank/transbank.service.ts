@@ -1,15 +1,8 @@
-import {
-  Options,
-  Oneclick,
-  IntegrationCommerceCodes,
-  IntegrationApiKeys,
-  Environment,
-  TransactionDetail,
-} from 'transbank-sdk';
+import { Options, Oneclick, IntegrationCommerceCodes, IntegrationApiKeys, Environment, TransactionDetail } from 'transbank-sdk';
 import MallTransaction from 'transbank-sdk/dist/es5/transbank/webpay/oneclick/mall_transaction';
 
 import { AuthorizeResponse, ITransbankService, PaymentType } from './interface';
-import { Attempt, SubscriptionEntity } from '../../../core/modules/subscription/domain/subscription.entity';
+import { Attempt, ShipmentSchedule, SubscriptionEntity } from '../../../core/modules/subscription/domain/subscription.entity';
 
 export class TransbankService implements ITransbankService {
   private readonly mallInscription: MallTransaction;
@@ -25,21 +18,19 @@ export class TransbankService implements ITransbankService {
     );
   }
 
-  async authorizeTransaction(token: string, orderId: string, subscription: SubscriptionEntity) {
+  async authorizeTransaction(token: string, subscription: SubscriptionEntity, currentShipmentSchedule: ShipmentSchedule) {
     try {
       const { delivery, resume } = subscription;
+      const { orderId } = currentShipmentSchedule;
 
       const details = [new TransactionDetail(resume.total, IntegrationCommerceCodes.ONECLICK_MALL_CHILD1, orderId)];
 
-      const response: AuthorizeResponse = await this.mallInscription.authorize(
-        delivery.fullName,
-        token,
-        orderId,
-        details
-      );
+      const response: AuthorizeResponse = await this.mallInscription.authorize(delivery.fullName, token, orderId, details);
 
       return this.generateAttempt(response);
     } catch (error) {
+      const { orderId } = currentShipmentSchedule;
+
       const err = error as Error;
       console.log(`Error al autorizar cobro de orden ${orderId}: `, JSON.stringify(err.message, null, 2));
       throw new Error(`Error al autorizar cobro de orden ${orderId}.`);

@@ -1,14 +1,16 @@
-import { SubscriptionUseCase } from '../../core/modules/subscription/application/subscription.usecase';
 import { APIGatewayEventInput } from '../../interfaces/apigateway';
-import { SubscriptionMongoRepository } from '../repository/subscription/subscription.mongo.repository';
+
 import { Get_Subscription_Dto } from '../dto/subscription/getByStatus';
 import { UpdateDelivery_Subscription_Dto } from '../dto/subscription/updateDelivery.dto';
 import { UpdatePrescription_Subscription_Dto } from '../dto/subscription/updatePrescription.dto';
 import { Approve_Subscription_Dto } from '../dto/subscription/approve.dto';
 import { Reject_Subscription_Dto } from '../dto/subscription/reject.dto';
+
 import { TokenManagerService } from '../services/tokenManager/tokenManager.service';
 import { TransbankService } from '../services/transbank/transbank.service';
-import { AdminNotificationService } from '../services/adminNotification/adminNotification.service';
+import { EventEmitter } from '../services/eventEmitter/eventEmitter.service';
+import { SubscriptionMongoRepository } from '../repository/subscription/subscription.mongo.repository';
+import { SubscriptionUseCase } from '../../core/modules/subscription/application/subscription.usecase';
 
 const basePath = '/api-lambda/subscriptions';
 
@@ -17,15 +19,10 @@ export const APIController = async (event: APIGatewayEventInput) => {
 
   const tokenManagerService = new TokenManagerService();
   const transbankService = new TransbankService();
-  const adminNotificationService = new AdminNotificationService();
+  const eventEmitter = new EventEmitter();
 
   const subscriptionRepository = new SubscriptionMongoRepository();
-  const subscriptionUseCase = new SubscriptionUseCase(
-    subscriptionRepository,
-    tokenManagerService,
-    transbankService,
-    adminNotificationService
-  );
+  const subscriptionUseCase = new SubscriptionUseCase(subscriptionRepository, tokenManagerService, transbankService, eventEmitter);
 
   if (path === `${basePath}/get-all`) {
     const response = await subscriptionUseCase.getAllSubscriptions();

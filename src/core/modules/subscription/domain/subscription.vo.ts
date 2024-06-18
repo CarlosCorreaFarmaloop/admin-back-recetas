@@ -1,12 +1,4 @@
-import {
-  Attempt,
-  Product,
-  SubscriptionEntity,
-  ShipmentSchedule,
-  Tracking,
-  GeneralStatus,
-  ProgressStatus,
-} from './subscription.entity';
+import { Attempt, Product, SubscriptionEntity, ShipmentSchedule, Tracking, GeneralStatus, ProgressStatus } from './subscription.entity';
 
 export class SubscriptionVO {
   create(payload: CreateSubscriptionPayload): SubscriptionEntity {
@@ -61,41 +53,19 @@ export class SubscriptionVO {
     };
   }
 
-  generateOrderId(): string {
-    const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-    const digits = '0123456789';
-
-    let firstTwoLetters = '';
-    let sixNumbers = '';
-
-    for (let i = 0; i < 2; i++) {
-      firstTwoLetters += letters.charAt(Math.floor(Math.random() * letters.length));
-    }
-
-    for (let i = 0; i < 6; i++) {
-      sixNumbers += digits.charAt(Math.floor(Math.random() * digits.length));
-    }
-
-    return `CL-S-${firstTwoLetters}${sixNumbers}`;
-  }
-
-  updateSubscriptionSuccess(
-    subscription: SubscriptionEntity,
-    attempt: Attempt,
-    orderId: string
-  ): SubscriptionToUpdateSuccess {
+  updateSubscriptionChargeSuccess(subscription: SubscriptionEntity, attempt: Attempt): SubscriptionToUpdateSuccess {
     const { currentShipmentId, shipment } = subscription;
 
     const index = shipment.shipmentSchedule.findIndex((el) => el.id === currentShipmentId);
-    if (index === -1) throw new Error('');
+    if (index === -1) {
+      throw new Error('Index of the shipment schedule was not found in updateSubscriptionChargeSuccess()');
+    }
 
     const currentShipment = shipment.shipmentSchedule[index];
 
     const newShipmentSchedule: ShipmentSchedule = {
       ...currentShipment,
       paymentStatus: 'Success',
-      orderId,
-      orderStatus: 'Created',
       numberOfAttempts: currentShipment.numberOfAttempts + 1,
       attempts: [...currentShipment.attempts, attempt],
     };
@@ -111,11 +81,13 @@ export class SubscriptionVO {
     };
   }
 
-  updateSubscriptionFailed(subscription: SubscriptionEntity, attempt: Attempt): SubscriptionToUpdateFailed {
+  updateSubscriptionChargeFailed(subscription: SubscriptionEntity, attempt: Attempt): SubscriptionToUpdateFailed {
     const { currentShipmentId, shipment } = subscription;
 
     const index = shipment.shipmentSchedule.findIndex((el) => el.id === currentShipmentId);
-    if (index === -1) throw new Error('');
+    if (index === -1) {
+      throw new Error('Index of the shipment schedule was not found in updateSubscriptionChargeFailed()');
+    }
 
     const currentShipmentSchedule = shipment.shipmentSchedule[index];
 
@@ -136,14 +108,13 @@ export class SubscriptionVO {
     };
   }
 
-  updateSubscriptionFailedLastAttempt(
-    subscription: SubscriptionEntity,
-    attempt: Attempt
-  ): SubscriptionToUpdateFailedLastAttempt {
+  updateSubscriptionChargeFailedLastAttempt(subscription: SubscriptionEntity, attempt: Attempt): SubscriptionToUpdateFailedLastAttempt {
     const { currentShipmentId, shipment } = subscription;
 
     const index = shipment.shipmentSchedule.findIndex((el) => el.id === currentShipmentId);
-    if (index === -1) throw new Error('');
+    if (index === -1) {
+      throw new Error('Index of the shipment schedule was not found in updateSubscriptionChargeFailedLastAttempt()');
+    }
 
     const currentShipmentSchedule = shipment.shipmentSchedule[index];
 
@@ -174,15 +145,13 @@ export class SubscriptionVO {
     };
   }
 
-  completeSubscription(
-    subscription: SubscriptionEntity,
-    attempt: Attempt,
-    orderId: string
-  ): SubscriptionToUpdateComplete {
+  completeSubscription(subscription: SubscriptionEntity, attempt: Attempt): SubscriptionToUpdateComplete {
     const { currentShipmentId, shipment } = subscription;
 
     const index = shipment.shipmentSchedule.findIndex((el) => el.id === currentShipmentId);
-    if (index === -1) throw new Error('');
+    if (index === -1) {
+      throw new Error('Index of the shipment schedule was not found in completeSubscription()');
+    }
 
     const currentShipment = shipment.shipmentSchedule[index];
     const today = new Date().getTime();
@@ -190,8 +159,6 @@ export class SubscriptionVO {
     const newShipmentSchedule: ShipmentSchedule = {
       ...currentShipment,
       paymentStatus: 'Success',
-      orderId,
-      orderStatus: 'Created',
       numberOfAttempts: currentShipment.numberOfAttempts + 1,
       attempts: [...currentShipment.attempts, attempt],
     };

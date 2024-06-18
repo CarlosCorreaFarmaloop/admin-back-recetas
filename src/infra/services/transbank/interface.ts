@@ -1,7 +1,7 @@
-import { Attempt, SubscriptionEntity } from '../../../core/modules/subscription/domain/subscription.entity';
+import { Attempt, ShipmentSchedule, SubscriptionEntity } from '../../../core/modules/subscription/domain/subscription.entity';
 
 export interface ITransbankService {
-  authorizeTransaction: (token: string, orderId: string, subscription: SubscriptionEntity) => Promise<Attempt>;
+  authorizeTransaction: (token: string, subscription: SubscriptionEntity, currentShipmentSchedule: ShipmentSchedule) => Promise<Attempt>;
 }
 
 export interface AuthorizeResponse {

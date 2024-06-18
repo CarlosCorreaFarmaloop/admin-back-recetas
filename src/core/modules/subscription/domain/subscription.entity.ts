@@ -73,29 +73,28 @@ export interface PaymentMethod {
 }
 
 export interface Product {
-  discountPerUnit: number;
-  prescription: Prescription;
-  price: number;
-  pricePaidPerUnit: number;
-  quantity: number;
-  sku: string;
-
   bioequivalent: boolean;
   cooled: boolean;
+  discountPerUnit: number;
   ean: string;
   fullName: string;
   laboratoryName: string;
   liquid: boolean;
   pharmaceuticalForm: string;
   photoURL: string;
-  prescriptionType: string;
+  prescription: Prescription;
+  prescriptionType: PrescriptionType;
   presentation: string;
+  price: number;
+  pricePaidPerUnit: number;
   productCategory: string;
   productSubCategory: string[];
+  quantity: number;
   quantityPerContainer: string;
   recommendations: string;
   requiresPrescription: boolean;
   shortName: string;
+  sku: string;
 }
 
 export interface Prescription {
@@ -163,6 +162,8 @@ export interface Tracking<T> {
   observation: string;
   status: T;
 }
+
+type PrescriptionType = 'Presentación receta médica' | 'Venta directa (Sin receta)' | 'Venta bajo receta cheque' | 'Receta médica retenida';
 
 export type GeneralStatus = 'Created' | 'In Review' | 'Approved' | 'Rejected' | 'Cancelled' | 'Completed';
 export type PaymentStatus = 'Pending' | 'Paid' | 'Cancelled';

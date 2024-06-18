@@ -1,11 +1,6 @@
 import { SubscriptionModel } from '../../models/subscription.model';
 import { SubscriptionRepository } from '../../../core/modules/subscription/domain/subscription.repository';
-import {
-  Delivery,
-  GeneralStatus,
-  Prescription,
-  SubscriptionEntity,
-} from '../../../core/modules/subscription/domain/subscription.entity';
+import { Delivery, GeneralStatus, Prescription, SubscriptionEntity } from '../../../core/modules/subscription/domain/subscription.entity';
 
 export class SubscriptionMongoRepository implements SubscriptionRepository {
   async create(subscription: SubscriptionEntity) {
@@ -27,7 +22,7 @@ export class SubscriptionMongoRepository implements SubscriptionRepository {
         throw new Error('Subscription not found.');
       }
 
-      return response?.toObject();
+      return response.toObject();
     } catch (error) {
       const err = error as Error;
       console.log('Error getting MongoDB subscription: ', err.message);

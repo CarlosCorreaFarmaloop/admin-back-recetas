@@ -25,9 +25,7 @@ const DeliverySchema = new mongoose.Schema(
 
 const DiscountSchema = new mongoose.Schema(
   {
-    details: [
-      new mongoose.Schema({ discount: Number, promotionCode: String, reference: String, type: String }, { _id: false }),
-    ],
+    details: [new mongoose.Schema({ discount: Number, promotionCode: String, reference: String, type: String }, { _id: false })],
     total: Number,
   },
   { _id: false }
@@ -128,10 +126,7 @@ const ShipmentSchema = new mongoose.Schema(
   { _id: false }
 );
 
-const TrackingSchema = new mongoose.Schema(
-  { date: Number, responsible: String, observation: String, status: String },
-  { _id: false }
-);
+const TrackingSchema = new mongoose.Schema({ date: Number, responsible: String, observation: String, status: String }, { _id: false });
 
 const ObservationSchema = new mongoose.Schema(
   {
