@@ -1,7 +1,7 @@
 import { EventBridgeClient, PutEventsCommand } from '@aws-sdk/client-eventbridge';
 
-import { ApprovePreorderPaymentParams, IEventEmitter, PrescriptionType, ProductOrder, SubscriptionOrder } from './interface';
-import { Product, SubscriptionEntity } from '../../../core/modules/subscription/domain/subscription.entity';
+import { ApprovePreorderPaymentParams, IEventEmitter, SubscriptionOrder } from './interface';
+import { SubscriptionEntity } from '../../../core/modules/subscription/domain/subscription.entity';
 import { PreOrderEntity } from '../../../core/modules/preorder/domain/preOrder.entity';
 
 export class EventEmitter implements IEventEmitter {
@@ -16,7 +16,7 @@ export class EventEmitter implements IEventEmitter {
       const command = new PutEventsCommand({
         Entries: [
           {
-            Detail: JSON.stringify({ origin: 'ecommerce', payload: { id }, action: 'cobrar-suscripcion' }),
+            Detail: JSON.stringify({ origin: 'ecommerce', body: { id }, action: 'cobrar-suscripcion' }),
             DetailType: 'Generar cobro de suscripción desde Lambda Suscripciones.',
             EventBusName: 'arn:aws:events:us-east-1:069526102702:event-bus/default',
             Source: `suscripciones_sqs_${process.env.ENV?.toLowerCase() as string}`,
@@ -42,7 +42,7 @@ export class EventEmitter implements IEventEmitter {
       const command = new PutEventsCommand({
         Entries: [
           {
-            Detail: JSON.stringify({ origin: 'ecommerce', payload: subscription, action: 'crear-preordenes-suscripcion' }),
+            Detail: JSON.stringify({ origin: 'ecommerce', body: subscription, action: 'crear-preordenes-suscripcion' }),
             DetailType: 'Generar preordenes de suscripción desde Lambda Suscripciones.',
             EventBusName: 'arn:aws:events:us-east-1:069526102702:event-bus/default',
             Source: `suscripciones_sqs_${process.env.ENV?.toLowerCase() as string}`,
@@ -70,7 +70,7 @@ export class EventEmitter implements IEventEmitter {
       const command = new PutEventsCommand({
         Entries: [
           {
-            Detail: JSON.stringify({ origin: 'ecommerce', payload: { orderId, successAttempt }, action: 'aprobar-pago-preorden' }),
+            Detail: JSON.stringify({ origin: 'ecommerce', body: { orderId, successAttempt }, action: 'aprobar-pago-preorden' }),
             DetailType: 'Aprobar pago de preordene de suscripción desde Lambda Suscripciones.',
             EventBusName: 'arn:aws:events:us-east-1:069526102702:event-bus/default',
             Source: `suscripciones_sqs_${process.env.ENV?.toLowerCase() as string}`,
@@ -98,7 +98,7 @@ export class EventEmitter implements IEventEmitter {
       const command = new PutEventsCommand({
         Entries: [
           {
-            Detail: JSON.stringify({ origin: 'Subscription', payload: notification, action: 'crear-order' }),
+            Detail: JSON.stringify({ origin: 'suscripcion', body: notification, action: 'crear-order' }),
             DetailType: 'Crear orden de suscripción desde Lambda Suscripciones.',
             EventBusName: 'arn:aws:events:us-east-1:069526102702:event-bus/default',
             Source: `ordenes_sqs_${process.env.ENV?.toLowerCase() as string}`,
@@ -135,39 +135,5 @@ export class EventEmitter implements IEventEmitter {
       productsOrder,
       resumeOrder,
     };
-  }
-
-  private generateProducts(products: Product[]): ProductOrder[] {
-    const newArr: ProductOrder[] = products.map((el) => ({
-      batchId: '',
-      bioequivalent: el.bioequivalent,
-      cooled: el.cooled,
-      discountPerUnit: el.discountPerUnit,
-      ean: el.ean,
-      expiration: 0,
-      fullName: el.fullName,
-      laboratoryName: el.laboratoryName,
-      liquid: el.liquid,
-      normalUnitPrice: 0,
-      pharmaceuticalForm: el.pharmaceuticalForm,
-      photoURL: el.photoURL,
-      prescription: {
-        file: el.prescription.file,
-      },
-      prescriptionType: el.prescriptionType as PrescriptionType,
-      presentation: el.presentation,
-      price: el.price,
-      pricePaidPerUnit: el.pricePaidPerUnit,
-      productCategory: el.productCategory,
-      productSubCategory: el.productSubCategory,
-      qty: el.quantity,
-      quantityPerContainer: el.quantityPerContainer,
-      recommendations: el.recommendations,
-      requirePrescription: el.requiresPrescription,
-      shortName: el.shortName,
-      sku: el.sku,
-    }));
-
-    return newArr;
   }
 }

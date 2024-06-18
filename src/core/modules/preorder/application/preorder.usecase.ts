@@ -49,11 +49,13 @@ export class PreOrderUseCase implements IPreOrderUseCase {
         subject: 'Falta de stock para emisión de Orden',
       });
 
+      console.log(`Lack of stock to create administrator order: ${id}`);
       return { data: true, message: 'Preorder payment successfully approved.', status: HttpCodes.OK };
     }
 
     await this.eventEmitter.generateAdministratorOrder(orderVo);
 
+    console.log(`Administrator order created: ${id}`);
     return { data: true, message: 'Preorder payment successfully approved.', status: HttpCodes.OK };
   }
 

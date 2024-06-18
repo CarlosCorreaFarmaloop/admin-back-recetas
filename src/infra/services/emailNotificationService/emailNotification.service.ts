@@ -6,7 +6,7 @@ export class EmailNotificationService implements IEmailNotificationService {
   private readonly sesClient: SESClient;
 
   constructor() {
-    this.sesClient = new SESClient();
+    this.sesClient = new SESClient({ region: 'us-east-2' });
   }
 
   async sendHTMLNotification(notification: HTMLNotification) {

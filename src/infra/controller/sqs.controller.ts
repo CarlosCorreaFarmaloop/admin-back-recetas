@@ -16,7 +16,7 @@ import { PreOrderMongoRepository } from '../repository/preorder/preoder.mongo.re
 import { PreOrderUseCase } from '../../core/modules/preorder/application/preorder.usecase';
 
 export const SQSController = async (event: SQSEventInput) => {
-  const { action, payload } = event;
+  const { action, body } = event;
 
   const tokenManagerService = new TokenManagerService();
   const transbankService = new TransbankService();
@@ -33,40 +33,40 @@ export const SQSController = async (event: SQSEventInput) => {
   const preOrderUseCase = new PreOrderUseCase(preOrderRepository, stockUseCase, emailNotificationService, eventEmitter);
 
   if (action === 'crear-suscripcion') {
-    const { message, status } = Create_Subscription_Dto(payload);
+    const { message, status } = Create_Subscription_Dto(body);
     if (!status) {
       console.log('Error en Dto: ', JSON.stringify({ message }, null, 2));
       throw new Error(message);
     }
 
-    const response = await subscriptionUseCase.createSubscription(payload);
+    const response = await subscriptionUseCase.createSubscription(body);
     return { statusCode: response.status, body: JSON.stringify({ message: response.message, data: response.data }) };
   }
 
   if (action === 'cobrar-suscripcion') {
-    const { message, status } = Charge_Subscription_Dto(payload);
+    const { message, status } = Charge_Subscription_Dto(body);
     if (!status) {
       console.log('Error en Dto: ', JSON.stringify({ message }, null, 2));
       throw new Error(message);
     }
 
-    const response = await subscriptionUseCase.generateCharge(payload.id);
+    const response = await subscriptionUseCase.generateCharge(body.id);
     return { statusCode: response.status, body: JSON.stringify({ message: response.message, data: response.data }) };
   }
 
   if (action === 'crear-preordenes-suscripcion') {
-    const response = await preOrderUseCase.createManyPreOrders(payload);
+    const response = await preOrderUseCase.createManyPreOrders(body);
     return { statusCode: response.status, body: JSON.stringify({ message: response.message, data: response.data }) };
   }
 
   if (action === 'aprobar-pago-preorden') {
-    const { message, status } = ApprovePayment_PreOrder_Dto(payload);
+    const { message, status } = ApprovePayment_PreOrder_Dto(body);
     if (!status) {
       console.log('Error en Dto: ', JSON.stringify({ message }, null, 2));
       throw new Error(message);
     }
 
-    const response = await preOrderUseCase.approvePreorderPayment(payload.orderId, payload.successAttempt);
+    const response = await preOrderUseCase.approvePreorderPayment(body.orderId, body.successAttempt);
     return { statusCode: response.status, body: JSON.stringify({ message: response.message, data: response.data }) };
   }
 

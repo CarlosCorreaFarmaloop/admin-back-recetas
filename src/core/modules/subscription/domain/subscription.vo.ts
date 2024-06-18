@@ -1,7 +1,7 @@
 import { Attempt, Product, SubscriptionEntity, ShipmentSchedule, Tracking, GeneralStatus, ProgressStatus } from './subscription.entity';
 
 export class SubscriptionVO {
-  create(payload: CreateSubscriptionPayload): SubscriptionEntity {
+  create(payload: CreateSubscriptionParams): SubscriptionEntity {
     const { products } = payload;
 
     return {
@@ -188,7 +188,7 @@ export class SubscriptionVO {
   }
 }
 
-export type CreateSubscriptionPayload = Omit<SubscriptionEntity, 'products'> & {
+export type CreateSubscriptionParams = Omit<SubscriptionEntity, 'products'> & {
   products: Array<Omit<Product, 'prescription'> & { prescription: string }>;
 };
 

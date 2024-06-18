@@ -87,6 +87,12 @@ export interface ProductOrder {
   photoURL: string;
   prescription: {
     file: string;
+    state: 'Pending' | 'Rejected' | 'Approved' | 'Approved_With_Comments' | '';
+    validation: {
+      comments: string;
+      rut: string;
+      responsible: string;
+    };
   };
   prescriptionType: PrescriptionType;
   presentation: string;

@@ -1,5 +1,5 @@
 import { SubscriptionRepository } from '../domain/subscription.repository';
-import { CreateSubscriptionPayload, SubscriptionVO } from '../domain/subscription.vo';
+import { CreateSubscriptionParams, SubscriptionVO } from '../domain/subscription.vo';
 import { HttpCodes } from './api.response';
 import { ISubscriptionUseCase, ApproveSubscription, RejectSubscription } from './subscription.usecase.interface';
 import { Delivery, GeneralStatus, Prescription, ShipmentSchedule, SubscriptionEntity } from '../domain/subscription.entity';
@@ -15,7 +15,7 @@ export class SubscriptionUseCase implements ISubscriptionUseCase {
     private readonly eventEmitter: IEventEmitter
   ) {}
 
-  async createSubscription(payload: CreateSubscriptionPayload) {
+  async createSubscription(payload: CreateSubscriptionParams) {
     console.log('Enters createSubscription(): ', JSON.stringify(payload, null, 2));
 
     const newSubscription = new SubscriptionVO().create(payload);
