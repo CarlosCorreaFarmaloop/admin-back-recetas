@@ -30,7 +30,7 @@ export class EmailNotificationService implements IEmailNotificationService {
         throw new Error('Error sending notification.');
       }
 
-      console.log('Notification successfully sent: ', JSON.stringify(notification, null, 2));
+      console.log('Notification successfully sent: ', JSON.stringify({ recipients: notification.recipients }, null, 2));
     } catch (error) {
       const err = error as Error;
       console.error('General error sending notification', JSON.stringify({ notification, message: err.message }, null, 2));

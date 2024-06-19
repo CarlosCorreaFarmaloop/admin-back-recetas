@@ -15,6 +15,8 @@ export interface ISubscriptionUseCase {
     sku: string,
     toUpdate: Pick<Prescription, 'file' | 'state' | 'validation'>
   ) => Promise<Respuesta<SubscriptionEntity>>;
+  sendNotificationPaymentReceived: (id: string) => Promise<Respuesta<boolean>>;
+  sendNotificationFailedPayment: (id: string) => Promise<Respuesta<boolean>>;
 }
 
 export interface ApproveSubscription {

@@ -90,13 +90,18 @@ const createSchema = Joi.object({
           paymentDate: Joi.number().required(),
           nextPaymentDate: Joi.number().required(),
           shipmentDate: Joi.number().required(),
+
           paymentStatus: Joi.string().required(),
+          paymentRetryToken: Joi.string().required().allow(''),
+          paymentRetryTokenExpiration: Joi.number().required(),
 
           orderId: Joi.string().required().allow(''),
           orderStatus: Joi.string().required(),
 
           numberOfAttempts: Joi.number().required(),
           maxAttempts: Joi.number().required(),
+          numberOfUserAttempts: Joi.number().required(),
+          maxUserAttempts: Joi.number().required(),
           attempts: Joi.array()
             .items(
               Joi.object({
@@ -106,6 +111,7 @@ const createSchema = Joi.object({
                 externalMessage: Joi.string().required(),
                 externalStatus: Joi.string().required(),
                 paymentMethod: Joi.string().required(),
+                responsable: Joi.string().required(),
                 status: Joi.string().required(),
                 transactionDate: Joi.number().required(),
               })

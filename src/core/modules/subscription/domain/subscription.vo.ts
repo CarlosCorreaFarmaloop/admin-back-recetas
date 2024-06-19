@@ -1,3 +1,4 @@
+import { v4 as uuid } from 'uuid';
 import { Attempt, Product, SubscriptionEntity, ShipmentSchedule, Tracking, GeneralStatus, ProgressStatus } from './subscription.entity';
 
 export class SubscriptionVO {
@@ -55,6 +56,7 @@ export class SubscriptionVO {
 
   updateSubscriptionChargeSuccess(subscription: SubscriptionEntity, attempt: Attempt): SubscriptionToUpdateSuccess {
     const { currentShipmentId, shipment } = subscription;
+    const { responsible } = attempt;
 
     const index = shipment.shipmentSchedule.findIndex((el) => el.id === currentShipmentId);
     if (index === -1) {
@@ -62,11 +64,15 @@ export class SubscriptionVO {
     }
 
     const currentShipment = shipment.shipmentSchedule[index];
+    const isSistemas = responsible === 'Sistema';
+    const isUsuario = responsible === 'Usuario';
 
     const newShipmentSchedule: ShipmentSchedule = {
       ...currentShipment,
       paymentStatus: 'Success',
-      numberOfAttempts: currentShipment.numberOfAttempts + 1,
+
+      numberOfAttempts: isSistemas ? currentShipment.numberOfAttempts + 1 : currentShipment.numberOfAttempts,
+      numberOfUserAttempts: isUsuario ? currentShipment.numberOfUserAttempts + 1 : currentShipment.numberOfUserAttempts,
       attempts: [...currentShipment.attempts, attempt],
     };
     const newArr = shipment.shipmentSchedule;
@@ -83,20 +89,28 @@ export class SubscriptionVO {
 
   updateSubscriptionChargeFailed(subscription: SubscriptionEntity, attempt: Attempt): SubscriptionToUpdateFailed {
     const { currentShipmentId, shipment } = subscription;
+    const { responsible } = attempt;
 
     const index = shipment.shipmentSchedule.findIndex((el) => el.id === currentShipmentId);
     if (index === -1) {
       throw new Error('Index of the shipment schedule was not found in updateSubscriptionChargeFailed()');
     }
 
-    const currentShipmentSchedule = shipment.shipmentSchedule[index];
+    const currentShipment = shipment.shipmentSchedule[index];
+    const isSistemas = responsible === 'Sistema';
+    const isUsuario = responsible === 'Usuario';
 
     const newShipmentSchedule: ShipmentSchedule = {
-      ...currentShipmentSchedule,
-      nextPaymentDate: this.addOneDayToDate(currentShipmentSchedule.nextPaymentDate),
+      ...currentShipment,
+      nextPaymentDate: isSistemas ? this.addOneDayToDate(currentShipment.nextPaymentDate) : currentShipment.nextPaymentDate,
+
       paymentStatus: 'Retrying',
-      numberOfAttempts: currentShipmentSchedule.numberOfAttempts + 1,
-      attempts: [...currentShipmentSchedule.attempts, attempt],
+      paymentRetryToken: uuid(),
+      paymentRetryTokenExpiration: this.generatePaymentRetryTokenExpiration(),
+
+      numberOfAttempts: isSistemas ? currentShipment.numberOfAttempts + 1 : currentShipment.numberOfAttempts,
+      numberOfUserAttempts: isUsuario ? currentShipment.numberOfUserAttempts + 1 : currentShipment.numberOfUserAttempts,
+      attempts: [...currentShipment.attempts, attempt],
     };
     const newArr = shipment.shipmentSchedule;
     newArr[index] = newShipmentSchedule;
@@ -116,13 +130,14 @@ export class SubscriptionVO {
       throw new Error('Index of the shipment schedule was not found in updateSubscriptionChargeFailedLastAttempt()');
     }
 
-    const currentShipmentSchedule = shipment.shipmentSchedule[index];
+    const currentShipment = shipment.shipmentSchedule[index];
 
     const newShipmentSchedule: ShipmentSchedule = {
-      ...currentShipmentSchedule,
+      ...currentShipment,
       paymentStatus: 'Failed',
-      numberOfAttempts: currentShipmentSchedule.numberOfAttempts + 1,
-      attempts: [...currentShipmentSchedule.attempts, attempt],
+
+      numberOfAttempts: currentShipment.numberOfAttempts + 1,
+      attempts: [...currentShipment.attempts, attempt],
     };
     const newArr = shipment.shipmentSchedule;
     newArr[index] = newShipmentSchedule;
@@ -147,6 +162,7 @@ export class SubscriptionVO {
 
   completeSubscription(subscription: SubscriptionEntity, attempt: Attempt): SubscriptionToUpdateComplete {
     const { currentShipmentId, shipment } = subscription;
+    const { responsible } = attempt;
 
     const index = shipment.shipmentSchedule.findIndex((el) => el.id === currentShipmentId);
     if (index === -1) {
@@ -154,12 +170,16 @@ export class SubscriptionVO {
     }
 
     const currentShipment = shipment.shipmentSchedule[index];
+    const isSistemas = responsible === 'Sistema';
+    const isUsuario = responsible === 'Usuario';
     const today = new Date().getTime();
 
     const newShipmentSchedule: ShipmentSchedule = {
       ...currentShipment,
       paymentStatus: 'Success',
-      numberOfAttempts: currentShipment.numberOfAttempts + 1,
+
+      numberOfAttempts: isSistemas ? currentShipment.numberOfAttempts + 1 : currentShipment.numberOfAttempts,
+      numberOfUserAttempts: isUsuario ? currentShipment.numberOfUserAttempts + 1 : currentShipment.numberOfUserAttempts,
       attempts: [...currentShipment.attempts, attempt],
     };
     const newArr = shipment.shipmentSchedule;
@@ -185,6 +205,13 @@ export class SubscriptionVO {
     const newDate = new Date(currentDate);
     newDate.setTime(newDate.getTime() + 86400000);
     return newDate.getTime();
+  }
+
+  private generatePaymentRetryTokenExpiration(): number {
+    const currentDate = new Date();
+    currentDate.setHours(23, 59, 59);
+
+    return currentDate.getTime();
   }
 }
 

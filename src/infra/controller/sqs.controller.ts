@@ -3,6 +3,7 @@ import { SQSEventInput } from '../../interfaces/sqs';
 import { Create_Subscription_Dto } from '../dto/subscription/create.dto';
 import { Charge_Subscription_Dto } from '../dto/subscription/charge.dto';
 import { ApprovePayment_PreOrder_Dto } from '../dto/preorder/approvePayment.dto';
+import { Notification_Subscription_Dto } from '../dto/subscription/notification.dto';
 
 import { TokenManagerService } from '../services/tokenManager/tokenManager.service';
 import { TransbankService } from '../services/transbank/transbank.service';
@@ -24,7 +25,13 @@ export const SQSController = async (event: SQSEventInput) => {
   const emailNotificationService = new EmailNotificationService();
 
   const subscriptionRepository = new SubscriptionMongoRepository();
-  const subscriptionUseCase = new SubscriptionUseCase(subscriptionRepository, tokenManagerService, transbankService, eventEmitter);
+  const subscriptionUseCase = new SubscriptionUseCase(
+    subscriptionRepository,
+    tokenManagerService,
+    transbankService,
+    eventEmitter,
+    emailNotificationService
+  );
 
   const stockRepository = new StockMongoRepository();
   const stockUseCase = new StockUseCase(stockRepository);
@@ -67,6 +74,28 @@ export const SQSController = async (event: SQSEventInput) => {
     }
 
     const response = await preOrderUseCase.approvePreorderPayment(body.orderId, body.successAttempt);
+    return { statusCode: response.status, body: JSON.stringify({ message: response.message, data: response.data }) };
+  }
+
+  if (action === 'notificar-suscripcion-creada') {
+    const { message, status } = Notification_Subscription_Dto(body);
+    if (!status) {
+      console.log('Error en Dto: ', JSON.stringify({ message }, null, 2));
+      throw new Error(message);
+    }
+
+    const response = await subscriptionUseCase.sendNotificationPaymentReceived(body.id);
+    return { statusCode: response.status, body: JSON.stringify({ message: response.message, data: response.data }) };
+  }
+
+  if (action === 'notificar-fallo-pago-suscripcion') {
+    const { message, status } = Notification_Subscription_Dto(body);
+    if (!status) {
+      console.log('Error en Dto: ', JSON.stringify({ message }, null, 2));
+      throw new Error(message);
+    }
+
+    const response = await subscriptionUseCase.sendNotificationFailedPayment(body.id);
     return { statusCode: response.status, body: JSON.stringify({ message: response.message, data: response.data }) };
   }
 

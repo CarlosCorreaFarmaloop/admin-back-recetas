@@ -135,13 +135,18 @@ export interface ShipmentSchedule {
   paymentDate: number;
   nextPaymentDate: number;
   shipmentDate: number;
+
   paymentStatus: ShipmentPaymentStatus;
+  paymentRetryToken: string;
+  paymentRetryTokenExpiration: number;
 
   orderId: string;
   orderStatus: OrderStatus;
 
   numberOfAttempts: number;
   maxAttempts: number;
+  numberOfUserAttempts: number;
+  maxUserAttempts: number;
   attempts: Attempt[];
 }
 
@@ -152,6 +157,7 @@ export interface Attempt {
   externalMessage: string;
   externalStatus: string;
   paymentMethod: string;
+  responsible: AttemptResponsible;
   status: AttemptStatus;
   transactionDate: number;
 }
@@ -171,5 +177,6 @@ export type ProgressStatus = 'Created' | 'In Progress' | 'Cancelled' | 'Aborted'
 
 export type ShipmentPaymentStatus = 'Pending' | 'Success' | 'Failed' | 'Retrying';
 export type AttemptStatus = 'Success' | 'Failed';
+export type AttemptResponsible = 'Usuario' | 'Sistema';
 
 export type OrderStatus = 'Pending' | 'Created' | 'Delivered';

@@ -11,6 +11,7 @@ import { TransbankService } from '../services/transbank/transbank.service';
 import { EventEmitter } from '../services/eventEmitter/eventEmitter.service';
 import { SubscriptionMongoRepository } from '../repository/subscription/subscription.mongo.repository';
 import { SubscriptionUseCase } from '../../core/modules/subscription/application/subscription.usecase';
+import { EmailNotificationService } from '../services/emailNotificationService/emailNotification.service';
 
 const basePath = '/api-lambda/subscriptions';
 
@@ -20,9 +21,16 @@ export const APIController = async (event: APIGatewayEventInput) => {
   const tokenManagerService = new TokenManagerService();
   const transbankService = new TransbankService();
   const eventEmitter = new EventEmitter();
+  const emailNotificationService = new EmailNotificationService();
 
   const subscriptionRepository = new SubscriptionMongoRepository();
-  const subscriptionUseCase = new SubscriptionUseCase(subscriptionRepository, tokenManagerService, transbankService, eventEmitter);
+  const subscriptionUseCase = new SubscriptionUseCase(
+    subscriptionRepository,
+    tokenManagerService,
+    transbankService,
+    eventEmitter,
+    emailNotificationService
+  );
 
   if (path === `${basePath}/get-all`) {
     const response = await subscriptionUseCase.getAllSubscriptions();

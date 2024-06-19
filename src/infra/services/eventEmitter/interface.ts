@@ -5,7 +5,8 @@ export interface IEventEmitter {
   generateSubscriptionCharge: (id: string) => Promise<void>;
   generateSubscriptionPreOrders: (subscription: SubscriptionEntity) => Promise<void>;
   approvePreorderPayment: (params: ApprovePreorderPaymentParams) => Promise<void>;
-  generateAdministratorOrder: (preOrder: PreOrderEntity) => Promise<boolean>;
+  generateAdministratorOrder: (preOrder: PreOrderEntity) => Promise<void>;
+  sendNotificationToCustomer: (params: SendNotificationToCustomerParams) => Promise<void>;
 }
 
 export interface ApprovePreorderPaymentParams {
@@ -72,7 +73,7 @@ interface Delivery {
   type: 'Envío Estándar (48 horas hábiles)';
 }
 
-export interface ProductOrder {
+interface ProductOrder {
   batchId: string;
   bioequivalent: boolean;
   cooled: boolean;
@@ -118,8 +119,9 @@ interface Discount {
   total: number;
 }
 
-export type PrescriptionType =
-  | 'Presentación receta médica'
-  | 'Venta directa (Sin receta)'
-  | 'Venta bajo receta cheque'
-  | 'Receta médica retenida';
+type PrescriptionType = 'Presentación receta médica' | 'Venta directa (Sin receta)' | 'Venta bajo receta cheque' | 'Receta médica retenida';
+
+export interface SendNotificationToCustomerParams {
+  id: string;
+  action: 'notificar-suscripcion-creada';
+}

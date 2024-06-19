@@ -1,6 +1,6 @@
 import { EventBridgeClient, PutEventsCommand } from '@aws-sdk/client-eventbridge';
 
-import { ApprovePreorderPaymentParams, IEventEmitter, SubscriptionOrder } from './interface';
+import { ApprovePreorderPaymentParams, IEventEmitter, SendNotificationToCustomerParams, SubscriptionOrder } from './interface';
 import { SubscriptionEntity } from '../../../core/modules/subscription/domain/subscription.entity';
 import { PreOrderEntity } from '../../../core/modules/preorder/domain/preOrder.entity';
 
@@ -112,8 +112,6 @@ export class EventEmitter implements IEventEmitter {
         console.error('Error notifying subscription order: ', JSON.stringify({ command, response }, null, 2));
         throw new Error('Error notifying subscription order.');
       }
-
-      return true;
     } catch (error) {
       const err = error as Error;
       console.error('General error notifying subscription order: ', err.message);
@@ -135,5 +133,33 @@ export class EventEmitter implements IEventEmitter {
       productsOrder,
       resumeOrder,
     };
+  }
+
+  async sendNotificationToCustomer(params: SendNotificationToCustomerParams) {
+    const { action, id } = params;
+
+    try {
+      const command = new PutEventsCommand({
+        Entries: [
+          {
+            Detail: JSON.stringify({ origin: 'admin-back-suscripcion-core', body: { id }, action }),
+            DetailType: 'Notificar la creación correcta de la suscripción desde Lambda Suscripciones.',
+            EventBusName: 'arn:aws:events:us-east-1:069526102702:event-bus/default',
+            Source: `suscripciones_sqs_${process.env.ENV?.toLowerCase() as string}`,
+          },
+        ],
+      });
+
+      const response = await this.emitter.send(command);
+
+      if (response?.FailedEntryCount && response?.FailedEntryCount > 0) {
+        console.error('Error when notifying to send notification to customer: ', JSON.stringify({ command, response }, null, 2));
+        throw new Error('Error when notifying to send notification to customer.');
+      }
+    } catch (error) {
+      const err = error as Error;
+      console.error(`General error when notifying to send notification to customer: ${id}.`, err.message);
+      throw new Error(err.message);
+    }
   }
 }

@@ -5,28 +5,42 @@ export type SQSEventInput =
   | CreateSubscriptionEventInput
   | GenerateChargeEventInput
   | GenerateSubscriptionPreOrdersEventInput
-  | ApprovePreorderPaymentEventInput;
+  | ApprovePreorderPaymentEventInput
+  | SendNotificationPaymentReceivedEventInput
+  | SendNotificationFailedPaymentEventInput;
 
-export interface CreateSubscriptionEventInput {
+interface CreateSubscriptionEventInput {
   action: 'crear-suscripcion';
   origin: string;
   body: CreateSubscriptionParams;
 }
 
-export interface GenerateChargeEventInput {
+interface GenerateChargeEventInput {
   action: 'cobrar-suscripcion';
   origin: string;
   body: { id: string };
 }
 
-export interface GenerateSubscriptionPreOrdersEventInput {
+interface GenerateSubscriptionPreOrdersEventInput {
   action: 'crear-preordenes-suscripcion';
   origin: string;
   body: SubscriptionEntity;
 }
 
-export interface ApprovePreorderPaymentEventInput {
+interface ApprovePreorderPaymentEventInput {
   action: 'aprobar-pago-preorden';
   origin: string;
   body: { orderId: string; successAttempt: Attempt };
+}
+
+interface SendNotificationPaymentReceivedEventInput {
+  action: 'notificar-suscripcion-creada';
+  origin: string;
+  body: { id: string };
+}
+
+interface SendNotificationFailedPaymentEventInput {
+  action: 'notificar-fallo-pago-suscripcion';
+  origin: string;
+  body: { id: string };
 }

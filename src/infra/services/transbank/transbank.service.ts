@@ -1,8 +1,8 @@
 import { Options, Oneclick, IntegrationCommerceCodes, IntegrationApiKeys, Environment, TransactionDetail } from 'transbank-sdk';
 import MallTransaction from 'transbank-sdk/dist/es5/transbank/webpay/oneclick/mall_transaction';
 
-import { AuthorizeResponse, ITransbankService, PaymentType } from './interface';
-import { Attempt, ShipmentSchedule, SubscriptionEntity } from '../../../core/modules/subscription/domain/subscription.entity';
+import { AuthorizeResponse, ITransbankService, PaymentType, authorizeTransactionParams } from './interface';
+import { Attempt, AttemptResponsible } from '../../../core/modules/subscription/domain/subscription.entity';
 
 export class TransbankService implements ITransbankService {
   private readonly mallInscription: MallTransaction;
@@ -18,7 +18,9 @@ export class TransbankService implements ITransbankService {
     );
   }
 
-  async authorizeTransaction(token: string, subscription: SubscriptionEntity, currentShipmentSchedule: ShipmentSchedule) {
+  async authorizeTransaction(params: authorizeTransactionParams) {
+    const { currentShipmentSchedule, responsible, subscription, token } = params;
+
     try {
       const { delivery, resume } = subscription;
       const { orderId } = currentShipmentSchedule;
@@ -27,7 +29,7 @@ export class TransbankService implements ITransbankService {
 
       const response: AuthorizeResponse = await this.mallInscription.authorize(delivery.fullName, token, orderId, details);
 
-      return this.generateAttempt(response);
+      return this.generateAttempt(response, responsible);
     } catch (error) {
       const { orderId } = currentShipmentSchedule;
 
@@ -37,7 +39,7 @@ export class TransbankService implements ITransbankService {
     }
   }
 
-  private generateAttempt(response: AuthorizeResponse): Attempt {
+  private generateAttempt(response: AuthorizeResponse, responsible: AttemptResponsible): Attempt {
     return {
       amount: response.details[0].amount,
       cardNumber: response.card_detail.card_number,
@@ -45,6 +47,7 @@ export class TransbankService implements ITransbankService {
       externalMessage: this.generateTransbankMessage(response.details[0].response_code),
       externalStatus: response.details[0].status,
       paymentMethod: this.generateTransbankPaymentType(response.details[0].payment_type_code),
+      responsible,
       status: response.details[0].response_code === 0 ? 'Success' : 'Failed',
       transactionDate: new Date().getTime(),
     };
