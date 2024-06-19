@@ -487,6 +487,6 @@ export class SubscriptionUseCase implements ISubscriptionUseCase {
   private generateFullAddress(delivery: Delivery): string {
     const { comuna, homeNumber, homeType, region, streetName, streetNumber } = delivery;
 
-    return `${streetName}${homeType !== 'Casa' ? ` ${homeType} ${homeNumber}` : ''}, ${comuna}, ${region}.`;
+    return `${streetName} ${streetNumber}${homeType !== 'Casa' ? ` ${homeType} ${homeNumber}` : ''}, ${comuna}, ${region}.`;
   }
 }
