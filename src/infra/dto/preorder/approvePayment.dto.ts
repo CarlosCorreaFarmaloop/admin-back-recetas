@@ -9,6 +9,7 @@ const approvePaymentPreOrderSchema = Joi.object({
     externalMessage: Joi.string().required(),
     externalStatus: Joi.string().required(),
     paymentMethod: Joi.string().required(),
+    responsible: Joi.string().required(),
     status: Joi.string().required(),
     transactionDate: Joi.number().required(),
   }).required(),
