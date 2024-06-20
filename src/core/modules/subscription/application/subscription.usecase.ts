@@ -100,7 +100,7 @@ export class SubscriptionUseCase implements ISubscriptionUseCase {
     if (newAttempt.status === 'Failed') {
       const subscriptionToUpdate = subscriptionVO.updateSubscriptionChargeFailed(subscriptionDb, newAttempt);
       const updatedSubscription = await this.subscriptionRepository.update(id, subscriptionToUpdate);
-      // Notificar al cliente que fallo el cobro y se programo un nuevo intento para mañana.
+      await this.eventEmitter.sendNotificationToCustomer({ action: 'notificar-fallo-pago-suscripcion', id });
 
       console.log('Subscription charge attempt failed: ', JSON.stringify(updatedSubscription, null, 2));
       return { data: true, message: 'Subscription attempted charge made.', status: HttpCodes.OK };
@@ -118,10 +118,7 @@ export class SubscriptionUseCase implements ISubscriptionUseCase {
 
     const subscriptionToUpdate = subscriptionVO.updateSubscriptionChargeSuccess(subscriptionDb, newAttempt);
     const updatedSubscription = await this.subscriptionRepository.update(id, subscriptionToUpdate);
-    await this.eventEmitter.approvePreorderPayment({
-      orderId: currentShipmentSchedule.orderId,
-      successAttempt: newAttempt,
-    });
+    await this.eventEmitter.approvePreorderPayment({ orderId: currentShipmentSchedule.orderId, successAttempt: newAttempt });
 
     console.log('Subscription charge was generated: ', JSON.stringify(updatedSubscription, null, 2));
     return { data: true, message: 'Subscription attempted charge made.', status: HttpCodes.OK };
