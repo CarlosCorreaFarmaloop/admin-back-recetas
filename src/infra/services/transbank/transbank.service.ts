@@ -48,7 +48,7 @@ export class TransbankService implements ITransbankService {
       externalStatus: response.details[0].status,
       paymentMethod: this.generateTransbankPaymentType(response.details[0].payment_type_code),
       responsible,
-      status: response.details[0].response_code === 0 ? 'Success' : 'Failed',
+      status: response.details[0].response_code === 0 ? 'Failed' : 'Failed',
       transactionDate: new Date().getTime(),
     };
   }
