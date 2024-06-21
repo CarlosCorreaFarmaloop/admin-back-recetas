@@ -92,8 +92,6 @@ const createSchema = Joi.object({
           shipmentDate: Joi.number().required(),
 
           paymentStatus: Joi.string().required(),
-          paymentRetryToken: Joi.string().required().allow(''),
-          paymentRetryTokenExpiration: Joi.number().required(),
 
           orderId: Joi.string().required().allow(''),
           orderStatus: Joi.string().required(),
