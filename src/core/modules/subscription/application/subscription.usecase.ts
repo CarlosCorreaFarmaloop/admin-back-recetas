@@ -1,7 +1,14 @@
 import { CreateSubscriptionParams, SubscriptionVO } from '../domain/subscription.vo';
 import { HttpCodes } from './api.response';
 import { ISubscriptionUseCase, ApproveSubscription, RejectSubscription } from './subscription.usecase.interface';
-import { Delivery, GeneralStatus, Prescription, ShipmentSchedule, SubscriptionEntity } from '../domain/subscription.entity';
+import {
+  AttemptResponsible,
+  Delivery,
+  GeneralStatus,
+  Prescription,
+  ShipmentSchedule,
+  SubscriptionEntity,
+} from '../domain/subscription.entity';
 import { SubscriptionRepository } from '../domain/subscription.repository';
 import { ITokenManagerService } from '../../../../infra/services/tokenManager/interface';
 import { ITransbankService } from '../../../../infra/services/transbank/interface';
@@ -42,7 +49,8 @@ export class SubscriptionUseCase implements ISubscriptionUseCase {
     const updatedSubscription = await this.subscriptionRepository.update(id, newSubscription);
 
     await this.eventEmitter.generateSubscriptionPreOrders(updatedSubscription);
-    await this.eventEmitter.generateSubscriptionCharge(subscriptionDb.id);
+    await this.eventEmitter.generateSubscriptionCharge(id, 'Sistema');
+    await this.eventEmitter.syncEcommerceSubscription(id, newSubscription);
 
     console.log('Subscription approved: ', JSON.stringify(updatedSubscription, null, 2));
     return { data: updatedSubscription, message: 'Subscription successfully approved.', status: HttpCodes.OK };
@@ -69,7 +77,7 @@ export class SubscriptionUseCase implements ISubscriptionUseCase {
     return { data: updatedSubscription, message: 'Subscription successfully rejected.', status: HttpCodes.OK };
   }
 
-  async generateCharge(id: string) {
+  async generateCharge(id: string, responsible: AttemptResponsible) {
     console.log('Enters generateCharge(): ', id);
 
     const subscriptionDb = await this.subscriptionRepository.get(id);
@@ -80,7 +88,7 @@ export class SubscriptionUseCase implements ISubscriptionUseCase {
     const token = await this.tokenManagerService.getToken(subscriptionDb.currentPaymentId);
     const newAttempt = await this.transbankService.authorizeTransaction({
       currentShipmentSchedule,
-      responsible: 'Sistema',
+      responsible,
       subscription: subscriptionDb,
       token,
     });
@@ -93,17 +101,18 @@ export class SubscriptionUseCase implements ISubscriptionUseCase {
       const updatedSubscription = await this.subscriptionRepository.update(id, subscriptionToUpdate);
       // Notificar al cliente que fallo el ultimo intento.
 
-      console.log('Last subscription charge attempt failed: ', JSON.stringify(updatedSubscription, null, 2));
-      return { data: true, message: 'Subscription attempted charge made.', status: HttpCodes.OK };
+      console.log('Ultimo intento de cobro de suscripcion fallo: ', JSON.stringify(updatedSubscription, null, 2));
+      return { data: true, message: 'Ok.', status: HttpCodes.OK };
     }
 
     if (newAttempt.status === 'Failed') {
       const subscriptionToUpdate = subscriptionVO.updateSubscriptionChargeFailed(subscriptionDb, newAttempt);
       const updatedSubscription = await this.subscriptionRepository.update(id, subscriptionToUpdate);
       await this.eventEmitter.sendNotificationToCustomer({ action: 'notificar-fallo-pago-suscripcion', id });
+      await this.eventEmitter.syncEcommerceSubscription(id, subscriptionToUpdate);
 
-      console.log('Subscription charge attempt failed: ', JSON.stringify(updatedSubscription, null, 2));
-      return { data: true, message: 'Subscription attempted charge made.', status: HttpCodes.OK };
+      console.log('Intento de cobro de suscripcion fallo: ', JSON.stringify(updatedSubscription, null, 2));
+      return { data: true, message: 'Ok.', status: HttpCodes.OK };
     }
 
     const isLastCharge = this.validateIsLastCharge(subscriptionDb);
@@ -121,7 +130,7 @@ export class SubscriptionUseCase implements ISubscriptionUseCase {
     await this.eventEmitter.approvePreorderPayment({ orderId: currentShipmentSchedule.orderId, successAttempt: newAttempt });
 
     console.log('Subscription charge was generated: ', JSON.stringify(updatedSubscription, null, 2));
-    return { data: true, message: 'Subscription attempted charge made.', status: HttpCodes.OK };
+    return { data: true, message: 'Ok.', status: HttpCodes.OK };
   }
 
   async getAllSubscriptions() {
@@ -385,7 +394,7 @@ export class SubscriptionUseCase implements ISubscriptionUseCase {
     const html = `
       <html>
         <body style="background-color: #F5F8FD; width:95%; height: 100%; display: inline-block; margin: 0px auto;font-size: 12px;font-family: 'Roboto','Helvetica','Arial',sans-serif;justify-content: center;color: #4c4c4c;">
-          <div style="width: 95%; max-width: 600px; margin: auto; background-color: #ffffff; padding: 20px; border-radius: 8px; text-align: center;">
+          <div style="width: 95%; max-width: 600px; margin: auto; background-color: #ffffff; padding: 20px; border-radius: 8px;">
       
             <table width="100%" cellspacing="0" cellpadding="0" border="0" style="margin-bottom: 30px;">
               <tr>
@@ -398,12 +407,14 @@ export class SubscriptionUseCase implements ISubscriptionUseCase {
             <table width="100%" cellspacing="0" cellpadding="0" border="0" style="margin-bottom: 30px;">
               <tr>
                 <td style="text-align: center;">
-                  <h1 style="font-family: 'Roboto','Helvetica','Arial',sans-serif; margin: 0;">No se pudo procesar tu pago</h1>
+                  <h1 style="font-family: 'Roboto','Helvetica','Arial',sans-serif; font-size: 24px; font-weight: 600; margin: 0; color: #FF3131">
+                    No pudimos procesar tu pago...
+                  </h1>
                 </td>
               </tr>
             </table>
   
-            <table width="100%" cellspacing="0" cellpadding="0" border="0" style="margin-bottom: 20px;">
+            <table width="100%" cellspacing="0" cellpadding="0" border="0" style="margin-bottom: 30px;">
               <tr>
                 <td style="font-family: 'Roboto','Helvetica','Arial',sans-serif; text-align: left; font-size: 16px;">
                   <p style="margin: 0; margin-bottom: 8px;">¡Hola ${delivery.fullName}!</p>
@@ -420,56 +431,59 @@ export class SubscriptionUseCase implements ISubscriptionUseCase {
               <tr>
                 <td style="text-align: center;">
                   <a href="${ecommUrl}/suscripcion/" target="_blank" style="text-decoration: none; display: inline-block; width: 100%; max-width: 400px; margin-bottom: 10px;">
-                    <div style="padding: 12px 0; background-color: #2F6CDB; color: #ffffff; border-radius: 6px; font-size: 16px; font-weight: 700; text-align: center;">
+                    <div style="padding: 10px 0; background-color: #FF3131; color: #ffffff; border-radius: 8px; font-size: 16px; font-weight: 600; text-align: center;">
                       Reintentar pago
                     </div>
                   </a>
-                  <a href="${ecommUrl}/suscripcion/" target="_blank" style="text-decoration: none; display: inline-block; width: 100%; max-width: 400px; margin-bottom: 10px;">
-                    <div style="padding: 12px 0; background-color: transparent; color: #2F6CDB; border: 1px solid #2F6CDB; border-radius: 6px; font-size: 16px; font-weight: 700; text-align: center;">
+                  <a href="${ecommUrl}/suscripcion/" target="_blank" style="text-decoration: none; display: inline-block; width: 100%; max-width: 400px;">
+                    <div style="padding: 10px 0; background-color: transparent; color: #FF3131; border: 1px solid #FF3131; border-radius: 8px; font-size: 16px; font-weight: 600; text-align: center;">
                       Actualizar forma de pago
                     </div>
                   </a>
                 </td>
               </tr>
             </table>
-  
-            <table width="100%" cellspacing="0" cellpadding="0" border="0" style="border: 1px solid #ccc; border-radius: 8px; padding: 16px; font-size: 16px;">
+
+            <table width="100%" cellspacing="0" cellpadding="0" border="0" style="background-color: #f0f4ff; padding: 12px 36px; border-radius: 8px; text-align: left; margin-bottom: 30px;">
               <tr>
-                <td style="text-align: left; font-weight: bold;">
-                  Número de Suscripción
+                <td style="margin: 0 auto; border-right: 1px solid #ccc; text-align: center; vertical-align: middle;">
+                  <span style="font-size: 16px; font-weight: 500; color: #000; margin-bottom: 8px;">Número de suscripción</span><br>
+                  <span style="font-size: 14px; color: #000;">${id}</span>
+                </td>
+                <td style="margin: 0 auto; text-align: center; vertical-align: middle;">
+                  <span style="font-size: 16px; font-weight: 500; color: #000; margin-bottom: 8px;">Forma de pago actual</span><br>
+                  <span style="font-size: 14px; color: #000;">•••• •••• •••• ${paymentMethod.cardNumber.slice(-4)}</span>
+                </td>
+              </tr>
+            </table>
+
+            <table width="100%" cellspacing="0" cellpadding="0" border="0" style="margin-bottom: 30px;">
+              <tr>
+                <td style="font-family: 'Roboto','Helvetica','Arial',sans-serif;">
+                  <p style="font-size: 18px; font-weight: 700; margin: 0; text-align: center; margin-bottom: 12px;">
+                    ¿Necesitas ayuda?
+                  </p>
+                  <p style="margin: 0; font-size: 16px; text-align: left; margin-bottom: 30px;">
+                    ¡Nuestros asesores pueden ayudarte! Contáctanos por whatsApp de lunes a viernes de 09:00 a 18:30 hs.
+                  </p>
                 </td>
               </tr>
               <tr>
-                <td style="text-align: left; margin-bottom: 8px;">
-                  ${id}
-                </td>
-              </tr>        
-              <tr>
-                <td style="text-align: left; font-weight: bold;">
-                  Forma de pago actual
-                </td>
-              </tr>
-              <tr>
-                <td style="text-align: left; margin-bottom: 8px;">
-                  ${paymentMethod.cardType} / •••• •••• •••• ${paymentMethod.cardNumber.slice(-4)}
-                </td>
-              </tr>
-              <tr>
-                <td style="text-align: left; font-weight: bold;">
-                  Operador
-                </td>
-              </tr>
-              <tr>
-                <td style="text-align: left;">
-                  Transbank
+                <td style="text-align: center;">
+                  <a href="https://api.whatsapp.com/send?phone=56975199387" target="_blank" style="text-decoration: none; display: inline-block; width: 100%; max-width: 400px;">
+                    <div style="padding: 10px 0; background-color: transparent; color: #000000; border: 1px solid #60D669; border-radius: 8px; font-size: 16px; font-weight: 600; text-align: center;">
+                      Contáctanos
+                    </div>
+                  </a>      
                 </td>
               </tr>
             </table>
   
-            <table width="100%" cellspacing="0" cellpadding="0" border="0" style="margin-top: 30px;">
+            <table width="100%" cellspacing="0" cellpadding="0" border="0">
               <tr>
-                <td style="text-align: center; padding: 10px;">
-                  <p>Con cariño<br><br><span style="font-weight: bold;">Equipo<br>FARMALOOP</span></p>
+                <td style="text-align: center;">
+                  <p style="font-size: 16px; margin: 0; margin-bottom: 12px">¡Muchas gracias!</p>
+                  <p style="font-size: 16px; margin: 0;">Equipo de <b>Farmaloop</b></p>
                 </td>
               </tr>
             </table>

@@ -1,12 +1,13 @@
-import { SubscriptionEntity, Attempt } from '../../../core/modules/subscription/domain/subscription.entity';
+import { SubscriptionEntity, Attempt, AttemptResponsible } from '../../../core/modules/subscription/domain/subscription.entity';
 import { PreOrderEntity } from '../../../core/modules/preorder/domain/preOrder.entity';
 
 export interface IEventEmitter {
-  generateSubscriptionCharge: (id: string) => Promise<void>;
+  generateSubscriptionCharge: (id: string, responsible: AttemptResponsible) => Promise<void>;
   generateSubscriptionPreOrders: (subscription: SubscriptionEntity) => Promise<void>;
   approvePreorderPayment: (params: ApprovePreorderPaymentParams) => Promise<void>;
   generateAdministratorOrder: (preOrder: PreOrderEntity) => Promise<void>;
   sendNotificationToCustomer: (params: SendNotificationToCustomerParams) => Promise<void>;
+  syncEcommerceSubscription: (id: string, toSync: Partial<SubscriptionEntity>) => Promise<void>;
 }
 
 export interface ApprovePreorderPaymentParams {

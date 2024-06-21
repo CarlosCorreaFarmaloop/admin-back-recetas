@@ -1,4 +1,4 @@
-import { Attempt, SubscriptionEntity } from '../core/modules/subscription/domain/subscription.entity';
+import { Attempt, SubscriptionEntity, AttemptResponsible } from '../core/modules/subscription/domain/subscription.entity';
 import { CreateSubscriptionParams } from '../core/modules/subscription/domain/subscription.vo';
 
 export type SQSEventInput =
@@ -18,7 +18,7 @@ interface CreateSubscriptionEventInput {
 interface GenerateChargeEventInput {
   action: 'cobrar-suscripcion';
   origin: string;
-  body: { id: string };
+  body: { id: string; responsible: AttemptResponsible };
 }
 
 interface GenerateSubscriptionPreOrdersEventInput {

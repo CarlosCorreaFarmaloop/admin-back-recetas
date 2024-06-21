@@ -1,7 +1,7 @@
 import { EventBridgeClient, PutEventsCommand } from '@aws-sdk/client-eventbridge';
 
 import { ApprovePreorderPaymentParams, IEventEmitter, SendNotificationToCustomerParams, SubscriptionOrder } from './interface';
-import { SubscriptionEntity } from '../../../core/modules/subscription/domain/subscription.entity';
+import { AttemptResponsible, SubscriptionEntity } from '../../../core/modules/subscription/domain/subscription.entity';
 import { PreOrderEntity } from '../../../core/modules/preorder/domain/preOrder.entity';
 
 export class EventEmitter implements IEventEmitter {
@@ -11,12 +11,12 @@ export class EventEmitter implements IEventEmitter {
     this.emitter = new EventBridgeClient({ region: 'us-east-1' });
   }
 
-  async generateSubscriptionCharge(id: string) {
+  async generateSubscriptionCharge(id: string, responsible: AttemptResponsible) {
     try {
       const command = new PutEventsCommand({
         Entries: [
           {
-            Detail: JSON.stringify({ origin: 'ecommerce', body: { id }, action: 'cobrar-suscripcion' }),
+            Detail: JSON.stringify({ origin: 'ecommerce', body: { id, responsible }, action: 'cobrar-suscripcion' }),
             DetailType: 'Generar cobro de suscripción desde Lambda Suscripciones.',
             EventBusName: 'arn:aws:events:us-east-1:069526102702:event-bus/default',
             Source: `suscripciones_sqs_${process.env.ENV?.toLowerCase() as string}`,
@@ -27,12 +27,12 @@ export class EventEmitter implements IEventEmitter {
       const response = await this.emitter.send(command);
 
       if (response?.FailedEntryCount && response?.FailedEntryCount > 0) {
-        console.error('Error when notifying to generate the subscription charge: ', JSON.stringify({ command, response }, null, 2));
-        throw new Error('Error when notifying to generate the subscription charge.');
+        console.error('Error al emitir evento de intento de cobro: ', JSON.stringify({ command, response }, null, 2));
+        throw new Error('Error al emitir evento de intento de cobro.');
       }
     } catch (error) {
       const err = error as Error;
-      console.error(`General error when notifying to generate the subscription charge: ${id}.`, err.message);
+      console.error(`Error general al emitir evento de intento de cobro: ${id}.`, err.message);
       throw new Error(err.message);
     }
   }
@@ -53,12 +53,12 @@ export class EventEmitter implements IEventEmitter {
       const response = await this.emitter.send(command);
 
       if (response?.FailedEntryCount && response?.FailedEntryCount > 0) {
-        console.error('Error when notifying to generate subscription preorders: ', JSON.stringify({ command, response }, null, 2));
-        throw new Error('Error when notifying to generate subscription preorders.');
+        console.error('Error al emitir evento para crear preordenes: ', JSON.stringify({ command, response }, null, 2));
+        throw new Error('Error al emitir evento para crear preordenes.');
       }
     } catch (error) {
       const err = error as Error;
-      console.error(`General error when notifying to generate subscription preorders: ${subscription.id}.`, err.message);
+      console.error(`Error general al emitir evento para crear preordenes: ${subscription.id}.`, err.message);
       throw new Error(err.message);
     }
   }
@@ -81,12 +81,12 @@ export class EventEmitter implements IEventEmitter {
       const response = await this.emitter.send(command);
 
       if (response?.FailedEntryCount && response?.FailedEntryCount > 0) {
-        console.error('Error when notifying to approve preorder payment: ', JSON.stringify({ command, response }, null, 2));
-        throw new Error('Error when notifying to approve preorder payment.');
+        console.error('Error al emitir evento para aprobar pago de preorden: ', JSON.stringify({ command, response }, null, 2));
+        throw new Error('Error al emitir evento para aprobar pago de preorden.');
       }
     } catch (error) {
       const err = error as Error;
-      console.error(`General error when notifying to approve preorder payment: ${orderId}.`, err.message);
+      console.error(`Error general al emitir evento para aprobar pago de preorden: ${orderId}.`, err.message);
       throw new Error(err.message);
     }
   }
@@ -109,12 +109,12 @@ export class EventEmitter implements IEventEmitter {
       const response = await this.emitter.send(command);
 
       if (response?.FailedEntryCount && response?.FailedEntryCount > 0) {
-        console.error('Error notifying subscription order: ', JSON.stringify({ command, response }, null, 2));
-        throw new Error('Error notifying subscription order.');
+        console.error('Error al emitir evento para generar orden en admin: ', JSON.stringify({ command, response }, null, 2));
+        throw new Error('Error al emitir evento para generar orden en admin.');
       }
     } catch (error) {
       const err = error as Error;
-      console.error('General error notifying subscription order: ', err.message);
+      console.error('Error general al emitir evento para generar orden en admin: ', err.message);
       throw new Error(err.message);
     }
   }
@@ -153,12 +153,38 @@ export class EventEmitter implements IEventEmitter {
       const response = await this.emitter.send(command);
 
       if (response?.FailedEntryCount && response?.FailedEntryCount > 0) {
-        console.error('Error when notifying to send notification to customer: ', JSON.stringify({ command, response }, null, 2));
-        throw new Error('Error when notifying to send notification to customer.');
+        console.error('Error al emitir evento para notificar al paciente: ', JSON.stringify({ command, response }, null, 2));
+        throw new Error('Error al emitir evento para notificar al paciente.');
       }
     } catch (error) {
       const err = error as Error;
-      console.error(`General error when notifying to send notification to customer: ${id}.`, err.message);
+      console.error(`Error general al emitir evento para notificar al paciente: ${id}.`, err.message);
+      throw new Error(err.message);
+    }
+  }
+
+  async syncEcommerceSubscription(id: string, toSync: Partial<SubscriptionEntity>) {
+    try {
+      const command = new PutEventsCommand({
+        Entries: [
+          {
+            Detail: JSON.stringify({ origin: 'admin-back-suscripcion-core', body: { id, toSync }, action: 'sincronizar-suscripcion' }),
+            DetailType: 'Sincronizar orden de eCommerce.',
+            EventBusName: 'arn:aws:events:us-east-1:069526102702:event-bus/default',
+            Source: `ecomm_suscripciones_sqs_${process.env.ENV?.toLowerCase() as string}`,
+          },
+        ],
+      });
+
+      const response = await this.emitter.send(command);
+
+      if (response?.FailedEntryCount && response?.FailedEntryCount > 0) {
+        console.error('Error al emitir evento para sincronizar orden eCommerce: ', JSON.stringify({ command, response }, null, 2));
+        throw new Error('Error al emitir evento para sincronizar orden eCommerce.');
+      }
+    } catch (error) {
+      const err = error as Error;
+      console.error(`Error general al emitir evento para sincronizar orden eCommerce: ${id}.`, err.message);
       throw new Error(err.message);
     }
   }

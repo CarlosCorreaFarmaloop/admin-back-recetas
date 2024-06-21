@@ -1,4 +1,3 @@
-import { v4 as uuid } from 'uuid';
 import { Attempt, Product, SubscriptionEntity, ShipmentSchedule, Tracking, GeneralStatus, ProgressStatus } from './subscription.entity';
 
 export class SubscriptionVO {
@@ -105,8 +104,6 @@ export class SubscriptionVO {
       nextPaymentDate: isSistemas ? this.addOneDayToDate(currentShipment.nextPaymentDate) : currentShipment.nextPaymentDate,
 
       paymentStatus: 'Retrying',
-      paymentRetryToken: uuid(),
-      paymentRetryTokenExpiration: this.generatePaymentRetryTokenExpiration(),
 
       numberOfAttempts: isSistemas ? currentShipment.numberOfAttempts + 1 : currentShipment.numberOfAttempts,
       numberOfUserAttempts: isUsuario ? currentShipment.numberOfUserAttempts + 1 : currentShipment.numberOfUserAttempts,
@@ -205,13 +202,6 @@ export class SubscriptionVO {
     const newDate = new Date(currentDate);
     newDate.setTime(newDate.getTime() + 86400000);
     return newDate.getTime();
-  }
-
-  private generatePaymentRetryTokenExpiration(): number {
-    const currentDate = new Date();
-    currentDate.setHours(23, 59, 59);
-
-    return currentDate.getTime();
   }
 }
 

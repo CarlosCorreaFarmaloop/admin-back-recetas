@@ -1,4 +1,4 @@
-import { Delivery, GeneralStatus, Prescription, SubscriptionEntity } from '../domain/subscription.entity';
+import { AttemptResponsible, Delivery, GeneralStatus, Prescription, SubscriptionEntity } from '../domain/subscription.entity';
 import { CreateSubscriptionParams } from '../domain/subscription.vo';
 import { Respuesta } from './api.response';
 
@@ -6,7 +6,7 @@ export interface ISubscriptionUseCase {
   createSubscription: (payload: CreateSubscriptionParams) => Promise<Respuesta<boolean>>;
   approveSubscription: (payload: ApproveSubscription) => Promise<Respuesta<SubscriptionEntity>>;
   rejectSubscription: (payload: RejectSubscription) => Promise<Respuesta<SubscriptionEntity>>;
-  generateCharge: (id: string) => Promise<Respuesta<boolean>>;
+  generateCharge: (id: string, responsible: AttemptResponsible) => Promise<Respuesta<boolean>>;
   getAllSubscriptions: () => Promise<Respuesta<SubscriptionEntity[]>>;
   getSubscriptionByGeneralStatus: (generalStatus: GeneralStatus) => Promise<Respuesta<SubscriptionEntity[]>>;
   updateDelivery: (id: string, toUpdate: Omit<Delivery, 'discount' | 'price' | 'pricePaid'>) => Promise<Respuesta<SubscriptionEntity>>;
