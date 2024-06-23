@@ -387,9 +387,11 @@ export class SubscriptionUseCase implements ISubscriptionUseCase {
   private generateHTMLNotificationOfFailedPayment(subscription: SubscriptionEntity): string {
     const { delivery, id, paymentMethods, resume } = subscription;
 
+    const currentShipmentSchedule = this.searchCurrentShipmentSchedule(subscription);
     const paymentMethod = paymentMethods[0];
 
     const ecommUrl = process.env.ENV === 'PROD' ? 'https://farmaloop.cl' : 'https://ecomm-qa.fc.farmaloop.cl';
+    const token = currentShipmentSchedule.id;
 
     const html = `
       <html>
@@ -430,7 +432,7 @@ export class SubscriptionUseCase implements ISubscriptionUseCase {
             <table width="100%" cellspacing="0" cellpadding="0" border="0" style="margin-bottom: 30px;">
               <tr>
                 <td style="text-align: center;">
-                  <a href="${ecommUrl}/suscripcion/" target="_blank" style="text-decoration: none; display: inline-block; width: 100%; max-width: 400px; margin-bottom: 10px;">
+                  <a href="${ecommUrl}/suscripcion/reintentar-cobro/?token=${token}&id=${id}" target="_blank" style="text-decoration: none; display: inline-block; width: 100%; max-width: 400px; margin-bottom: 10px;">
                     <div style="padding: 10px 0; background-color: #FF3131; color: #ffffff; border-radius: 8px; font-size: 16px; font-weight: 600; text-align: center;">
                       Reintentar pago
                     </div>
