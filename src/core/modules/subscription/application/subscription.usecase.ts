@@ -49,8 +49,8 @@ export class SubscriptionUseCase implements ISubscriptionUseCase {
     const updatedSubscription = await this.subscriptionRepository.update(id, newSubscription);
 
     await this.eventEmitter.generateSubscriptionPreOrders(updatedSubscription);
-    await this.eventEmitter.generateSubscriptionCharge(id, 'Sistema');
     await this.eventEmitter.syncEcommerceSubscription(id, newSubscription);
+    await this.eventEmitter.generateSubscriptionCharge(id, 'Sistema');
 
     console.log('Subscription approved: ', JSON.stringify(updatedSubscription, null, 2));
     return { data: updatedSubscription, message: 'Subscription successfully approved.', status: HttpCodes.OK };
