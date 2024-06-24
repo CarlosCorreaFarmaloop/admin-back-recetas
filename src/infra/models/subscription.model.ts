@@ -94,6 +94,8 @@ const ShipmentScheduleSchema = new mongoose.Schema(
 
     numberOfAttempts: Number,
     maxAttempts: Number,
+    numberOfUserAttempts: Number,
+    maxUserAttempts: Number,
     attempts: [
       new mongoose.Schema(
         {
