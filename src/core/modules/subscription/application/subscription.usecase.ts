@@ -252,7 +252,7 @@ export class SubscriptionUseCase implements ISubscriptionUseCase {
       throw new Error('Shipment Schedule does not exist.');
     }
 
-    return currentShipmentSchedule.maxAttempts === currentShipmentSchedule.numberOfAttempts - 1;
+    return currentShipmentSchedule.maxAttempts === currentShipmentSchedule.numberOfAttempts + 1;
   }
 
   async sendNotificationPaymentReceived(id: string) {
