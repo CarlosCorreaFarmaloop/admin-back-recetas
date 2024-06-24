@@ -88,7 +88,18 @@ export const SQSController = async (event: SQSEventInput) => {
     return { statusCode: response.status, body: JSON.stringify({ message: response.message, data: response.data }) };
   }
 
-  if (action === 'notificar-fallo-pago-suscripcion') {
+  if (action === 'notificar-cobro-suscripcion') {
+    const { message, status } = Notification_Subscription_Dto(body);
+    if (!status) {
+      console.log('Error en Dto: ', JSON.stringify({ message }, null, 2));
+      throw new Error(message);
+    }
+
+    const response = await subscriptionUseCase.sendNotificationSuccessPayment(body.id);
+    return { statusCode: response.status, body: JSON.stringify({ message: response.message, data: response.data }) };
+  }
+
+  if (action === 'notificar-fallo-cobro-suscripcion') {
     const { message, status } = Notification_Subscription_Dto(body);
     if (!status) {
       console.log('Error en Dto: ', JSON.stringify({ message }, null, 2));
@@ -96,6 +107,17 @@ export const SQSController = async (event: SQSEventInput) => {
     }
 
     const response = await subscriptionUseCase.sendNotificationFailedPayment(body.id);
+    return { statusCode: response.status, body: JSON.stringify({ message: response.message, data: response.data }) };
+  }
+
+  if (action === 'notificar-suscripcion-cancelada') {
+    const { message, status } = Notification_Subscription_Dto(body);
+    if (!status) {
+      console.log('Error en Dto: ', JSON.stringify({ message }, null, 2));
+      throw new Error(message);
+    }
+
+    const response = await subscriptionUseCase.sendNotificationLastFailedPayment(body.id);
     return { statusCode: response.status, body: JSON.stringify({ message: response.message, data: response.data }) };
   }
 

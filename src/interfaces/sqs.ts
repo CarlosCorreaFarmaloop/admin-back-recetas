@@ -7,7 +7,9 @@ export type SQSEventInput =
   | GenerateSubscriptionPreOrdersEventInput
   | ApprovePreorderPaymentEventInput
   | SendNotificationPaymentReceivedEventInput
-  | SendNotificationFailedPaymentEventInput;
+  | SendNotificationSuccessPaymentEventInput
+  | SendNotificationFailedPaymentEventInput
+  | SendNotificationLastFailedPaymentEventInput;
 
 interface CreateSubscriptionEventInput {
   action: 'crear-suscripcion';
@@ -39,8 +41,20 @@ interface SendNotificationPaymentReceivedEventInput {
   body: { id: string };
 }
 
+interface SendNotificationSuccessPaymentEventInput {
+  action: 'notificar-cobro-suscripcion';
+  origin: string;
+  body: { id: string };
+}
+
 interface SendNotificationFailedPaymentEventInput {
-  action: 'notificar-fallo-pago-suscripcion';
+  action: 'notificar-fallo-cobro-suscripcion';
+  origin: string;
+  body: { id: string };
+}
+
+interface SendNotificationLastFailedPaymentEventInput {
+  action: 'notificar-suscripcion-cancelada';
   origin: string;
   body: { id: string };
 }

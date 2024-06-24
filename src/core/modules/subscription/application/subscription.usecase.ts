@@ -99,7 +99,8 @@ export class SubscriptionUseCase implements ISubscriptionUseCase {
     if (newAttempt.status === 'Failed' && isLastAttempt) {
       const subscriptionToUpdate = subscriptionVO.updateSubscriptionChargeFailedLastAttempt(subscriptionDb, newAttempt);
       const updatedSubscription = await this.subscriptionRepository.update(id, subscriptionToUpdate);
-      // Notificar al cliente que fallo el ultimo intento.
+      await this.eventEmitter.sendNotificationToCustomer({ action: 'notificar-suscripcion-cancelada', id });
+      await this.eventEmitter.syncEcommerceSubscription(id, subscriptionToUpdate);
 
       console.log('Ultimo intento de cobro de suscripcion fallo: ', JSON.stringify(updatedSubscription, null, 2));
       return { data: true, message: 'Ok.', status: HttpCodes.OK };
@@ -108,10 +109,10 @@ export class SubscriptionUseCase implements ISubscriptionUseCase {
     if (newAttempt.status === 'Failed') {
       const subscriptionToUpdate = subscriptionVO.updateSubscriptionChargeFailed(subscriptionDb, newAttempt);
       const updatedSubscription = await this.subscriptionRepository.update(id, subscriptionToUpdate);
-      await this.eventEmitter.sendNotificationToCustomer({ action: 'notificar-fallo-pago-suscripcion', id });
+      await this.eventEmitter.sendNotificationToCustomer({ action: 'notificar-fallo-cobro-suscripcion', id });
       await this.eventEmitter.syncEcommerceSubscription(id, subscriptionToUpdate);
 
-      console.log('Intento de cobro de suscripcion fallo: ', JSON.stringify(updatedSubscription, null, 2));
+      console.log('Intento de cobro fallo: ', JSON.stringify(updatedSubscription, null, 2));
       return { data: true, message: 'Ok.', status: HttpCodes.OK };
     }
 
@@ -119,17 +120,20 @@ export class SubscriptionUseCase implements ISubscriptionUseCase {
     if (isLastCharge) {
       const subscriptionToUpdate = subscriptionVO.completeSubscription(subscriptionDb, newAttempt);
       const updatedSubscription = await this.subscriptionRepository.update(id, subscriptionToUpdate);
-      // Notificar al cliente que se completo la suscripcion.
+      await this.eventEmitter.sendNotificationToCustomer({ action: 'notificar-cobro-suscripcion', id });
+      await this.eventEmitter.syncEcommerceSubscription(id, subscriptionToUpdate);
 
-      console.log('Subscription charge was generated and completed: ', JSON.stringify(updatedSubscription, null, 2));
-      return { data: true, message: 'Subscription successfully created.', status: HttpCodes.OK };
+      console.log('Ultimo cobro realizo: ', JSON.stringify(updatedSubscription, null, 2));
+      return { data: true, message: 'Ok.', status: HttpCodes.OK };
     }
 
     const subscriptionToUpdate = subscriptionVO.updateSubscriptionChargeSuccess(subscriptionDb, newAttempt);
     const updatedSubscription = await this.subscriptionRepository.update(id, subscriptionToUpdate);
     await this.eventEmitter.approvePreorderPayment({ orderId: currentShipmentSchedule.orderId, successAttempt: newAttempt });
+    await this.eventEmitter.sendNotificationToCustomer({ action: 'notificar-cobro-suscripcion', id });
+    await this.eventEmitter.syncEcommerceSubscription(id, subscriptionToUpdate);
 
-    console.log('Subscription charge was generated: ', JSON.stringify(updatedSubscription, null, 2));
+    console.log('Cobro de suscripcion generado: ', JSON.stringify(updatedSubscription, null, 2));
     return { data: true, message: 'Ok.', status: HttpCodes.OK };
   }
 
@@ -378,7 +382,7 @@ export class SubscriptionUseCase implements ISubscriptionUseCase {
       html: this.generateHTMLNotificationOfFailedPayment(subscriptionDb),
       recipients: [subscriptionDb.customer],
       source: 'Notificaciones Farmaloop <notificaciones@farmaloop.cl>',
-      subject: 'Hubo un error con tu pago',
+      subject: 'Hubo un error con el pago de tu suscripción',
     });
 
     return { data: true, message: 'Ok.', status: HttpCodes.OK };
@@ -466,15 +470,229 @@ export class SubscriptionUseCase implements ISubscriptionUseCase {
                     ¿Necesitas ayuda?
                   </p>
                   <p style="margin: 0; font-size: 16px; text-align: left; margin-bottom: 30px;">
-                    ¡Nuestros asesores pueden ayudarte! Contáctanos por whatsApp de lunes a viernes de 09:00 a 18:30 hs.
+                    ¡Nuestros asesores pueden ayudarte! Contáctanos por WhatsApp de lunes a viernes de 09:00 a 18:30 hs.
                   </p>
                 </td>
               </tr>
               <tr>
                 <td style="text-align: center;">
                   <a href="https://api.whatsapp.com/send?phone=56975199387" target="_blank" style="text-decoration: none; display: inline-block; width: 100%; max-width: 400px;">
-                    <div style="padding: 10px 0; background-color: transparent; color: #000000; border: 1px solid #60D669; border-radius: 8px; font-size: 16px; font-weight: 600; text-align: center;">
-                      Contáctanos
+                    <div style="padding: 8px 0; background-color: transparent; color: #000000; border: 1px solid #60D669; border-radius: 8px; font-size: 16px; font-weight: 600; text-align: center;">
+                      <img src="https://d35lrmue8i33t5.cloudfront.net/estaticos-ecommerce/whatsapp-icon.png" alt="whatsapp-icon" style="width: 30px; height: 30px; vertical-align: middle; margin-right: 4px;" />
+                      <span style="vertical-align: middle;">Contáctanos</span>
+                    </div>
+                  </a>      
+                </td>
+              </tr>
+            </table>
+  
+            <table width="100%" cellspacing="0" cellpadding="0" border="0">
+              <tr>
+                <td style="text-align: center;">
+                  <p style="font-size: 16px; margin: 0; margin-bottom: 12px">¡Muchas gracias!</p>
+                  <p style="font-size: 16px; margin: 0;">Equipo de <b>Farmaloop</b></p>
+                </td>
+              </tr>
+            </table>
+          </div>
+        </body>
+      </html>
+    `;
+
+    return html;
+  }
+
+  async sendNotificationLastFailedPayment(id: string) {
+    console.log('Enters sendNotificationLastFailedPayment(): ', id);
+
+    const subscriptionDb = await this.subscriptionRepository.get(id);
+
+    await this.emailNotificationService.sendHTMLNotification({
+      html: this.generateHTMLNotificationOfLastFailedPayment(subscriptionDb),
+      recipients: [subscriptionDb.customer],
+      source: 'Notificaciones Farmaloop <notificaciones@farmaloop.cl>',
+      subject: 'Cancelamos tu suscripción',
+    });
+
+    return { data: true, message: 'Ok.', status: HttpCodes.OK };
+  }
+
+  private generateHTMLNotificationOfLastFailedPayment(subscription: SubscriptionEntity): string {
+    const { delivery, id, paymentMethods } = subscription;
+
+    const paymentMethod = paymentMethods[0];
+
+    const html = `
+      <html>
+        <body style="background-color: #F5F8FD; width:95%; height: 100%; display: inline-block; margin: 0px auto;font-size: 12px;font-family: 'Roboto','Helvetica','Arial',sans-serif;justify-content: center;color: #4c4c4c;">
+          <div style="width: 95%; max-width: 600px; margin: auto; background-color: #ffffff; padding: 20px; border-radius: 8px;">
+      
+            <table width="100%" cellspacing="0" cellpadding="0" border="0" style="margin-bottom: 30px;">
+              <tr>
+                <td style="text-align: center;">
+                  <img src="https://farmaloop-publicos.s3.us-east-2.amazonaws.com/ecommerce/images/assets/farma_original.png" width="100px" alt="Farmaloop Logo">
+                </td>
+              </tr>
+            </table>
+  
+            <table width="100%" cellspacing="0" cellpadding="0" border="0" style="margin-bottom: 30px;">
+              <tr>
+                <td style="text-align: center;">
+                  <h1 style="font-family: 'Roboto','Helvetica','Arial',sans-serif; font-size: 24px; font-weight: 600; margin: 0; color: #3753FF">
+                    Tu suscripción fue cancelada
+                  </h1>
+                </td>
+              </tr>
+            </table>
+  
+            <table width="100%" cellspacing="0" cellpadding="0" border="0" style="margin-bottom: 30px;">
+              <tr>
+                <td style="font-family: 'Roboto','Helvetica','Arial',sans-serif; text-align: left; font-size: 16px;">
+                  <p style="margin: 0; margin-bottom: 8px;">¡Hola ${delivery.fullName}!</p>
+                  <p style="margin: 0;">
+                    Te escribimos para comunicarte que tu suscripción fue cancelada debido a que no pudimos realizar el cobro. 
+                    Hemos agotado todos los intentos posibles.
+                  </p>
+                </td>
+              </tr>
+            </table>
+
+            <table width="100%" cellspacing="0" cellpadding="0" border="0" style="background-color: #f0f4ff; padding: 12px 36px; border-radius: 8px; text-align: left; margin-bottom: 30px;">
+              <tr>
+                <td style="margin: 0 auto; border-right: 1px solid #ccc; text-align: center; vertical-align: middle;">
+                  <span style="font-size: 16px; font-weight: 500; color: #000; margin-bottom: 8px;">Número de suscripción</span><br>
+                  <span style="font-size: 14px; color: #000;">${id}</span>
+                </td>
+                <td style="margin: 0 auto; text-align: center; vertical-align: middle;">
+                  <span style="font-size: 16px; font-weight: 500; color: #000; margin-bottom: 8px;">Forma de pago actual</span><br>
+                  <span style="font-size: 14px; color: #000;">•••• •••• •••• ${paymentMethod.cardNumber.slice(-4)}</span>
+                </td>
+              </tr>
+            </table>
+
+            <table width="100%" cellspacing="0" cellpadding="0" border="0" style="margin-bottom: 30px;">
+              <tr>
+                <td style="font-family: 'Roboto','Helvetica','Arial',sans-serif;">
+                  <p style="font-size: 18px; font-weight: 700; margin: 0; text-align: center; margin-bottom: 12px;">
+                    ¿Necesitas ayuda?
+                  </p>
+                  <p style="margin: 0; font-size: 16px; text-align: left; margin-bottom: 30px;">
+                    ¡Nuestros asesores pueden ayudarte! Contáctanos por WhatsApp de lunes a viernes de 09:00 a 18:30 hs.
+                  </p>
+                </td>
+              </tr>
+              <tr>
+                <td style="text-align: center;">
+                  <a href="https://api.whatsapp.com/send?phone=56975199387" target="_blank" style="text-decoration: none; display: inline-block; width: 100%; max-width: 400px;">
+                    <div style="padding: 8px 0; background-color: transparent; color: #000000; border: 1px solid #60D669; border-radius: 8px; font-size: 16px; font-weight: 600; text-align: center;">
+                      <img src="https://d35lrmue8i33t5.cloudfront.net/estaticos-ecommerce/whatsapp-icon.png" alt="whatsapp-icon" style="width: 30px; height: 30px; vertical-align: middle; margin-right: 4px;" />
+                      <span style="vertical-align: middle;">Contáctanos</span>
+                    </div>
+                  </a>      
+                </td>
+              </tr>
+            </table>
+  
+            <table width="100%" cellspacing="0" cellpadding="0" border="0">
+              <tr>
+                <td style="text-align: center;">
+                  <p style="font-size: 16px; margin: 0; margin-bottom: 12px">¡Muchas gracias!</p>
+                  <p style="font-size: 16px; margin: 0;">Equipo de <b>Farmaloop</b></p>
+                </td>
+              </tr>
+            </table>
+          </div>
+        </body>
+      </html>
+    `;
+
+    return html;
+  }
+
+  async sendNotificationSuccessPayment(id: string) {
+    console.log('Enters sendNotificationSuccessPayment(): ', id);
+
+    const subscriptionDb = await this.subscriptionRepository.get(id);
+
+    await this.emailNotificationService.sendHTMLNotification({
+      html: this.generateHTMLNotificationOfSuccessPayment(subscriptionDb),
+      recipients: [subscriptionDb.customer],
+      source: 'Notificaciones Farmaloop <notificaciones@farmaloop.cl>',
+      subject: 'Cobro de suscripción',
+    });
+
+    return { data: true, message: 'Ok.', status: HttpCodes.OK };
+  }
+
+  private generateHTMLNotificationOfSuccessPayment(subscription: SubscriptionEntity): string {
+    const { delivery, id, paymentMethods, resume } = subscription;
+
+    const paymentMethod = paymentMethods[0];
+
+    const html = `
+      <html>
+        <body style="background-color: #F5F8FD; width:95%; height: 100%; display: inline-block; margin: 0px auto;font-size: 12px;font-family: 'Roboto','Helvetica','Arial',sans-serif;justify-content: center;color: #4c4c4c;">
+          <div style="width: 95%; max-width: 600px; margin: auto; background-color: #ffffff; padding: 20px; border-radius: 8px;">
+      
+            <table width="100%" cellspacing="0" cellpadding="0" border="0" style="margin-bottom: 30px;">
+              <tr>
+                <td style="text-align: center;">
+                  <img src="https://farmaloop-publicos.s3.us-east-2.amazonaws.com/ecommerce/images/assets/farma_original.png" width="100px" alt="Farmaloop Logo">
+                </td>
+              </tr>
+            </table>
+  
+            <table width="100%" cellspacing="0" cellpadding="0" border="0" style="margin-bottom: 30px;">
+              <tr>
+                <td style="text-align: center;">
+                  <h1 style="font-family: 'Roboto','Helvetica','Arial',sans-serif; font-size: 24px; font-weight: 600; margin: 0; color: #179421">
+                    Tu cobro fue realizado con éxito
+                  </h1>
+                </td>
+              </tr>
+            </table>
+  
+            <table width="100%" cellspacing="0" cellpadding="0" border="0" style="margin-bottom: 30px;">
+              <tr>
+                <td style="font-family: 'Roboto','Helvetica','Arial',sans-serif; text-align: left; font-size: 16px;">
+                  <p style="margin: 0; margin-bottom: 8px;">¡Hola ${delivery.fullName}!</p>
+                  <p style="margin: 0;">
+                    Tu cobro de <b>$${resume.total.toLocaleString('es-CL')}</b> fue exitoso.
+                  </p>
+                </td>
+              </tr>
+            </table>
+
+            <table width="100%" cellspacing="0" cellpadding="0" border="0" style="background-color: #f0f4ff; padding: 12px 36px; border-radius: 8px; text-align: left; margin-bottom: 30px;">
+              <tr>
+                <td style="margin: 0 auto; border-right: 1px solid #ccc; text-align: center; vertical-align: middle;">
+                  <span style="font-size: 16px; font-weight: 500; color: #000; margin-bottom: 8px;">Número de suscripción</span><br>
+                  <span style="font-size: 14px; color: #000;">${id}</span>
+                </td>
+                <td style="margin: 0 auto; text-align: center; vertical-align: middle;">
+                  <span style="font-size: 16px; font-weight: 500; color: #000; margin-bottom: 8px;">Forma de pago actual</span><br>
+                  <span style="font-size: 14px; color: #000;">•••• •••• •••• ${paymentMethod.cardNumber.slice(-4)}</span>
+                </td>
+              </tr>
+            </table>
+
+            <table width="100%" cellspacing="0" cellpadding="0" border="0" style="margin-bottom: 30px;">
+              <tr>
+                <td style="font-family: 'Roboto','Helvetica','Arial',sans-serif;">
+                  <p style="font-size: 18px; font-weight: 700; margin: 0; text-align: center; margin-bottom: 12px;">
+                    ¿Necesitas ayuda?
+                  </p>
+                  <p style="margin: 0; font-size: 16px; text-align: left; margin-bottom: 30px;">
+                    ¡Nuestros asesores pueden ayudarte! Contáctanos por WhatsApp de lunes a viernes de 09:00 a 18:30 hs.
+                  </p>
+                </td>
+              </tr>
+              <tr>
+                <td style="text-align: center;">
+                  <a href="https://api.whatsapp.com/send?phone=56975199387" target="_blank" style="text-decoration: none; display: inline-block; width: 100%; max-width: 400px;">
+                    <div style="padding: 8px 0; background-color: transparent; color: #000000; border: 1px solid #60D669; border-radius: 8px; font-size: 16px; font-weight: 600; text-align: center;">
+                      <img src="https://d35lrmue8i33t5.cloudfront.net/estaticos-ecommerce/whatsapp-icon.png" alt="whatsapp-icon" style="width: 30px; height: 30px; vertical-align: middle; margin-right: 4px;" />
+                      <span style="vertical-align: middle;">Contáctanos</span>
                     </div>
                   </a>      
                 </td>

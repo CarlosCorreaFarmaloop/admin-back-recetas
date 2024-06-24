@@ -19,6 +19,7 @@ functions:
       ENV: ${ENV}
       TZ: ${TZ}
       SECRET_KEY: ${SECRET_KEY}
+      FORCE_FAIL: ${FORCE_FAIL}
     vpc:
       securityGroupIds:
         - ${LAMBDA_SG}

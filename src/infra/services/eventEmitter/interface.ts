@@ -124,5 +124,9 @@ type PrescriptionType = 'Presentación receta médica' | 'Venta directa (Sin rec
 
 export interface SendNotificationToCustomerParams {
   id: string;
-  action: 'notificar-suscripcion-creada' | 'notificar-fallo-pago-suscripcion';
+  action:
+    | 'notificar-suscripcion-creada'
+    | 'notificar-cobro-suscripcion'
+    | 'notificar-fallo-cobro-suscripcion'
+    | 'notificar-suscripcion-cancelada';
 }
