@@ -137,6 +137,7 @@ export interface ShipmentSchedule {
   shipmentDate: number;
 
   paymentStatus: ShipmentPaymentStatus;
+  userCanRetry: boolean;
 
   orderId: string;
   orderStatus: OrderStatus;

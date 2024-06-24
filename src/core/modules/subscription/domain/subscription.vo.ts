@@ -68,7 +68,9 @@ export class SubscriptionVO {
 
     const newShipmentSchedule: ShipmentSchedule = {
       ...currentShipment,
+
       paymentStatus: 'Success',
+      userCanRetry: false,
 
       numberOfAttempts: isSistemas ? currentShipment.numberOfAttempts + 1 : currentShipment.numberOfAttempts,
       numberOfUserAttempts: isUsuario ? currentShipment.numberOfUserAttempts + 1 : currentShipment.numberOfUserAttempts,
@@ -104,6 +106,7 @@ export class SubscriptionVO {
       nextPaymentDate: isSistemas ? this.addOneDayToDate(currentShipment.nextPaymentDate) : currentShipment.nextPaymentDate,
 
       paymentStatus: 'Retrying',
+      userCanRetry: true,
 
       numberOfAttempts: isSistemas ? currentShipment.numberOfAttempts + 1 : currentShipment.numberOfAttempts,
       numberOfUserAttempts: isUsuario ? currentShipment.numberOfUserAttempts + 1 : currentShipment.numberOfUserAttempts,
@@ -131,7 +134,9 @@ export class SubscriptionVO {
 
     const newShipmentSchedule: ShipmentSchedule = {
       ...currentShipment,
+
       paymentStatus: 'Failed',
+      userCanRetry: false,
 
       numberOfAttempts: currentShipment.numberOfAttempts + 1,
       attempts: [...currentShipment.attempts, attempt],
@@ -173,7 +178,9 @@ export class SubscriptionVO {
 
     const newShipmentSchedule: ShipmentSchedule = {
       ...currentShipment,
+
       paymentStatus: 'Success',
+      userCanRetry: false,
 
       numberOfAttempts: isSistemas ? currentShipment.numberOfAttempts + 1 : currentShipment.numberOfAttempts,
       numberOfUserAttempts: isUsuario ? currentShipment.numberOfUserAttempts + 1 : currentShipment.numberOfUserAttempts,

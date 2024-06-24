@@ -87,7 +87,9 @@ const ShipmentScheduleSchema = new mongoose.Schema(
     paymentDate: Number,
     nextPaymentDate: Number,
     shipmentDate: Number,
+
     paymentStatus: String,
+    userCanRetry: Boolean,
 
     orderId: String,
     orderStatus: String,

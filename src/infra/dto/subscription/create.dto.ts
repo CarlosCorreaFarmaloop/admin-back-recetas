@@ -92,6 +92,7 @@ const createSchema = Joi.object({
           shipmentDate: Joi.number().required(),
 
           paymentStatus: Joi.string().required(),
+          userCanRetry: Joi.boolean().required(),
 
           orderId: Joi.string().required().allow(''),
           orderStatus: Joi.string().required(),
