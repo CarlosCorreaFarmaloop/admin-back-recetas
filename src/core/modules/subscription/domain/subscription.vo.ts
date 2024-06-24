@@ -39,17 +39,13 @@ export class SubscriptionVO {
     responsible: string,
     observation: string
   ): Pick<SubscriptionEntity, 'generalStatus' | 'progressStatus' | 'trackingGeneralStatus' | 'trackingProgressStatus'> {
+    const currentTime = new Date().getTime();
+
     return {
       generalStatus: 'Rejected',
       progressStatus: 'Cancelled',
-      trackingGeneralStatus: [
-        ...currentGeneralStatusTracking,
-        { date: new Date().getTime(), observation, responsible, status: 'Rejected' },
-      ],
-      trackingProgressStatus: [
-        ...currentProgressStatusTracking,
-        { date: new Date().getTime(), observation, responsible, status: 'Cancelled' },
-      ],
+      trackingGeneralStatus: [...currentGeneralStatusTracking, { date: currentTime, observation, responsible, status: 'Rejected' }],
+      trackingProgressStatus: [...currentProgressStatusTracking, { date: currentTime, observation, responsible, status: 'Cancelled' }],
     };
   }
 
@@ -109,7 +105,7 @@ export class SubscriptionVO {
       userCanRetry: true,
 
       numberOfAttempts: isSistemas ? currentShipment.numberOfAttempts + 1 : currentShipment.numberOfAttempts,
-      numberOfUserAttempts: isUsuario ? currentShipment.numberOfUserAttempts + 1 : currentShipment.numberOfUserAttempts,
+      numberOfUserAttempts: isUsuario ? currentShipment.numberOfUserAttempts + 1 : 0,
       attempts: [...currentShipment.attempts, attempt],
     };
     const newArr = shipment.shipmentSchedule;
@@ -205,6 +201,18 @@ export class SubscriptionVO {
     };
   }
 
+  updatePaymentMethod(subscription: SubscriptionEntity): updatePaymentMethod {
+    const { paymentMethods, currentPaymentId } = subscription;
+
+    const currentTime = new Date().getTime();
+
+    return {
+      updatedAt: currentTime,
+      paymentMethods,
+      currentPaymentId,
+    };
+  }
+
   private addOneDayToDate(currentDate: number): number {
     const newDate = new Date(currentDate);
     newDate.setTime(newDate.getTime() + 86400000);
@@ -232,3 +240,5 @@ export type SubscriptionToUpdateComplete = Pick<
   SubscriptionEntity,
   'updatedAt' | 'shipment' | 'generalStatus' | 'progressStatus' | 'trackingGeneralStatus' | 'trackingProgressStatus'
 >;
+
+export type updatePaymentMethod = Pick<SubscriptionEntity, 'updatedAt' | 'paymentMethods' | 'currentPaymentId'>;

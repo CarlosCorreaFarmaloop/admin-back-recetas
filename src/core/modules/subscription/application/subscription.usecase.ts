@@ -1,5 +1,5 @@
 import { CreateSubscriptionParams, SubscriptionVO } from '../domain/subscription.vo';
-import { HttpCodes } from './api.response';
+import { ApiResponse, HttpCodes } from './api.response';
 import { ISubscriptionUseCase, ApproveSubscription, RejectSubscription } from './subscription.usecase.interface';
 import {
   AttemptResponsible,
@@ -41,11 +41,14 @@ export class SubscriptionUseCase implements ISubscriptionUseCase {
 
     const { id, responsible } = payload;
 
-    const subscriptionDb = await this.subscriptionRepository.get(id);
+    const subscriptionDB = await this.subscriptionRepository.get(id);
+    if (!subscriptionDB) {
+      throw new ApiResponse(HttpCodes.BAD_REQUEST, subscriptionDB, 'La suscripcion no existe.');
+    }
 
-    this.validateApproveSuscription(subscriptionDb);
+    this.validateApproveSuscription(subscriptionDB);
 
-    const newSubscription = new SubscriptionVO().approve(subscriptionDb.trackingGeneralStatus, responsible);
+    const newSubscription = new SubscriptionVO().approve(subscriptionDB.trackingGeneralStatus, responsible);
     const updatedSubscription = await this.subscriptionRepository.update(id, newSubscription);
 
     await this.eventEmitter.generateSubscriptionPreOrders(updatedSubscription);
@@ -61,13 +64,16 @@ export class SubscriptionUseCase implements ISubscriptionUseCase {
 
     const { id, observation, responsible } = payload;
 
-    const subscriptionDb = await this.subscriptionRepository.get(id);
+    const subscriptionDB = await this.subscriptionRepository.get(id);
+    if (!subscriptionDB) {
+      throw new ApiResponse(HttpCodes.BAD_REQUEST, subscriptionDB, 'La suscripcion no existe.');
+    }
 
-    this.validateRejectSuscription(subscriptionDb);
+    this.validateRejectSuscription(subscriptionDB);
 
     const newSubscription = new SubscriptionVO().reject(
-      subscriptionDb.trackingGeneralStatus,
-      subscriptionDb.trackingProgressStatus,
+      subscriptionDB.trackingGeneralStatus,
+      subscriptionDB.trackingProgressStatus,
       responsible,
       observation
     );
@@ -719,5 +725,32 @@ export class SubscriptionUseCase implements ISubscriptionUseCase {
     const { comuna, homeNumber, homeType, region, streetName, streetNumber } = delivery;
 
     return `${streetName} ${streetNumber}${homeType !== 'Casa' ? ` ${homeType} ${homeNumber}` : ''}, ${comuna}, ${region}.`;
+  }
+
+  async updatePaymentMethod(subscription: SubscriptionEntity) {
+    const { id } = subscription;
+
+    const subscriptionDB = await this.subscriptionRepository.get(id);
+    if (!subscriptionDB) {
+      throw new ApiResponse(HttpCodes.BAD_REQUEST, subscriptionDB, 'La suscripcion no existe.');
+    }
+
+    const newSubscription = new SubscriptionVO().updatePaymentMethod(subscription);
+    const updatedSubscription = await this.subscriptionRepository.update(id, newSubscription);
+    if (!updatedSubscription) {
+      throw new ApiResponse(HttpCodes.BAD_REQUEST, updatedSubscription, 'Error al actualizar metodo de pago.');
+    }
+
+    const paymentDate = new Date(subscriptionDB.nextPaymentDate);
+    const now = new Date();
+
+    const isSameYear = paymentDate.getFullYear() === now.getFullYear();
+    const isSameMonth = paymentDate.getMonth() === now.getMonth();
+
+    if (isSameYear && isSameMonth) {
+      await this.eventEmitter.generateSubscriptionCharge(id, 'Sistema');
+    }
+
+    return { data: true, message: 'Metodo de pago actualizado.', status: HttpCodes.OK };
   }
 }

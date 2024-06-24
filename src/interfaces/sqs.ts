@@ -9,7 +9,8 @@ export type SQSEventInput =
   | SendNotificationPaymentReceivedEventInput
   | SendNotificationSuccessPaymentEventInput
   | SendNotificationFailedPaymentEventInput
-  | SendNotificationLastFailedPaymentEventInput;
+  | SendNotificationLastFailedPaymentEventInput
+  | UpdatePaymentMethodEventInput;
 
 interface CreateSubscriptionEventInput {
   action: 'crear-suscripcion';
@@ -57,4 +58,10 @@ interface SendNotificationLastFailedPaymentEventInput {
   action: 'notificar-suscripcion-cancelada';
   origin: string;
   body: { id: string };
+}
+
+interface UpdatePaymentMethodEventInput {
+  action: 'actualizar-metodo-pago-suscripcion';
+  origin: string;
+  body: SubscriptionEntity;
 }

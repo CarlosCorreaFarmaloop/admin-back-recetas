@@ -18,6 +18,7 @@ export interface ISubscriptionUseCase {
   sendNotificationPaymentReceived: (id: string) => Promise<Respuesta<boolean>>;
   sendNotificationFailedPayment: (id: string) => Promise<Respuesta<boolean>>;
   sendNotificationLastFailedPayment: (id: string) => Promise<Respuesta<boolean>>;
+  updatePaymentMethod: (subscription: SubscriptionEntity) => Promise<Respuesta<boolean>>;
 }
 
 export interface ApproveSubscription {

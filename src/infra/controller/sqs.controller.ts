@@ -4,6 +4,7 @@ import { Create_Subscription_Dto } from '../dto/subscription/create.dto';
 import { Charge_Subscription_Dto } from '../dto/subscription/charge.dto';
 import { ApprovePayment_PreOrder_Dto } from '../dto/preorder/approvePayment.dto';
 import { Notification_Subscription_Dto } from '../dto/subscription/notification.dto';
+import { UpdatePaymentMethod_Subscription_Dto } from '../dto/subscription/updatePaymentMethod.dto';
 
 import { TokenManagerService } from '../services/tokenManager/tokenManager.service';
 import { TransbankService } from '../services/transbank/transbank.service';
@@ -118,6 +119,17 @@ export const SQSController = async (event: SQSEventInput) => {
     }
 
     const response = await subscriptionUseCase.sendNotificationLastFailedPayment(body.id);
+    return { statusCode: response.status, body: JSON.stringify({ message: response.message, data: response.data }) };
+  }
+
+  if (action === 'actualizar-metodo-pago-suscripcion') {
+    const { message, status } = UpdatePaymentMethod_Subscription_Dto(body);
+    if (!status) {
+      console.log('Error en Dto: ', JSON.stringify({ message }, null, 2));
+      throw new Error(message);
+    }
+
+    const response = await subscriptionUseCase.updatePaymentMethod(body);
     return { statusCode: response.status, body: JSON.stringify({ message: response.message, data: response.data }) };
   }
 
