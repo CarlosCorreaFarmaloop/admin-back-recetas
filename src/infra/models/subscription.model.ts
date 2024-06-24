@@ -105,6 +105,7 @@ const ShipmentScheduleSchema = new mongoose.Schema(
           externalMessage: String,
           externalStatus: String,
           paymentMethod: String,
+          responsible: String,
           status: String,
           transactionDate: Number,
         },
