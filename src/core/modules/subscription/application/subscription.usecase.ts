@@ -5,6 +5,7 @@ import {
   AttemptResponsible,
   Delivery,
   GeneralStatus,
+  PaymentMethod,
   Prescription,
   ShipmentSchedule,
   SubscriptionEntity,
@@ -175,6 +176,16 @@ export class SubscriptionUseCase implements ISubscriptionUseCase {
     }
 
     return shipmentSchedule;
+  }
+
+  private searchCurrentPaymentMethod(subscription: SubscriptionEntity): PaymentMethod {
+    const paymentMethod = subscription.paymentMethods.find((el) => el.secret === subscription.currentPaymentId);
+
+    if (!paymentMethod) {
+      throw new Error(`No se encontro el metodo de pago: ${subscription.id}.`);
+    }
+
+    return paymentMethod;
   }
 
   private validateApproveSuscription(subscription: SubscriptionEntity): void {
@@ -395,10 +406,10 @@ export class SubscriptionUseCase implements ISubscriptionUseCase {
   }
 
   private generateHTMLNotificationOfFailedPayment(subscription: SubscriptionEntity): string {
-    const { delivery, id, paymentMethods, resume } = subscription;
+    const { delivery, id, resume } = subscription;
 
     const currentShipmentSchedule = this.searchCurrentShipmentSchedule(subscription);
-    const paymentMethod = paymentMethods[0];
+    const currentPaymentMethod = this.searchCurrentPaymentMethod(subscription);
 
     const ecommUrl = process.env.ENV === 'PROD' ? 'https://farmaloop.cl' : 'https://ecomm-qa.fc.farmaloop.cl';
     const token = currentShipmentSchedule.id;
@@ -447,7 +458,9 @@ export class SubscriptionUseCase implements ISubscriptionUseCase {
                       Reintentar pago
                     </div>
                   </a>
-                  <a href="${ecommUrl}/suscripcion/" target="_blank" style="text-decoration: none; display: inline-block; width: 100%; max-width: 400px;">
+                  <a href="${ecommUrl}/suscripcion/actualizar-metodo-pago/?token=${
+                    currentPaymentMethod.token
+                  }&id=${id}" target="_blank" style="text-decoration: none; display: inline-block; width: 100%; max-width: 400px;">
                     <div style="padding: 10px 0; background-color: transparent; color: #FF3131; border: 1px solid #FF3131; border-radius: 8px; font-size: 16px; font-weight: 600; text-align: center;">
                       Actualizar forma de pago
                     </div>
@@ -464,7 +477,7 @@ export class SubscriptionUseCase implements ISubscriptionUseCase {
                 </td>
                 <td style="margin: 0 auto; text-align: center; vertical-align: middle;">
                   <span style="font-size: 16px; font-weight: 500; color: #000; margin-bottom: 8px;">Forma de pago actual</span><br>
-                  <span style="font-size: 14px; color: #000;">•••• •••• •••• ${paymentMethod.cardNumber.slice(-4)}</span>
+                  <span style="font-size: 14px; color: #000;">•••• •••• •••• ${currentPaymentMethod.cardNumber.slice(-4)}</span>
                 </td>
               </tr>
             </table>
