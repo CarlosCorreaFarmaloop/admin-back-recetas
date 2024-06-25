@@ -77,7 +77,7 @@ export class SubscriptionVO {
 
     return {
       updatedAt: new Date().getTime(),
-      shipment: { ...shipment, dateOfFirstShipment: shipment.quantityShipped + 1, shipmentSchedule: newArr },
+      shipment: { ...shipment, quantityShipped: shipment.quantityShipped + 1, shipmentSchedule: newArr },
       nextPaymentDate: newArr[index + 1].nextPaymentDate,
       nextShipmentDate: newArr[index + 1].shipmentDate,
       currentShipmentId: newArr[index + 1].id,
