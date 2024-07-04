@@ -6,7 +6,7 @@ export class StockUseCase implements IStockUseCase {
   constructor(private readonly stockRepository: StockRepository) {}
 
   async searchStock(skus: string[]) {
-    console.log('Enters to searchStockAndRequestPurchase(): ', JSON.stringify(skus, null, 2));
+    console.log('Entra a searchStockAndRequestPurchase(): ', JSON.stringify(skus, null, 2));
 
     const stocksDb = await this.stockRepository.getAllBySku(skus);
 
@@ -20,9 +20,7 @@ export class StockUseCase implements IStockUseCase {
         return { ...product, batchs: availableBatchs };
       });
 
-    console.log('Available stock: ', JSON.stringify(filteredStockDb, null, 2));
-
-    return { data: filteredStockDb, message: 'Preorders successfully created.', status: HttpCodes.OK };
+    return { data: filteredStockDb, message: 'Ok.', status: HttpCodes.OK };
   }
 
   private validateExpireDate(value: number): boolean {

@@ -17,17 +17,17 @@ export class PreOrderUseCase implements IPreOrderUseCase {
   ) {}
 
   async createManyPreOrders(subscription: SubscriptionEntity) {
-    console.log('Enters createManyPreOrders(): ', JSON.stringify(subscription, null, 2));
+    console.log('Entra a createManyPreOrders(): ', JSON.stringify(subscription, null, 2));
 
     const newPreorders = new PreOrderVO().createMany(subscription);
     const newPreordersDb = await this.preOrderRepository.createMany(newPreorders);
 
-    console.log('Preorders created: ', JSON.stringify(newPreordersDb, null, 2));
+    console.log('Preordenes creadas: ', JSON.stringify(newPreordersDb, null, 2));
     return { data: true, message: 'Preorders successfully created.', status: HttpCodes.OK };
   }
 
   async approvePreorderPayment(id: string, successAttempt: Attempt) {
-    console.log('Enters approvePreorderPayment(): ', JSON.stringify({ id, successAttempt }, null, 2));
+    console.log('Entra a approvePreorderPayment(): ', JSON.stringify({ id, successAttempt }, null, 2));
 
     const preOrderDb = await this.preOrderRepository.get(id);
     const stocksDb = await this.stockUseCase.searchStock(preOrderDb.productsOrder.map((el) => el.sku));
@@ -49,18 +49,18 @@ export class PreOrderUseCase implements IPreOrderUseCase {
         subject: 'Falta de stock para emisión de Orden',
       });
 
-      console.log(`Lack of stock to create administrator order: ${id}`);
+      console.log(`Sin stock para enviar orden a administrador: ${id}`);
       return { data: true, message: 'Preorder payment successfully approved.', status: HttpCodes.OK };
     }
 
     await this.eventEmitter.generateAdministratorOrder(orderVo);
 
-    console.log(`Administrator order created: ${id}`);
+    console.log(`Orden enviada a administrador: ${id}`);
     return { data: true, message: 'Preorder payment successfully approved.', status: HttpCodes.OK };
   }
 
   private generatePurchaseHTMLNotification(preOrder: PreOrderEntity): string {
-    const { id, delivery, productsOrder } = preOrder;
+    const { delivery, productsOrder, subscriptionId } = preOrder;
 
     const deliveryDate = new Date(delivery.compromiso_entrega.date).toLocaleString('es-CL', {
       day: '2-digit',
@@ -80,7 +80,7 @@ export class PreOrderUseCase implements IPreOrderUseCase {
           <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
             <tr>
               <th style="border: 1px solid #dddddd; text-align: left; padding: 8px; background-color: #f2f2f2;">Suscripción</th>
-              <td style="border: 1px solid #dddddd; text-align: left; padding: 8px;">${id}</td>
+              <td style="border: 1px solid #dddddd; text-align: left; padding: 8px;">${subscriptionId}</td>
             </tr>
             <tr>
               <th style="border: 1px solid #dddddd; text-align: left; padding: 8px; background-color: #f2f2f2;">Compromiso de entrega</th>
@@ -115,5 +115,36 @@ export class PreOrderUseCase implements IPreOrderUseCase {
       </html>`;
 
     return html;
+  }
+
+  async reviewPendingPreOrders(skus: string[]) {
+    console.log('Entra a reviewPendingPreOrders(): ', JSON.stringify({ skus }, null, 2));
+
+    const pendingPreOrders = await this.preOrderRepository.getPendingPreOrdersBySku(skus);
+
+    console.log('Preordenes pendientes encontradas: ', JSON.stringify(pendingPreOrders, null, 2));
+
+    if (pendingPreOrders.length === 0) {
+      return { data: true, message: 'No hay preordenes pendientes.', status: HttpCodes.OK };
+    }
+
+    pendingPreOrders.forEach(async (preOrder) => {
+      const stocksDb = await this.stockUseCase.searchStock(preOrder.productsOrder.map((el) => el.sku));
+
+      const orderVo = new PreOrderVO().updateOrderStock(preOrder, stocksDb.data);
+
+      const updatedPreOrder = await this.preOrderRepository.update(preOrder.id, {
+        productsOrder: orderVo.productsOrder,
+        status: orderVo.status,
+        tracking: orderVo.tracking,
+      });
+
+      if (orderVo.status === 'Completed') {
+        await this.eventEmitter.generateAdministratorOrder(updatedPreOrder);
+        console.log(`Orden pendiente enviada a administrador: ${updatedPreOrder.id}`);
+      }
+    });
+
+    return { data: true, message: 'Ok.', status: HttpCodes.OK };
   }
 }

@@ -5,6 +5,7 @@ import { Charge_Subscription_Dto } from '../dto/subscription/charge.dto';
 import { ApprovePayment_PreOrder_Dto } from '../dto/preorder/approvePayment.dto';
 import { Notification_Subscription_Dto } from '../dto/subscription/notification.dto';
 import { UpdatePaymentMethod_Subscription_Dto } from '../dto/subscription/updatePaymentMethod.dto';
+import { ReviewPending_PreOrder_Dto } from '../dto/preorder/reviewPending.dto';
 
 import { TokenManagerService } from '../services/tokenManager/tokenManager.service';
 import { TransbankService } from '../services/transbank/transbank.service';
@@ -75,6 +76,17 @@ export const SQSController = async (event: SQSEventInput) => {
     }
 
     const response = await preOrderUseCase.approvePreorderPayment(body.orderId, body.successAttempt);
+    return { statusCode: response.status, body: JSON.stringify({ message: response.message, data: response.data }) };
+  }
+
+  if (action === 'comprobar-preordenes-pendientes') {
+    const { message, status } = ReviewPending_PreOrder_Dto(body);
+    if (!status) {
+      console.log('Error en Dto: ', JSON.stringify({ message }, null, 2));
+      throw new Error(message);
+    }
+
+    const response = await preOrderUseCase.reviewPendingPreOrders(body.skus);
     return { statusCode: response.status, body: JSON.stringify({ message: response.message, data: response.data }) };
   }
 

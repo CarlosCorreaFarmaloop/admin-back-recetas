@@ -122,7 +122,7 @@ export class EventEmitter implements IEventEmitter {
   private generateSubscriptionOrder(preOrder: PreOrderEntity): SubscriptionOrder {
     const { customer, delivery, extras, id, payment, productsOrder, resumeOrder } = preOrder;
 
-    if (!payment) throw new Error('');
+    if (!payment) throw new Error('No existe el atributo "payment"');
 
     return {
       customer,

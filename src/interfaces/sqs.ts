@@ -6,6 +6,7 @@ export type SQSEventInput =
   | GenerateChargeEventInput
   | GenerateSubscriptionPreOrdersEventInput
   | ApprovePreorderPaymentEventInput
+  | GeneratePendingPreOrdersEventInput
   | SendNotificationPaymentReceivedEventInput
   | SendNotificationSuccessPaymentEventInput
   | SendNotificationFailedPaymentEventInput
@@ -34,6 +35,12 @@ interface ApprovePreorderPaymentEventInput {
   action: 'aprobar-pago-preorden';
   origin: string;
   body: { orderId: string; successAttempt: Attempt };
+}
+
+interface GeneratePendingPreOrdersEventInput {
+  action: 'comprobar-preordenes-pendientes';
+  origin: string;
+  body: { skus: string[] };
 }
 
 interface SendNotificationPaymentReceivedEventInput {

@@ -20,6 +20,17 @@ export class PreOrderMockRepository implements PreOrderRepository {
     return currentPreOrder;
   }
 
+  async getPendingPreOrdersBySku(skus: string[]) {
+    return this.preOrders.filter((el) => {
+      if (el.status !== 'Pending') return false;
+
+      const containsProducts = el.productsOrder.some((product) => skus.includes(product.sku));
+      if (!containsProducts) return false;
+
+      return true;
+    });
+  }
+
   async update(id: string, toUpdate: Partial<PreOrderEntity>) {
     const index = this.preOrders.findIndex((el) => el.id === id);
 
@@ -32,6 +43,6 @@ export class PreOrderMockRepository implements PreOrderRepository {
     newArr[index] = currentPreOrder;
     this.preOrders = newArr;
 
-    return true;
+    return currentPreOrder;
   }
 }

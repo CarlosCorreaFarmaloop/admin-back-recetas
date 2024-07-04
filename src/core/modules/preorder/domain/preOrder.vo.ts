@@ -83,15 +83,11 @@ export class PreOrderVO {
       const availableBatch = stock.batchs.find((batch) => batch.stock >= product.qty);
       if (!availableBatch) return product;
 
-      return {
-        ...product,
-        batchId: availableBatch.id,
-        expiration: availableBatch.expireDate,
-        normalUnitPrice: availableBatch.normalPrice,
-      };
+      return { ...product, batchId: availableBatch.id, expiration: availableBatch.expireDate, normalUnitPrice: availableBatch.normalPrice };
     });
 
-    const newStatus = newArr.some((product) => product.batchId === '') ? 'Pending' : 'Completed';
+    const isIncomplete = newArr.some((product) => product.batchId === '');
+    const newStatus = isIncomplete ? 'Pending' : 'Completed';
 
     return {
       ...preOrder,
@@ -107,7 +103,35 @@ export class PreOrderVO {
       },
       productsOrder: newArr,
       status: newStatus,
-      tracking: [...tracking, { date: new Date().getTime(), observation: '', responsible: 'Sistemas', status: newStatus }],
+      tracking: [...tracking, { date: new Date().getTime(), observation: 'Generar orden', responsible: 'Sistemas', status: newStatus }],
+    };
+  }
+
+  updateOrderStock(preOrder: PreOrderEntity, stocks: StockEntity[]): PreOrderEntity {
+    const { productsOrder, tracking } = preOrder;
+
+    const newArr = productsOrder.map((product) => {
+      const stock = stocks.find((stock) => stock.sku === product.sku);
+
+      if (!stock) return product;
+
+      const availableBatch = stock.batchs.find((batch) => batch.stock >= product.qty);
+      if (!availableBatch) return product;
+
+      return { ...product, batchId: availableBatch.id, expiration: availableBatch.expireDate, normalUnitPrice: availableBatch.normalPrice };
+    });
+
+    const isIncomplete = newArr.some((product) => product.batchId === '');
+    const newStatus = isIncomplete ? 'Pending' : 'Completed';
+
+    return {
+      ...preOrder,
+      productsOrder: isIncomplete ? productsOrder : newArr,
+      status: newStatus,
+      tracking: [
+        ...tracking,
+        { date: new Date().getTime(), observation: 'Reintento de generar orden', responsible: 'Sistemas', status: newStatus },
+      ],
     };
   }
 }

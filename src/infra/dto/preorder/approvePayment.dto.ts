@@ -1,6 +1,6 @@
 import Joi from 'joi';
 
-const approvePaymentPreOrderSchema = Joi.object({
+const approvePaymentSchema = Joi.object({
   orderId: Joi.string().required(),
   successAttempt: Joi.object({
     amount: Joi.number().required(),
@@ -16,7 +16,7 @@ const approvePaymentPreOrderSchema = Joi.object({
 });
 
 export function ApprovePayment_PreOrder_Dto(record: any) {
-  const { error } = approvePaymentPreOrderSchema.validate(record);
+  const { error } = approvePaymentSchema.validate(record);
 
   if (error) return { status: false, message: error.message };
   return { status: true, message: 'Ok' };
