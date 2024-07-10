@@ -26,19 +26,19 @@ export class SubscriptionUseCase implements ISubscriptionUseCase {
   ) {}
 
   async createSubscription(payload: CreateSubscriptionParams) {
-    console.log('Enters createSubscription(): ', JSON.stringify(payload, null, 2));
+    console.log('Entra a createSubscription(): ', JSON.stringify(payload, null, 2));
 
     const newSubscription = new SubscriptionVO().create(payload);
     const subscriptionDb = await this.subscriptionRepository.create(newSubscription);
 
     await this.eventEmitter.sendNotificationToCustomer({ action: 'notificar-suscripcion-creada', id: subscriptionDb.id });
 
-    console.log('Subscription created: ', JSON.stringify(subscriptionDb, null, 2));
+    console.log('Subscription creada: ', JSON.stringify(subscriptionDb, null, 2));
     return { data: true, message: 'Subscription successfully created.', status: HttpCodes.OK };
   }
 
   async approveSubscription(payload: ApproveSubscription) {
-    console.log('Enters approveSubscription(): ', JSON.stringify({ payload }, null, 2));
+    console.log('Entra a approveSubscription(): ', JSON.stringify({ payload }, null, 2));
 
     const { id, responsible } = payload;
 
@@ -56,12 +56,12 @@ export class SubscriptionUseCase implements ISubscriptionUseCase {
     await this.eventEmitter.syncEcommerceSubscription(id, newSubscription);
     await this.eventEmitter.generateSubscriptionCharge(id, 'Sistema');
 
-    console.log('Subscription approved: ', JSON.stringify(updatedSubscription, null, 2));
+    console.log('Subscription aprobada: ', JSON.stringify(updatedSubscription, null, 2));
     return { data: updatedSubscription, message: 'Subscription successfully approved.', status: HttpCodes.OK };
   }
 
   async rejectSubscription(payload: RejectSubscription) {
-    console.log('Enters rejectSubscription(): ', JSON.stringify({ payload }, null, 2));
+    console.log('Entra a rejectSubscription(): ', JSON.stringify({ payload }, null, 2));
 
     const { id, observation, responsible } = payload;
 
@@ -80,12 +80,12 @@ export class SubscriptionUseCase implements ISubscriptionUseCase {
     );
     const updatedSubscription = await this.subscriptionRepository.update(id, newSubscription);
 
-    console.log('Subscription rejected: ', JSON.stringify(updatedSubscription, null, 2));
+    console.log('Subscription rechazada: ', JSON.stringify(updatedSubscription, null, 2));
     return { data: updatedSubscription, message: 'Subscription successfully rejected.', status: HttpCodes.OK };
   }
 
   async generateCharge(id: string, responsible: AttemptResponsible) {
-    console.log('Enters generateCharge(): ', id);
+    console.log('Entra a generateCharge(): ', id);
 
     const subscriptionDb = await this.subscriptionRepository.get(id);
 
