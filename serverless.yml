@@ -1,4 +1,4 @@
-service: admin-back-subscription-core
+service: admin-back-notificaciones-core
 frameworkVersion: '3'
 
 provider:
@@ -18,7 +18,7 @@ custom:
 
 functions:
   app:
-    handler: src/handler.handler
+    handler: src/infra/handler/handler.handler
     timeout: 12
     events:
       - http:

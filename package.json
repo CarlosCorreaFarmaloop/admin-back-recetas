@@ -1,5 +1,5 @@
 {
-  "name": "admin-back-subscription-core",
+  "name": "admin-back-notificaciones-core",
   "main": "handler.js",
   "scripts": {
     "dev": "serverless offline start --reloadHandler",
@@ -10,13 +10,10 @@
   },
   "dependencies": {
     "@aws-sdk/client-eventbridge": "3.554.0",
-    "@aws-sdk/client-secrets-manager": "3.590.0",
     "@aws-sdk/client-ses": "3.598.0",
     "aws-lambda": "1.0.7",
-    "crypto": "1.0.1",
     "joi": "17.12.3",
     "mongoose": "8.3.1",
-    "transbank-sdk": "5.0.0",
     "uuid": "9.0.1"
   },
   "devDependencies": {
