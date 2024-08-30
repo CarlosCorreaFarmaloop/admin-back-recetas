@@ -142,7 +142,7 @@ export class NotificacionUseCase implements INotificacionUseCase {
   }
 
   private generarHTMLBoleta(orden: OrdenEntity): string {
-    const { id, delivery } = orden;
+    const { customer, id, delivery } = orden;
     const { firstName: nombre_cliente } = delivery.delivery_address;
 
     const html = `
@@ -170,17 +170,13 @@ export class NotificacionUseCase implements INotificacionUseCase {
                 Te enviamos adjunta la boleta electrónica de tu compra en Farmaloop.
               </p>
               <p style="font-size: 14px; font-weight: 400; margin: 0; margin-top: 12px;">
-                Recorda que también puedes descargarla en cualquier momento desde la sección 
-                <a href="https://www.farmaloop.cl/mi-cuenta/pedidos/" style="color: #3753FF; text-decoration: none;">Mis Compras</a> en nuestro sitio web.
-              </p>
-              <p style="font-size: 14px; font-weight: 400; margin: 0; margin-top: 12px;">
                 Número de Compra: <b>${id}</b>
               </p>
             </div>
 
             <div style="text-align:center; margin: auto; margin-top: 56px;">
               <p style="font-size: 10px; font-weight: 400;">
-                Si no desea recibir más notificaciones <a href="https://www.farmaloop.cl/" target="_blank" style="color: #3753FF; cursor: pointer; text-decoration: none;">click aquí<a/> para desuscribirse
+                Si no desea recibir más notificaciones <a href="https://www.farmaloop.cl/cancelar-suscripcion/?correo_electronico=${customer}" target="_blank" style="color: #3753FF; cursor: pointer; text-decoration: none;">click aquí<a/> para desuscribirse
               </p>
             </div>
 

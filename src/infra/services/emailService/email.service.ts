@@ -34,7 +34,7 @@ export class EmailService implements IEmailService {
     } catch (error) {
       const err = error as Error;
       console.error(
-        'Error general al enviar notificacion',
+        'Error general al enviar notificacion: ',
         JSON.stringify({ asunto: notificacion.asunto, destinatarios: notificacion.destinatarios, error: err.message }, null, 2)
       );
       throw new Error(err.message);
@@ -55,13 +55,18 @@ export class EmailService implements IEmailService {
       const response = await this.sesClient.send(command);
 
       if (!response.MessageId) {
-        console.error('Error al enviar notificacion: ', JSON.stringify({ notificacion, response }, null, 2));
+        console.error('Error al enviar notificacion: ', JSON.stringify({ destinatario: notificacion.destinatarios, response }, null, 2));
         throw new Error('Error al enviar notification.');
       }
 
-      console.log('Notificacion enviada: ', JSON.stringify({ notificacion }, null, 2));
+      console.log('Notificacion enviada: ', JSON.stringify({ destinatario: notificacion.destinatarios }, null, 2));
     } catch (error) {
-      console.error('Error al enviar el correo:', error);
+      const err = error as Error;
+      console.error(
+        'Error general al enviar notificacion con adjuntos: ',
+        JSON.stringify({ destinatario: notificacion.destinatarios, error: err.message }, null, 2)
+      );
+      throw new Error(err.message);
     }
   }
 
