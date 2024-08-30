@@ -1,9 +1,9 @@
 include:
-  - project: 'farmaloop-latam/infra/gitlab-ci'
+  - project: 'farmaloop-latam/infra/gitlab-ci-fc'
     file:
-      - 'serverless-lambda-without-FC.yml'
+      - 'serverless-lambda.yml'
 
 variables:
   LAMBDA_RUNTIME: 'nodejs16.x'
-  APP_NAME: 'admin-back-subscription-core'
+  APP_NAME: 'admin-back-notificaciones-core'
   REGIONS: 'us-east-1'

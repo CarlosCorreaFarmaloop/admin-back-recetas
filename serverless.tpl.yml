@@ -11,15 +11,13 @@ provider:
 
 functions:
   main:
-    handler: build/handler.handler
-    timeout: 30
+    handler: src/infra/handler/handler.handler
+    timeout: 12
     environment:
       MONGO_CONNECTION_STRING: ${MONGO_CONNECTION_STRING}
       MONGO_DATA_BASE: ${MONGO_DATA_BASE}
       ENV: ${ENV}
       TZ: ${TZ}
-      SECRET_KEY: ${SECRET_KEY}
-      FORCE_FAIL: ${FORCE_FAIL}
     vpc:
       securityGroupIds:
         - ${LAMBDA_SG}
