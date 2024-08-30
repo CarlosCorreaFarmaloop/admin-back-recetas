@@ -11,7 +11,7 @@ provider:
 
 functions:
   main:
-    handler: src/infra/handler/handler.handler
+    handler: build/infra/handler/handler.handler
     timeout: 12
     environment:
       MONGO_CONNECTION_STRING: ${MONGO_CONNECTION_STRING}
