@@ -35,6 +35,11 @@ export class NotificacionUseCase implements INotificacionUseCase {
 
     const orden = (await this.ordenUseCase.obtenerOrdenPorId(id)).data;
 
+    if (!orden.customer) {
+      console.log('La orden no tiene cliente para notificar boleta: ', JSON.stringify(orden, null, 2));
+      return { data: true, message: 'Ok.', status: HttpCodes.OK };
+    }
+
     const file = this.isProd ? `documentos-tributarios/BE-${id}.pdf` : `documentos-tributarios-qa/BE-${id}.pdf`;
     const boletaBuffer = await this.storageService.obtenerArchivo('farmaloop-privados', file);
 
