@@ -15,11 +15,11 @@ export const SQSController = async (event: any) => {
 
   const notificacionUseCase = new NotificacionUseCase(ordenUseCase, emailService, storageService);
 
-  if (action === 'notificar-paciente') {
-    const response = await notificacionUseCase.notificarRecompraPacientesCronicos(body.id);
+  // if (action === 'notificar-paciente') {
+  //   const response = await notificacionUseCase.notificarRecompraPacientesCronicos(body.id);
 
-    return { statusCode: response.status, body: JSON.stringify({ message: response.message, data: response.data }) };
-  }
+  //   return { statusCode: response.status, body: JSON.stringify({ message: response.message, data: response.data }) };
+  // }
 
   if (action === 'notificar-boleta') {
     const response = await notificacionUseCase.notificarBoleta(body.id);
