@@ -22,8 +22,8 @@ export const SQSController = async (event: any) => {
 
   const notificacionUseCase = new NotificacionUseCase(ordenUseCase, productoUseCase, emailService, storageService, carritoService);
 
-  if (action === 'notificar-pacientes') {
-    const response = await notificacionUseCase.notificarRecompraPacientesCronicos();
+  if (action === 'notificar-recompra') {
+    const response = await notificacionUseCase.notificarRecompraPacientes();
 
     return { statusCode: response.status, body: JSON.stringify({ message: response.message, data: response.data }) };
   }

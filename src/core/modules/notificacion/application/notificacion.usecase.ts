@@ -35,7 +35,7 @@ export class NotificacionUseCase implements INotificacionUseCase {
     private readonly carritoService: ICarritoService
   ) {}
 
-  async notificarRecompraPacientesCronicos() {
+  async notificarRecompraPacientes() {
     console.log('Entra notificarRecompraPacientesCronicos()');
 
     const { inicio, final } = this.obtenerRangoDe25Dias();

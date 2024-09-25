@@ -14,6 +14,10 @@ export const handler = async (event: SQSEvent) => {
     return await SQSController(parsedEventBody);
   }
 
+  if ('action' in event) {
+    return await SQSController(event);
+  }
+
   return { statusCode: 200, body: JSON.stringify(event) };
 };
 
