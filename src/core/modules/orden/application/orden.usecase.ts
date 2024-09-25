@@ -12,4 +12,14 @@ export class OrdenUseCase implements IOrdenUseCase {
 
     return { data: orden, message: 'Ok.', status: HttpCodes.OK };
   }
+
+  async obtenerOrdenesPagadasPorRangoDeFechas(desde: number, hasta: number) {
+    console.log('Entra obtenerOrdenesPagadasPorRangoDeFechas()');
+
+    const desde_date = new Date(desde);
+    const hasta_date = new Date(hasta);
+    const ordenes = await this.ordenRepository.obtenerOrdenesPagadasPorRangoDeFechas(desde_date, hasta_date);
+
+    return { data: ordenes, message: 'Ok.', status: HttpCodes.OK };
+  }
 }

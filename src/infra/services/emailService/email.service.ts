@@ -29,8 +29,6 @@ export class EmailService implements IEmailService {
         console.error('Error al enviar notificacion: ', JSON.stringify({ notificacion, response }, null, 2));
         throw new Error('Error al enviar notification.');
       }
-
-      console.log('Notificacion enviada: ', JSON.stringify({ notificacion }, null, 2));
     } catch (error) {
       const err = error as Error;
       console.error(
@@ -58,8 +56,6 @@ export class EmailService implements IEmailService {
         console.error('Error al enviar notificacion: ', JSON.stringify({ destinatario: notificacion.destinatarios, response }, null, 2));
         throw new Error('Error al enviar notification.');
       }
-
-      console.log('Notificacion enviada: ', JSON.stringify({ destinatario: notificacion.destinatarios }, null, 2));
     } catch (error) {
       const err = error as Error;
       console.error(

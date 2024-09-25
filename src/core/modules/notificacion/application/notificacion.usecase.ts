@@ -1,31 +1,140 @@
-import { HttpCodes } from './api.response';
+/* eslint-disable @typescript-eslint/restrict-template-expressions */
+import { v4 as uuid } from 'uuid';
 
+import { HttpCodes } from './api.response';
 import { INotificacionUseCase } from './notificacion.usecase.interface';
 import { IEmailService } from '../../../../infra/services/emailService/interface';
 import { OrdenEntity } from '../../orden/domain/orden.entity';
 import { IOrdenUseCase } from '../../orden/application/orden.usecase.interface';
 import { IStorageService } from '../../../../infra/services/storage/interface';
+import { IProductoUseCase } from '../../producto/application/producto.usecase.interface';
+import { Carrito, ICarritoService } from '../../../../infra/services/carritoService/interface';
 
 export class NotificacionUseCase implements INotificacionUseCase {
   private readonly isProd = process.env.ENV === 'PROD';
+  private readonly productos_fertilidad = [
+    '140362',
+    '140361',
+    '140312',
+    '140220',
+    '140219',
+    '140218',
+    '140590',
+    '140589',
+    '140588',
+    '140274',
+    '140217',
+    '140091',
+  ];
 
   constructor(
     private readonly ordenUseCase: IOrdenUseCase,
+    private readonly productosUseCase: IProductoUseCase,
     private readonly emailService: IEmailService,
-    private readonly storageService: IStorageService
+    private readonly storageService: IStorageService,
+    private readonly carritoService: ICarritoService
   ) {}
 
-  async notificarRecompraPacientesCronicos(id: string) {
-    console.log('Entra notificarRecompraPacientesCronicos(): ', id);
+  async notificarRecompraPacientesCronicos() {
+    console.log('Entra notificarRecompraPacientesCronicos()');
 
-    const orden = (await this.ordenUseCase.obtenerOrdenPorId(id)).data;
+    const { inicio, final } = this.obtenerRangoDe25Dias();
 
-    await this.emailService.enviarNotificacionHTML({
-      asunto: 'Re-Compra Cliente',
-      destinatarios: [orden.customer],
-      fuente: 'Notificaciones Farmaloop <notificaciones@farmaloop.cl>',
-      html: this.generarHTMLRecompraPacientesCronicos(orden),
-    });
+    const ordenes = (await this.ordenUseCase.obtenerOrdenesPagadasPorRangoDeFechas(inicio, final)).data;
+
+    const ordenes_sin_fertilidad = ordenes.filter(
+      (orden) => !orden.productsOrder.some((producto) => this.productos_fertilidad.includes(producto.sku))
+    );
+
+    const productos_con_stock = (await this.productosUseCase.obtenerProductosConStock()).data;
+
+    const skus_con_stock = productos_con_stock.map((producto) => producto.sku);
+
+    const ordenes_con_stock = ordenes_sin_fertilidad
+      .map((orden) => {
+        const productos_filtrados = orden.productsOrder.filter((element) => skus_con_stock.includes(element.sku));
+        return { ...orden, productsOrder: productos_filtrados };
+      })
+      .filter((orden) => orden.productsOrder.length > 0);
+
+    const nuevos_carritos = [];
+
+    for (const orden of ordenes_con_stock) {
+      const carrito_pagado = await this.carritoService.obtenerCarrito(orden.resumeOrder.cartId);
+
+      const productos = carrito_pagado.productos.filter((producto) => skus_con_stock.includes(producto.sku));
+
+      const productos_finales = productos.map((producto) => {
+        const producto_base = productos_con_stock.find(({ sku }) => sku === producto.sku);
+        if (!producto_base) {
+          return producto;
+        }
+
+        const lote_base = producto_base.batchs.find(({ id }) => id === producto.batch.id);
+
+        return {
+          ...producto,
+          batch: {
+            id: lote_base ? lote_base.id : producto_base.batchs[0].id,
+            active: true,
+            bestDiscount: producto.batch.bestDiscount,
+            expireDate: lote_base ? new Date(lote_base.expireDate) : new Date(producto_base.batchs[0].expireDate),
+            normalPrice: lote_base ? lote_base.normalPrice : producto_base.batchs[0].normalPrice,
+            qty: producto.batch.qty,
+            settlementPrice: lote_base ? lote_base.settlementPrice : producto_base.batchs[0].settlementPrice,
+            stock: lote_base ? lote_base.stock : producto_base.batchs[0].stock,
+          },
+        };
+      });
+
+      if (productos_finales.length > 0 && carrito_pagado.email) {
+        nuevos_carritos.push({
+          billetera: carrito_pagado.billetera,
+          codigo_cupon: '',
+          compartido_por: 'matias.martinez@farmaloop.cl',
+          compromiso_entrega: carrito_pagado.compromiso_entrega,
+          comuna: carrito_pagado.comuna,
+          createdAt: new Date().getTime(),
+          descuento_total: 0,
+          direccion_numero: carrito_pagado.direccion_numero,
+          direccion: carrito_pagado.direccion,
+          email: carrito_pagado.email,
+          es_delivery: carrito_pagado.es_delivery,
+          es_direccion_exacta: carrito_pagado.es_direccion_exacta,
+          fecha_compartido: new Date().getTime(),
+          id: uuid(),
+          latitud: carrito_pagado.latitud,
+          longitud: carrito_pagado.longitud,
+          nombre_completo: carrito_pagado.nombre_completo,
+          numero_depto: carrito_pagado.numero_depto,
+          place_id: carrito_pagado.place_id,
+          precio_delivery: carrito_pagado.precio_delivery,
+          productos: productos_finales,
+          referencia_cupon: '',
+          referrer: 'Campaña Recompra',
+          region: carrito_pagado.region,
+          telefono: carrito_pagado.telefono,
+          tipo_cupon: '',
+          tipo_de_casa: carrito_pagado.tipo_de_casa,
+          tipo_envio: carrito_pagado.tipo_envio,
+        });
+      }
+    }
+
+    console.log('Cantidad de clientes a notificar hoy: ', nuevos_carritos.length);
+
+    for (const nuevo_carrito of nuevos_carritos) {
+      const carrito_creado = await this.carritoService.crearCarrito(nuevo_carrito);
+
+      console.log('Notificacion enviada a: ', carrito_creado.email);
+
+      await this.emailService.enviarNotificacionHTML({
+        asunto: 'Ahorra hasta 80 DCTO renovando tus medicamentos',
+        destinatarios: ['matias.martinez@farmaloop.cl'],
+        fuente: 'Recordatorios Farmaloop <notificaciones@farmaloop.cl>',
+        html: this.generarHTMLRecompraPacientesCronicos(carrito_creado),
+      });
+    }
 
     return { data: true, message: 'Ok.', status: HttpCodes.OK };
   }
@@ -57,10 +166,18 @@ export class NotificacionUseCase implements INotificacionUseCase {
     return { data: true, message: 'Ok.', status: HttpCodes.OK };
   }
 
-  private generarHTMLRecompraPacientesCronicos(orden: OrdenEntity): string {
-    const { delivery, resumeOrder } = orden;
-    const { firstName: nombre_cliente } = delivery.delivery_address;
-    const { cartId: id_carrito } = resumeOrder;
+  private generarHTMLRecompraPacientesCronicos(carrito: Carrito): string {
+    const { email, id, nombre_completo, productos } = carrito;
+
+    const total = productos.reduce((acc: number, element) => acc + element.batch.qty * element.batch.settlementPrice, 0);
+    const ahorro_total = productos.reduce(
+      (acc: number, element) => acc + (element.batch.normalPrice - element.batch.settlementPrice) * element.batch.qty,
+      0
+    );
+
+    const link_carrito = this.isProd
+      ? `https://www.farmaloop.cl/check-out/?share=${id}`
+      : `https://ecomm-qa.fc.farmaloop.cl/check-out/?share=${id}`;
 
     const html = `
       <html>
@@ -71,67 +188,112 @@ export class NotificacionUseCase implements INotificacionUseCase {
         </head>
 
         <body style="background-color: #ffffff; width:95%; height: 100%; display: inline-block; margin: 0px auto; font-family: 'Poppins', sans-serif; justify-content: center; color: #000000;>
-          <div style="display:block; color:#000; background:#fff; width:100%; max-width: 600px; margin:auto; margin-top: 0px auto; text-align: center;">
+          <div style="display:block; color:#000; background:#fff; width:100%; max-width: 500px; margin:auto; margin-top: 0px auto; text-align: center;">
             <div style="text-align: center; margin: auto; margin-top: 30px;">
-              <img src="https://farmaloop-publicos.s3.us-east-2.amazonaws.com/ecommerce/images/assets/farma_original.png" width="64px" height="auto">
-            </div>
-
-            <div style="text-align: center; margin: auto; margin-top: 16px;">
-              <img src="https://d35lrmue8i33t5.cloudfront.net/campanas/anticonceptivos.png" width="450px" height="auto">
+              <img src="https://d35lrmue8i33t5.cloudfront.net/campanas/logo.png" width="64px" height="auto">
             </div>
 
             <div style="text-align:center; margin: auto; margin-top: 32px;">
-              <h1 style="font-size: 20px; font-weight: 500; margin: 0; font-family: 'Poppins', sans-serif;">
-                ${nombre_cliente.split(' ')[0]}, Continúa tu tratamiento de
-              </h1>
-              <h1 style="font-size: 20px; font-weight: 500; margin: 0; color: #0B8E36; font-family: 'Poppins', sans-serif;">
-                Anticonceptivos
+              <h1 style="font-size: 24px; font-weight: 600; margin: 0; font-family: 'Poppins', sans-serif;">
+                ${nombre_completo.trim().split(' ')[0]}, renueva tu última compra en Farmaloop!
               </h1>
             </div>
 
             <div style="text-align:center; margin: auto; margin-top: 32px;">
-              <p style="font-size: 14px; font-weight: 600;">
-                ¡Recibe hoy mismo con ENVÍO GRATIS!
+              <p style="font-size: 16px; font-weight: 500; font-family: 'Poppins', sans-serif;">
+                Recíbela dentro de las próximas 24 hs
               </p>
+            </div>
+
+            <div style="width: 100%; max-width: 600px; margin: auto; margin-top: 48px;">
+              <table cellspacing="0" cellpadding="0" border="0" style="width: 100%; border-collapse: collapse; font-size: 14px;">
+                <thead style="background-color: #3753FF; color: white;">
+                  <tr>
+                    <th style="text-align: center; font-size: 12px; font-weight: 400; padding: 4px 0; padding-left: 20px; font-family: 'Poppins', sans-serif;">Producto</th>
+                    <th style="text-align: center; font-size: 12px; font-weight: 400; padding: 4px 0; font-family: 'Poppins', sans-serif;">Cantidad</th>
+                    <th style="text-align: right; font-size: 12px; font-weight: 400; padding: 4px 0; font-family: 'Poppins', sans-serif;">Precio normal</th>
+                    <th style="text-align: right; font-size: 12px; font-weight: 400; padding: 4px 0; padding-right: 20px; font-family: 'Poppins', sans-serif;">Precio liquidación</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${productos
+                    .map(
+                      (element) => `
+                    <tr style="border-bottom: 1px solid #00000020; height: 100px;">
+                      <td style="text-align: center;">
+                        <img src=${element.photoURL} alt=${element.fullName} style="width: auto; height: 90px;">
+                      </td>
+                      <td style="text-align: center; font-family: 'Poppins', sans-serif;">${element.batch.qty}</td>
+                      <td style="text-align: right; text-decoration: line-through; font-family: 'Poppins', sans-serif;">${this.formatCLP(
+                        element.batch.normalPrice
+                      )}</td>
+                      <td style="font-size: 16px; text-align: right; font-family: 'Poppins', sans-serif; padding-right: 20px; color: #3753FF;">${this.formatCLP(
+                        element.batch.settlementPrice
+                      )}</td>
+                    </tr>
+                  `
+                    )
+                    .join('')}
+                  <tr>
+                    <td></td>
+                    <td></td>
+                    <td style="text-align: right; font-weight: 600; padding: 12px; font-family: 'Poppins', sans-serif;">Total</td>
+                    <td style="font-size: 16px; text-align: right; padding: 12px 0; padding-right: 20px; font-family: 'Poppins', sans-serif;">
+                      ${this.formatCLP(total)}
+                    </td>
+                  </tr>
+                  ${
+                    ahorro_total > 0
+                      ? `
+                      <tr>
+                        <td></td>
+                        <td></td>
+                        <td> </td>
+                        <td style="font-size: 16px; font-weight: 600; text-align: right; padding: 12px 0; padding-right: 20px; font-family: 'Poppins', sans-serif; color: #23AE00;">
+                          ¡Ahorras ${this.formatCLP(ahorro_total)}!
+                        </td>
+                      </tr>
+                    `
+                      : ''
+                  }
+                  
+                </tbody>
+              </table>
             </div>
 
             <div style="text-align:center; margin: auto; margin-top: 36px;">
-              <a href="https://ecomm-qa.fc.farmaloop.cl/check-out/?share=${id_carrito}" style="background-color: #3753FF; color: #ffffff; padding: 10px 20px; text-decoration: none; font-size: 18px; font-weight: 500; border-radius: 4px; display: inline-block;">
-                COMPRA AQUÍ
-                <img src="https://d35lrmue8i33t5.cloudfront.net/campanas/click.png" alt="Icono" style="vertical-align: middle; width: 18px; height: 18px; margin-left: 6px;">
+              <a href=${link_carrito} style="background-color: #FE0046; color: #ffffff; padding: 10px 20px; text-decoration: none; border-radius: 4px; display: inline-block;">
+                <span style="font-size: 18px; font-weight: 600; color: #ffffff; margin: 0; font-family: 'Poppins', sans-serif;">COMPRA AQUÍ</span>
+                <img src="https://d35lrmue8i33t5.cloudfront.net/campanas/click.png" alt="Icono" style="vertical-align: middle; width: 18px; height: 18px; margin-left: 6px; margin-bottom: 6px;">
               </a>
             </div>
 
-            <div style="text-align:center; margin: auto; margin-top: 72px; max-width: 355px;">
-              <p style="font-size: 12px; font-weight: 400; margin: 0">
-                Comprando de lunes a viernes antes de las 16 hs, recibe tu pedido el
-                mismo día. Envío gratis en RM y $3.500 descuento a Regiones. Monto
-                mínimo de compra: $10.000
-              </p>
-            </div>
-
             <div style="text-align:center; margin: auto; margin-top: 56px;">
-              <p style="font-size: 10px; font-weight: 400;">
-                Si no desea recibir más notificaciones <a href="https://ecomm-qa.fc.farmaloop.cl" target="_blank" style="color: #3753FF; cursor: pointer; text-decoration: none;">click aquí<a/> para desuscribirse
+              <p style="font-size: 10px; font-weight: 400; font-family: 'Poppins', sans-serif;">
+                Si no desea recibir más notificaciones <a href="https://www.farmaloop.cl/cancelar-suscripcion/?correo_electronico=${email.trim()}" target="_blank" style="color: #3753FF; cursor: pointer; text-decoration: none;">click aquí<a/> para desuscribirse
               </p>
             </div>
 
-            <div style="text-align: center; margin-top: 16px;">
+            <div style="text-align: center; margin: 0 auto; margin-top: 16px;">
+              <img src="https://d35lrmue8i33t5.cloudfront.net/campanas/envio-farmaloop.png" width="500px" height="auto">
+            </div>
+
+            <div style="text-align: center;">
               <table style="width: 100%; max-width: 600px; margin: auto; background-color: #F1F1F1; padding: 4px 12px;">
                 <tr>
                   <td style="text-align: left;">
-                    <p style="margin: 0; font-size: 14px; font-weight: 400;">Farmaloop</p>
-                    <p style="margin: 0; font-size: 14px; font-weight: 400;">contacto@farmaloop.cl</p>
+                    <p style="margin: 0; font-size: 14px; font-weight: 400; font-family: 'Poppins', sans-serif;">Farmaloop</p>
+                    <p style="margin: 0; font-size: 14px; font-weight: 400; font-family: 'Poppins', sans-serif;">contacto@farmaloop.cl</p>
                   </td>
 
                   <td style="text-align: right;">
-                    <a href="https://facebook.com/farmaloop" target="_blank">
+                    <a href="https://www.facebook.com/farmaloopchile/" target="_blank" style="text-decoration: none;">
                       <img src="https://d35lrmue8i33t5.cloudfront.net/campanas/facebook.png" alt="Facebook" style="width: 30px; height: 30px; margin-right: 10px;">
                     </a>
-                    <a href="https://instagram.com/farmaloop" target="_blank">
+                    <a href="https://www.instagram.com/farmaloopchile/" target="_blank" style="text-decoration: none;">
                       <img src="https://d35lrmue8i33t5.cloudfront.net/campanas/instagram.png" alt="Instagram" style="width: 30px; height: 30px; margin-right: 10px;">
                     </a>
-                    <a href="https://linkedin.com/company/farmaloop" target="_blank">
+                    <a href="https://www.linkedin.com/company/farmaloop/" target="_blank" style="text-decoration: none;">
                       <img src="https://d35lrmue8i33t5.cloudfront.net/campanas/linkedin.png" alt="LinkedIn" style="width: 30px; height: 30px;">
                     </a>
                   </td>
@@ -213,5 +375,25 @@ export class NotificacionUseCase implements INotificacionUseCase {
     `;
 
     return html;
+  }
+
+  private formatCLP(number: string | number): string {
+    const format = new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP' }).format(Number(number));
+    return format;
+  }
+
+  private obtenerRangoDe25Dias() {
+    const fecha_hoy = new Date();
+
+    const fecha = new Date(fecha_hoy);
+    fecha.setDate(fecha_hoy.getDate() - 25);
+
+    const fecha_inicio = new Date(fecha);
+    fecha_inicio.setHours(0, 0, 0, 0);
+
+    const fecha_final = new Date(fecha);
+    fecha_final.setHours(23, 59, 59, 999);
+
+    return { inicio: fecha_inicio.getTime(), final: fecha_final.getTime() };
   }
 }

@@ -17,4 +17,22 @@ export class OrdenMongoRepository implements OrdenRepository {
       throw new Error(err.message);
     }
   }
+
+  async obtenerOrdenesPagadasPorRangoDeFechas(desde: Date, hasta: Date) {
+    try {
+      const ordenes = await OrdenModel.find({
+        id: { $regex: '^CL-(E|CC)' },
+        createdAt: { $gte: desde, $lte: hasta },
+        customer: { $exists: true },
+        'payments.status': 'Aprobado',
+        statusOrder: { $nin: ['CANCELADO', 'CREADO'] },
+      }).lean();
+
+      return ordenes;
+    } catch (error) {
+      const err = error as Error;
+      console.log(err.message);
+      throw new Error(err.message);
+    }
+  }
 }
