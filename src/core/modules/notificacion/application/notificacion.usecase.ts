@@ -130,7 +130,7 @@ export class NotificacionUseCase implements INotificacionUseCase {
 
       await this.emailService.enviarNotificacionHTML({
         asunto: 'Ahorra hasta 80 DCTO renovando tus medicamentos',
-        destinatarios: ['matias.martinez@farmaloop.cl'],
+        destinatarios: [carrito_creado.email],
         fuente: 'Recordatorios Farmaloop <notificaciones@farmaloop.cl>',
         html: this.generarHTMLRecompraPacientesCronicos(carrito_creado),
       });
