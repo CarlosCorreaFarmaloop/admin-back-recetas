@@ -13,10 +13,9 @@ export class CarritoService implements ICarritoService {
     });
   }
 
-  async crearCarrito(carrito: Carrito) {
+  async crearCarrito(carrito: Partial<Carrito>) {
     try {
       const response = await this.axiosInstance.post<{ data: Carrito }>('/crear-o-actualizar', carrito);
-
       return response.data.data;
     } catch (error) {
       const err = error as Error;
@@ -28,9 +27,9 @@ export class CarritoService implements ICarritoService {
   async obtenerCarrito(id: string) {
     try {
       const response = await this.axiosInstance.get<{ data: Carrito }>(`/obtener-carrito/${id}`);
-
       return response.data.data;
     } catch (error) {
+      console.log(error);
       const err = error as Error;
       console.log(err.message);
       throw new Error(err.message);

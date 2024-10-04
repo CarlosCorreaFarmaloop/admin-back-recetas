@@ -1,5 +1,5 @@
 export interface ICarritoService {
-  crearCarrito: (carrito: Carrito) => Promise<Carrito>;
+  crearCarrito: (carrito: Partial<Carrito>) => Promise<Carrito>;
   obtenerCarrito: (id: string) => Promise<Carrito>;
 }
 
@@ -16,6 +16,7 @@ export interface Carrito {
   email: string;
   es_delivery: boolean;
   es_direccion_exacta: boolean;
+  estado: Estado;
   fecha_compartido: number;
   id: string;
   latitud: string;
@@ -32,4 +33,7 @@ export interface Carrito {
   tipo_cupon: string;
   tipo_de_casa: string;
   tipo_envio: string;
+  updatedAt: number;
 }
+
+export type Estado = 'CREADO' | 'PAGADO' | 'ABANDONADO';

@@ -168,14 +168,7 @@ export interface DeliveryTracking {
   evidencias: string[];
 }
 
-export type EstadoCourierTracking =
-  | 'Creado'
-  | 'Confirmado'
-  | 'Recogido'
-  | 'En delivery'
-  | 'Entregado'
-  | 'Cancelado'
-  | 'Observación';
+export type EstadoCourierTracking = 'Creado' | 'Confirmado' | 'Recogido' | 'En delivery' | 'Entregado' | 'Cancelado' | 'Observación';
 
 export interface Documento {
   delivery?: DeliveryDocumento;

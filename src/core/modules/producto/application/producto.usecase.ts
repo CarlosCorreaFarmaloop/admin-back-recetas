@@ -7,7 +7,7 @@ export class ProductoUseCase implements IProductoUseCase {
   constructor(private readonly productoRepository: ProductoRepository) {}
 
   async obtenerProductosConStock() {
-    console.log('Entra obtenerProductosActivos()');
+    console.log('Entra obtenerProductosConStock()');
 
     const productos = await this.productoRepository.obtenerProductosActivos();
 
