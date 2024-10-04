@@ -18,6 +18,7 @@ functions:
       MONGO_DATA_BASE: ${MONGO_DATA_BASE}
       ENV: ${ENV}
       TZ: ${TZ}
+      WISECX_API_KEY: ${WISECX_API_KEY}
     vpc:
       securityGroupIds:
         - ${LAMBDA_SG}
