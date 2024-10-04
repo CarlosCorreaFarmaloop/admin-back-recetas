@@ -197,7 +197,7 @@ export class NotificacionUseCase implements INotificacionUseCase {
           nombre_cliente: carrito.nombre_completo.trim().split(' ')[0],
           nombre_completo_cliente: carrito.nombre_completo,
           // telefono_cliente: '+5492634622209', // 5493541544511 56961717175 5492634622209 56945190245
-          telefono_cliente: carrito.telefono.trim(),
+          telefono_cliente: `+56${carrito.telefono.trim()}`,
           correo_electronico_cliente: carrito.email.trim(),
         });
 
