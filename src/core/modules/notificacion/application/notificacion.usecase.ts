@@ -136,8 +136,8 @@ export class NotificacionUseCase implements INotificacionUseCase {
 
       await this.emailService.enviarNotificacionHTML({
         asunto: 'Ahorra hasta 80 DCTO renovando tus medicamentos',
-        // destinatarios: [carrito_creado.email],
-        destinatarios: ['matias.martinez@farmaloop.cl'],
+        destinatarios: [carrito_creado.email.trim()],
+        // destinatarios: ['matias.martinez@farmaloop.cl'],
         fuente: 'Recordatorios Farmaloop <notificaciones@farmaloop.cl>',
         html: this.generarHTMLRecompra(carrito_creado),
       });
@@ -164,21 +164,21 @@ export class NotificacionUseCase implements INotificacionUseCase {
   async notificarRecompraPacientesSegundoToque() {
     console.log('Entra notificarRecompraPacientesSegundoToque()');
 
-    const { inicio, final } = this.obtenerRangoDe28Dias();
+    const { inicio, final } = this.obtenerRangoDe3Dias();
     const notificaciones = await this.notificacionRepository.obtenerNotificacionesPorRangoYTipo(inicio, final, 'Recompra');
 
     const notificaciones_sin_pagar = await this.removerNotificacionesPagadas(notificaciones);
 
     console.log('Cantidad de clientes a enviar un segundo toque de recompra: ', notificaciones_sin_pagar.length);
 
-    for (const notificacion of notificaciones_sin_pagar.slice(0, 1)) {
+    for (const notificacion of notificaciones_sin_pagar) {
       try {
         const carrito = await this.transformarCarritoADeliveryYAplicarCupon(notificacion);
 
         await this.emailService.enviarNotificacionHTML({
           asunto: 'Despacho gratis renovando tus medicamentos',
-          // destinatarios: [carrito.email.trim()],
-          destinatarios: ['matias.martinez@farmaloop.cl'],
+          destinatarios: [carrito.email.trim()],
+          // destinatarios: ['matias.martinez@farmaloop.cl'],
           fuente: 'Recordatorios Farmaloop <notificaciones@farmaloop.cl>',
           html: this.generarHTMLRecompraConDescuento(carrito),
         });
@@ -193,11 +193,11 @@ export class NotificacionUseCase implements INotificacionUseCase {
           etiquetas: ['Cart Recovery', 'Via API'],
           id_asistente: 41365,
           id_template: 19409,
-          url_carrito: `check-out/?share=${carrito.id}`,
+          url_carrito: `check-out/?share=${carrito.id}&utm_source=whatsapp&utm_medium=messaging_app&utm_campaign=recompra`,
           nombre_cliente: carrito.nombre_completo.trim().split(' ')[0],
           nombre_completo_cliente: carrito.nombre_completo,
-          telefono_cliente: '+5492634622209', // 5493541544511 56961717175 5492634622209 56945190245
-          // telefono_cliente: carrito.telefono.trim(),
+          // telefono_cliente: '+5492634622209', // 5493541544511 56961717175 5492634622209 56945190245
+          telefono_cliente: carrito.telefono.trim(),
           correo_electronico_cliente: carrito.email.trim(),
         });
 
@@ -392,8 +392,8 @@ export class NotificacionUseCase implements INotificacionUseCase {
     );
 
     const link_carrito = this.isProd
-      ? `https://www.farmaloop.cl/check-out/?share=${id}`
-      : `https://ecomm-qa.fc.farmaloop.cl/check-out/?share=${id}`;
+      ? `https://www.farmaloop.cl/check-out/?share=${id}&utm_source=email_marketing&utm_medium=email&utm_campaign=recompra`
+      : `https://ecomm-qa.fc.farmaloop.cl/check-out/?share=${id}&utm_source=email_marketing&utm_medium=email&utm_campaign=recompra`;
 
     const html = `
       <html>
@@ -622,11 +622,11 @@ export class NotificacionUseCase implements INotificacionUseCase {
     return { inicio: fecha_inicio.getTime(), final: fecha_final.getTime() };
   }
 
-  private obtenerRangoDe28Dias() {
+  private obtenerRangoDe3Dias() {
     const fecha_hoy = new Date();
 
     const fecha = new Date(fecha_hoy);
-    fecha.setDate(fecha_hoy.getDate() - 0);
+    fecha.setDate(fecha_hoy.getDate() - 3);
 
     const fecha_inicio = new Date(fecha);
     fecha_inicio.setHours(0, 0, 0, 0);
