@@ -1,4 +1,4 @@
-import { Batch } from '../domain/producto.entity';
+import { Batch, ProductoEntity } from '../domain/producto.entity';
 import { ProductoRepository } from '../domain/producto.repository';
 import { HttpCodes } from './api.response';
 import { IProductoUseCase } from './producto.usecase.interface';
@@ -11,14 +11,15 @@ export class ProductoUseCase implements IProductoUseCase {
 
     const productos = await this.productoRepository.obtenerProductosActivos();
 
-    const productos_con_stock = productos
-      .map((producto) => {
-        const lotes_vendibles = this.filtrarLotesVendibles(producto.batchs);
+    const productos_con_stock: ProductoEntity[] = [];
 
-        if (lotes_vendibles.length === 0) return null;
-        return { ...producto, batchs: lotes_vendibles };
-      })
-      .filter((producto) => producto !== null);
+    for (const producto of productos) {
+      const lotes_vendibles = this.filtrarLotesVendibles(producto.batchs);
+
+      if (lotes_vendibles.length > 0) {
+        productos_con_stock.push({ ...producto, batchs: lotes_vendibles });
+      }
+    }
 
     return { data: productos_con_stock, message: 'Ok.', status: HttpCodes.OK };
   }
