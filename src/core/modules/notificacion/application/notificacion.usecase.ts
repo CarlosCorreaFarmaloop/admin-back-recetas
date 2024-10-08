@@ -14,6 +14,7 @@ import { NotificacionRepository } from '../domain/notificacion.repository';
 import { NotificacionVO } from '../domain/notificacion.vo';
 import { NotificacionEntity } from '../domain/notificacion.entity';
 import { ICourierService } from '../../../../infra/services/courierService/interface';
+import { Batch } from '../../producto/domain/producto.entity';
 
 export class NotificacionUseCase implements INotificacionUseCase {
   private readonly isProd = process.env.ENV === 'PROD';
@@ -49,84 +50,78 @@ export class NotificacionUseCase implements INotificacionUseCase {
     const { inicio, final } = this.obtenerRangoDe25Dias();
 
     const ordenes = (await this.ordenUseCase.obtenerOrdenesPagadasPorRangoDeFechas(inicio, final)).data;
-
-    const ordenes_sin_fertilidad = ordenes.filter(
-      (orden) => !orden.productsOrder.some((producto) => this.productos_fertilidad.includes(producto.sku))
-    );
-
     const productos_con_stock = (await this.productosUseCase.obtenerProductosConStock()).data;
-
-    const skus_con_stock = productos_con_stock.map((producto) => producto.sku);
-
-    const ordenes_con_stock = ordenes_sin_fertilidad
-      .map((orden) => {
-        const productos_filtrados = orden.productsOrder.filter((element) => skus_con_stock.includes(element.sku));
-        return { ...orden, productsOrder: productos_filtrados };
-      })
-      .filter((orden) => orden.productsOrder.length > 0);
 
     const nuevos_carritos = [];
 
-    for (const orden of ordenes_con_stock) {
-      const carrito_pagado = await this.carritoService.obtenerCarrito(orden.resumeOrder.cartId);
+    for (const orden of ordenes) {
+      const orden_con_fertilidad = orden.productsOrder.some((producto) => this.productos_fertilidad.includes(producto.sku));
+      if (orden_con_fertilidad) continue;
 
-      const productos = carrito_pagado.productos.filter((producto) => skus_con_stock.includes(producto.sku));
+      const carrito = await this.carritoService.obtenerCarrito(orden.resumeOrder.cartId);
+      if (!carrito) {
+        continue;
+      }
 
-      const productos_finales = productos.map((producto) => {
+      const nuevos_productos = [];
+
+      for (const producto of carrito.productos) {
         const producto_base = productos_con_stock.find(({ sku }) => sku === producto.sku);
-        if (!producto_base) {
-          return producto;
-        }
 
-        const lote_base = producto_base.batchs.find(({ id }) => id === producto.batch.id);
+        if (!producto_base) continue;
 
-        return {
+        const mejor_lote = this.obtenerMejorLote(producto_base.batchs);
+        if (!mejor_lote) continue;
+
+        const cantidad_disponible = this.calcularCantidadDisponible(mejor_lote, producto.batch.qty);
+
+        nuevos_productos.push({
           ...producto,
           batch: {
-            id: lote_base ? lote_base.id : producto_base.batchs[0].id,
+            id: mejor_lote.id,
             active: true,
-            bestDiscount: producto.batch.bestDiscount,
-            expireDate: lote_base ? new Date(lote_base.expireDate) : new Date(producto_base.batchs[0].expireDate),
-            normalPrice: lote_base ? lote_base.normalPrice : producto_base.batchs[0].normalPrice,
-            qty: producto.batch.qty,
-            settlementPrice: lote_base ? lote_base.settlementPrice : producto_base.batchs[0].settlementPrice,
-            stock: lote_base ? lote_base.stock : producto_base.batchs[0].stock,
+            bestDiscount: (1 - mejor_lote.settlementPrice / mejor_lote.normalPrice) * 100,
+            expireDate: new Date(mejor_lote.expireDate),
+            normalPrice: mejor_lote.normalPrice,
+            qty: cantidad_disponible,
+            settlementPrice: mejor_lote.settlementPrice,
+            stock: mejor_lote.stock,
           },
-        };
-      });
-
-      if (productos_finales.length > 0 && carrito_pagado.email) {
-        nuevos_carritos.push({
-          billetera: 'Transbank',
-          codigo_cupon: '',
-          compartido_por: 'Campana Recompra',
-          compromiso_entrega: carrito_pagado.compromiso_entrega,
-          comuna: carrito_pagado.comuna,
-          createdAt: new Date().getTime(),
-          descuento_total: 0,
-          direccion_numero: carrito_pagado.direccion_numero,
-          direccion: carrito_pagado.direccion,
-          email: carrito_pagado.email,
-          es_delivery: carrito_pagado.es_delivery,
-          es_direccion_exacta: carrito_pagado.es_direccion_exacta,
-          fecha_compartido: new Date().getTime(),
-          id: uuid(),
-          latitud: carrito_pagado.latitud,
-          longitud: carrito_pagado.longitud,
-          nombre_completo: carrito_pagado.nombre_completo,
-          numero_depto: carrito_pagado.numero_depto,
-          place_id: carrito_pagado.place_id,
-          precio_delivery: carrito_pagado.precio_delivery,
-          productos: productos_finales,
-          referencia_cupon: '',
-          referrer: '',
-          region: carrito_pagado.region,
-          telefono: carrito_pagado.telefono,
-          tipo_cupon: '',
-          tipo_de_casa: carrito_pagado.tipo_de_casa,
-          tipo_envio: carrito_pagado.tipo_envio,
         });
       }
+
+      if (nuevos_productos.length === 0) continue;
+
+      nuevos_carritos.push({
+        billetera: 'Transbank',
+        codigo_cupon: '',
+        compartido_por: 'Campana Recompra',
+        compromiso_entrega: carrito.compromiso_entrega,
+        comuna: carrito.comuna,
+        createdAt: new Date().getTime(),
+        descuento_total: 0,
+        direccion_numero: carrito.direccion_numero,
+        direccion: carrito.direccion,
+        email: carrito.email,
+        es_delivery: carrito.es_delivery,
+        es_direccion_exacta: carrito.es_direccion_exacta,
+        fecha_compartido: new Date().getTime(),
+        id: uuid(),
+        latitud: carrito.latitud,
+        longitud: carrito.longitud,
+        nombre_completo: carrito.nombre_completo,
+        numero_depto: carrito.numero_depto,
+        place_id: carrito.place_id,
+        precio_delivery: carrito.precio_delivery,
+        productos: nuevos_productos,
+        referencia_cupon: '',
+        referrer: '',
+        region: carrito.region,
+        telefono: carrito.telefono,
+        tipo_cupon: '',
+        tipo_de_casa: carrito.tipo_de_casa,
+        tipo_envio: carrito.tipo_envio,
+      });
     }
 
     console.log('Cantidad de clientes a notificar hoy: ', nuevos_carritos.length);
@@ -686,5 +681,22 @@ export class NotificacionUseCase implements INotificacionUseCase {
       });
 
     return nuevo_Carrito;
+  }
+
+  private obtenerMejorLote(lotes: Batch[]): Batch | null {
+    if (lotes.length === 0) return null;
+
+    const bestBatch = lotes.reduce((best, current) => {
+      return current.settlementPrice < best.settlementPrice ? current : best;
+    }, lotes[0]);
+
+    if (bestBatch?.settlementPrice === 0) return null;
+
+    return bestBatch;
+  }
+
+  private calcularCantidadDisponible(lote: Batch, cantidad_comprada: number): number {
+    if (lote.stock >= cantidad_comprada) return cantidad_comprada;
+    return lote.stock;
   }
 }

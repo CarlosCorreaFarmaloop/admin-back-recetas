@@ -11,20 +11,22 @@ export class ProductoUseCase implements IProductoUseCase {
 
     const productos = await this.productoRepository.obtenerProductosActivos();
 
-    const productos_con_stock = productos.filter((producto) => {
-      if (!producto.batchs) return false;
-      if (producto.batchs.length === 0) return false;
+    const productos_con_stock = productos
+      .map((producto) => {
+        const lotes_vendibles = this.filtrarLotesVendibles(producto.batchs);
 
-      const lotes_vendibles = this.filtrarLotesVendibles(producto.batchs);
-      if (lotes_vendibles.length === 0) return false;
-
-      return true;
-    });
+        if (lotes_vendibles.length === 0) return null;
+        return { ...producto, batchs: lotes_vendibles };
+      })
+      .filter((producto) => producto !== null);
 
     return { data: productos_con_stock, message: 'Ok.', status: HttpCodes.OK };
   }
 
-  private filtrarLotesVendibles(lotes: Batch[]): Batch[] {
+  private filtrarLotesVendibles(lotes?: Batch[]): Batch[] {
+    if (!lotes) return [];
+    if (lotes.length === 0) return [];
+
     const lotes_vendibles = lotes.filter((lote) => {
       if (!lote?.active) return false;
       if (lote.stock <= 0) return false;
