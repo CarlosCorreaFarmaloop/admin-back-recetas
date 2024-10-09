@@ -1,5 +1,5 @@
 export interface IEmailService {
-  enviarNotificacionHTML: (notificacion: NotificacionHTML) => Promise<void>;
+  enviarNotificacionHTML: (notificacion: NotificacionHTML) => Promise<boolean>;
   enviarNotificacionHTMLConAdjuntos: (notificacion: NotificacionHTMLConAdjunto) => Promise<void>;
 }
 

@@ -29,6 +29,8 @@ export class EmailService implements IEmailService {
         console.error('Error al enviar notificacion: ', JSON.stringify({ notificacion, response }, null, 2));
         throw new Error('Error al enviar notification.');
       }
+
+      return true;
     } catch (error) {
       const err = error as Error;
       console.error(

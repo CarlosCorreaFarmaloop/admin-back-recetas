@@ -58,8 +58,21 @@ export class NotificacionUseCase implements INotificacionUseCase {
       const orden_con_fertilidad = orden.productsOrder.some((producto) => this.productos_fertilidad.includes(producto.sku));
       if (orden_con_fertilidad) continue;
 
-      const carrito = await this.carritoService.obtenerCarrito(orden.resumeOrder.cartId);
+      const carrito = await this.carritoService.obtenerCarrito(orden.resumeOrder.cartId).catch(() => {
+        return null;
+      });
       if (!carrito) {
+        console.log('Error al obtener carrito: ', JSON.stringify({ orden: orden.id, carrito: orden.resumeOrder.cartId }));
+        continue;
+      }
+
+      const correo_normalizado = this.normalizarCorreo(orden.customer);
+      const correo_electronico_es_valido = this.validarCorreo(correo_normalizado);
+      if (!correo_electronico_es_valido) {
+        console.log(
+          'El correo electronico del carrito es invalido: ',
+          JSON.stringify({ orden: orden.id, carrito: orden.resumeOrder.cartId, email: correo_normalizado })
+        );
         continue;
       }
 
@@ -67,7 +80,6 @@ export class NotificacionUseCase implements INotificacionUseCase {
 
       for (const producto of carrito.productos) {
         const producto_base = productos_con_stock.find(({ sku }) => sku === producto.sku);
-
         if (!producto_base) continue;
 
         const mejor_lote = this.obtenerMejorLote(producto_base.batchs);
@@ -102,7 +114,7 @@ export class NotificacionUseCase implements INotificacionUseCase {
         descuento_total: 0,
         direccion_numero: carrito.direccion_numero,
         direccion: carrito.direccion,
-        email: carrito.email,
+        email: correo_normalizado,
         es_delivery: carrito.es_delivery,
         es_direccion_exacta: carrito.es_direccion_exacta,
         fecha_compartido: new Date().getTime(),
@@ -124,18 +136,36 @@ export class NotificacionUseCase implements INotificacionUseCase {
       });
     }
 
-    console.log('Cantidad de clientes a notificar hoy: ', nuevos_carritos.length);
+    console.log('Cantidad de clientes a notificar: ', nuevos_carritos.length);
 
     for (const nuevo_carrito of nuevos_carritos) {
-      const carrito_creado = await this.carritoService.crearCarrito(nuevo_carrito);
-
-      await this.emailService.enviarNotificacionHTML({
-        asunto: 'Ahorra hasta 80 DCTO renovando tus medicamentos',
-        destinatarios: [carrito_creado.email.trim()],
-        // destinatarios: ['matias.martinez@farmaloop.cl'],
-        fuente: 'Recordatorios Farmaloop <notificaciones@farmaloop.cl>',
-        html: this.generarHTMLRecompra(carrito_creado),
+      const carrito_creado = await this.carritoService.crearCarrito(nuevo_carrito).catch(() => {
+        return null;
       });
+      if (!carrito_creado) {
+        console.log('Error al crear carrito: ', JSON.stringify({ carrito: nuevo_carrito }));
+        continue;
+      }
+
+      const notificacion_html = await this.emailService
+        .enviarNotificacionHTML({
+          asunto: 'Ahorra hasta 80 DCTO renovando tus medicamentos',
+          destinatarios: [carrito_creado.email],
+          // destinatarios: ['matias.martinez@farmaloop.cl'],
+          fuente: 'Recordatorios Farmaloop <notificaciones@farmaloop.cl>',
+          html: this.generarHTMLRecompra(carrito_creado),
+        })
+        .catch(() => {
+          return null;
+        });
+
+      if (!notificacion_html) {
+        console.log(
+          'Error al notificar a cliente con nuevo carrito: ',
+          JSON.stringify({ carrito: carrito_creado.id, email: carrito_creado.email }, null, 2)
+        );
+        continue;
+      }
 
       const notificacion = new NotificacionVO().crear(
         {
@@ -633,21 +663,20 @@ export class NotificacionUseCase implements INotificacionUseCase {
   }
 
   private async removerNotificacionesPagadas(notificaciones: NotificacionEntity[]): Promise<NotificacionEntity[]> {
-    const carritos = await Promise.all(
+    const notificaciones_filtradas = await Promise.all(
       notificaciones.map(async (notificacion) => {
-        try {
-          const carrito = await this.carritoService.obtenerCarrito(notificacion.carrito_id);
-          return { notificacion, pagado: carrito.estado === 'PAGADO', vacio: carrito.productos.length === 0 };
-        } catch (error) {
-          console.error('Error al obtener carrito: ', notificacion.carrito_id);
-          return { notificacion, pagado: true, vacio: true };
-        }
+        const carrito = await this.carritoService.obtenerCarrito(notificacion.carrito_id).catch(() => {
+          return null;
+        });
+
+        if (!carrito || carrito.estado === 'PAGADO' || carrito.productos.length === 0) return null;
+        return notificacion;
       })
     );
 
-    const carritos_sin_pagar = carritos.filter((carrito) => !carrito.pagado && !carrito.vacio);
-    const notificaciones_sin_pagar = carritos_sin_pagar.map((carrito) => carrito.notificacion);
-    return notificaciones_sin_pagar;
+    const notificaciones_sin_pagar = notificaciones_filtradas.filter((notificacion) => notificacion !== null);
+
+    return notificaciones_sin_pagar as NotificacionEntity[];
   }
 
   private async transformarCarritoADeliveryYAplicarCupon(notificacion: NotificacionEntity) {
@@ -698,5 +727,17 @@ export class NotificacionUseCase implements INotificacionUseCase {
   private calcularCantidadDisponible(lote: Batch, cantidad_comprada: number): number {
     if (lote.stock >= cantidad_comprada) return cantidad_comprada;
     return lote.stock;
+  }
+
+  private validarCorreo(correo_electronico: string): boolean {
+    const regex_correo_electronico =
+      // eslint-disable-next-line no-control-regex
+      /^(?:[a-zA-Z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-zA-Z0-9!#$%&'*+/=?^_`{|}~-]+)*|"(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21\x23-\x5b\x5d-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])*")@(?:(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]*[a-zA-Z0-9])?\.)+[a-zA-Z]{2,}|(?:\d{1,3}\.){3}\d{1,3})(?::\d{2,5})?(?:[a-zA-Z0-9-]*[a-zA-Z0-9])?$/;
+
+    return regex_correo_electronico.test(correo_electronico);
+  }
+
+  private normalizarCorreo(correo_electronico: string): string {
+    return correo_electronico.trim().toLowerCase();
   }
 }
