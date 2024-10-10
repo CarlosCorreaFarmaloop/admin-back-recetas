@@ -14,7 +14,7 @@ import { NotificacionRepository } from '../domain/notificacion.repository';
 import { NotificacionVO } from '../domain/notificacion.vo';
 import { NotificacionEntity } from '../domain/notificacion.entity';
 import { ICourierService } from '../../../../infra/services/courierService/interface';
-import { Batch } from '../../producto/domain/producto.entity';
+import { Batch, ProductoEntity } from '../../producto/domain/producto.entity';
 
 export class NotificacionUseCase implements INotificacionUseCase {
   private readonly isProd = process.env.ENV === 'PROD';
@@ -89,6 +89,7 @@ export class NotificacionUseCase implements INotificacionUseCase {
 
         nuevos_productos.push({
           ...producto,
+          photoURL: producto_base.photoURL,
           batch: {
             id: mejor_lote.id,
             active: true,
@@ -193,46 +194,85 @@ export class NotificacionUseCase implements INotificacionUseCase {
     const notificaciones = await this.notificacionRepository.obtenerNotificacionesPorRangoYTipo(inicio, final, 'Recompra');
 
     const notificaciones_sin_pagar = await this.removerNotificacionesPagadas(notificaciones);
+    const productos_con_stock = (await this.productosUseCase.obtenerProductosConStock()).data;
 
     console.log('Cantidad de clientes a enviar un segundo toque de recompra: ', notificaciones_sin_pagar.length);
 
     for (const notificacion of notificaciones_sin_pagar) {
-      try {
-        const carrito = await this.transformarCarritoADeliveryYAplicarCupon(notificacion);
+      const carrito = await this.actualizarCarritoSegundoToque(notificacion, productos_con_stock);
+      if (!carrito) {
+        console.log('Error al actualizar carrito para segundo toque: ', JSON.stringify({ notificacion }, null, 2));
+        continue;
+      }
 
-        await this.emailService.enviarNotificacionHTML({
+      const correo_normalizado = this.normalizarCorreo(carrito.email);
+      const correo_electronico_es_valido = this.validarCorreo(correo_normalizado);
+      if (!correo_electronico_es_valido) {
+        console.log('El correo electronico del carrito es invalido: ', JSON.stringify({ carrito: carrito.id, email: correo_normalizado }));
+        continue;
+      }
+
+      const notificacion_html = await this.emailService
+        .enviarNotificacionHTML({
           asunto: 'Despacho gratis renovando tus medicamentos',
-          destinatarios: [carrito.email.trim()],
+          destinatarios: [correo_normalizado],
           // destinatarios: ['matias.martinez@farmaloop.cl'],
           fuente: 'Recordatorios Farmaloop <notificaciones@farmaloop.cl>',
           html: this.generarHTMLRecompraConDescuento(carrito),
+        })
+        .catch(() => {
+          return null;
         });
 
-        const notificacion_correo = new NotificacionVO().agregarNotificacion(notificacion, 'Correo');
-        const notificacion_correo_actualizada = await this.notificacionRepository.actualizarNotificacion(notificacion_correo);
+      if (!notificacion_html) {
+        console.log(
+          'Error al notificar a cliente con carrito con descuento via correo electronico: ',
+          JSON.stringify({ carrito: carrito.id, email: correo_normalizado }, null, 2)
+        );
+        continue;
+      }
 
-        console.log(`Notificacion de recompra enviada a ${carrito.email} - ${carrito.id}`);
+      const nueva_notificacion_correo = new NotificacionVO().agregarNotificacion(notificacion, 'Correo');
+      const notificacion_correo_actualizada = await this.notificacionRepository.actualizarNotificacion(nueva_notificacion_correo);
 
-        await this.whatsAppService.enviarMensajeRecompra({
+      console.log(`Notificacion de recompra enviada a ${correo_normalizado} - ${carrito.id}`);
+
+      const telefono_normalizado = this.normalizarTelefono(carrito.telefono);
+      const telefono_es_valido = this.validarTelefono(telefono_normalizado);
+      if (!telefono_es_valido) {
+        console.log('El telefono del carrito es invalido: ', JSON.stringify({ carrito: carrito.id, telefono: telefono_normalizado }));
+        continue;
+      }
+
+      const notificacion_whatsapp = await this.whatsAppService
+        .enviarMensajeRecompra({
           asunto: `Cart Recovery - ${carrito.id}`,
           etiquetas: ['Cart Recovery', 'Via API'],
           id_asistente: 41365,
           id_template: 19409,
           url_carrito: `check-out/?share=${carrito.id}&utm_source=whatsapp&utm_medium=messaging_app&utm_campaign=recompra`,
           nombre_cliente: carrito.nombre_completo.trim().split(' ')[0],
-          nombre_completo_cliente: carrito.nombre_completo,
+          nombre_completo_cliente: carrito.nombre_completo.trim(),
           // telefono_cliente: '+5492634622209', // 5493541544511 56961717175 5492634622209 56945190245
-          telefono_cliente: `+56${carrito.telefono.trim()}`,
-          correo_electronico_cliente: carrito.email.trim(),
+          telefono_cliente: telefono_normalizado,
+          correo_electronico_cliente: correo_normalizado,
+        })
+        .catch(() => {
+          return null;
         });
 
-        const notificacion_whatsapp = new NotificacionVO().agregarNotificacion(notificacion_correo_actualizada, 'WhatsApp');
-        await this.notificacionRepository.actualizarNotificacion(notificacion_whatsapp);
-
-        console.log(`WhatsApp de recompra enviado a ${carrito.email} - ${carrito.id}`);
-      } catch (error) {
-        console.log('Error al enviar notificacion de recompra a: ', notificacion);
+      if (!notificacion_whatsapp) {
+        console.log(
+          'Error al notificar a cliente con carrito con descuento via whatsapp: ',
+          JSON.stringify({ carrito: carrito.id, telefono: telefono_normalizado }, null, 2)
+        );
+        continue;
       }
+
+      const nueva_notificacion_whatsapp = new NotificacionVO().agregarNotificacion(notificacion_correo_actualizada, 'WhatsApp');
+      await this.notificacionRepository.actualizarNotificacion(nueva_notificacion_whatsapp);
+
+      console.log(`WhatsApp de recompra enviado a ${telefono_normalizado} - ${carrito.id}`);
     }
 
     return { data: true, message: 'Ok.', status: HttpCodes.OK };
@@ -679,37 +719,83 @@ export class NotificacionUseCase implements INotificacionUseCase {
     return notificaciones_sin_pagar as NotificacionEntity[];
   }
 
-  private async transformarCarritoADeliveryYAplicarCupon(notificacion: NotificacionEntity) {
-    const carrito = await this.carritoService.obtenerCarrito(notificacion.carrito_id);
+  private async actualizarCarritoSegundoToque(
+    notificacion: NotificacionEntity,
+    productos_con_stock: ProductoEntity[]
+  ): Promise<Carrito | null> {
+    const carrito = await this.carritoService.obtenerCarrito(notificacion.carrito_id).catch(() => {
+      return null;
+    });
+    if (!carrito) return null;
 
-    const envios = await this.courierService
-      .obtenerEnvios({ comuna: carrito.comuna, region: carrito.region, email: carrito.email })
-      .catch(() => {
-        console.log('Error al obtener envios de carrito: ', carrito.id);
-        return null;
+    const nuevos_productos = [];
+
+    for (const producto of carrito.productos) {
+      const producto_base = productos_con_stock.find(({ sku }) => sku === producto.sku);
+      if (!producto_base) continue;
+
+      const mejor_lote = this.obtenerMejorLote(producto_base.batchs);
+      if (!mejor_lote) continue;
+
+      const cantidad_disponible = this.calcularCantidadDisponible(mejor_lote, producto.batch.qty);
+
+      nuevos_productos.push({
+        ...producto,
+        photoURL: producto_base.photoURL,
+        batch: {
+          id: mejor_lote.id,
+          active: true,
+          bestDiscount: (1 - mejor_lote.settlementPrice / mejor_lote.normalPrice) * 100,
+          expireDate: new Date(mejor_lote.expireDate),
+          normalPrice: mejor_lote.normalPrice,
+          qty: cantidad_disponible,
+          settlementPrice: mejor_lote.settlementPrice,
+          stock: mejor_lote.stock,
+        },
       });
+    }
 
-    const envio = envios?.find((envio) => envio.tipo === 'Envío 24 horas hábiles' || envio.tipo === 'Envío Estándar (48 horas hábiles)');
+    if (nuevos_productos.length === 0) return null;
 
-    const nuevo_Carrito = await this.carritoService
-      .crearCarrito({
-        codigo_cupon: 'recompraloop',
-        compromiso_entrega: envio?.fecha_entrega ?? 0,
-        createdAt: carrito.createdAt,
-        descuento_total: 3500,
-        es_delivery: true,
-        id: carrito.id,
-        precio_delivery: envio?.precio ?? 0,
-        referencia_cupon: 'coupon',
-        tipo_cupon: 'Delivery',
-        tipo_envio: envio?.tipo ?? '',
-      })
-      .catch(() => {
-        console.log('Error al actualizar carrito con descuento: ', carrito.id);
-        return carrito;
-      });
+    const cambios_carrito = {
+      codigo_cupon: 'recompraloop',
+      compromiso_entrega: 0,
+      createdAt: carrito.createdAt,
+      descuento_total: 3500,
+      es_delivery: true,
+      id: carrito.id,
+      precio_delivery: 0,
+      productos: nuevos_productos,
+      referencia_cupon: 'coupon',
+      tipo_cupon: 'Delivery',
+      tipo_envio: '',
+    };
 
-    return nuevo_Carrito;
+    if (carrito.comuna && carrito.region && carrito.email) {
+      await this.courierService
+        .obtenerEnvios({ comuna: carrito.comuna, region: carrito.region, email: carrito.email })
+        .then((response) => {
+          const envio =
+            response.find((e) => e.tipo === 'Envío 24 horas hábiles') ??
+            response.find((e) => e.tipo === 'Envío Estándar (48 horas hábiles)');
+
+          if (envio) {
+            cambios_carrito.compromiso_entrega = envio.fecha_entrega;
+            cambios_carrito.precio_delivery = envio.precio;
+            cambios_carrito.tipo_envio = envio.tipo;
+          }
+        })
+        .catch(() => {
+          console.log('Error al obtener envios de carrito: ', carrito.id);
+          return null;
+        });
+    }
+
+    const nuevo_carrito = await this.carritoService.crearCarrito(cambios_carrito).catch(() => {
+      return null;
+    });
+
+    return nuevo_carrito;
   }
 
   private obtenerMejorLote(lotes: Batch[]): Batch | null {
@@ -739,5 +825,17 @@ export class NotificacionUseCase implements INotificacionUseCase {
 
   private normalizarCorreo(correo_electronico: string): string {
     return correo_electronico.trim().toLowerCase();
+  }
+
+  private validarTelefono(telefono: string): boolean {
+    const regex_celular_chile = /^\+569\d{8}$/;
+
+    return regex_celular_chile.test(telefono);
+  }
+
+  private normalizarTelefono(telefono: string): string {
+    const telefono_limpio = telefono.trim();
+    const telefono_solo_numeros = telefono_limpio.replace(/\D/g, '');
+    return `+56${telefono_solo_numeros}`;
   }
 }

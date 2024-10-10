@@ -31,7 +31,7 @@ export class WhatsAppService implements IWhatsAppService {
         correo_electronico_cliente,
       } = params;
 
-      const response = await this.axiosInstance.post('/cases', {
+      await this.axiosInstance.post('/cases', {
         subject: asunto,
         source_channel: 'whatsapp',
         group_id: 29859,
@@ -52,7 +52,7 @@ export class WhatsAppService implements IWhatsAppService {
         ],
       });
 
-      return response.data.data;
+      return true;
     } catch (error) {
       const err = error as Error;
       console.log(err.message);
