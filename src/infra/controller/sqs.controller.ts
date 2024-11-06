@@ -38,15 +38,15 @@ export const SQSController = async (event: any) => {
     courierService
   );
 
-  if (action === 'notificar-recompra') {
-    const response = await notificacionUseCase.notificarRecompraPacientes();
-    return { statusCode: response.status, body: JSON.stringify({ message: response.message, data: response.data }) };
-  }
+  // if (action === 'notificar-recompra') {
+  //   const response = await notificacionUseCase.notificarRecompraPacientes();
+  //   return { statusCode: response.status, body: JSON.stringify({ message: response.message, data: response.data }) };
+  // }
 
-  if (action === 'notificar-recompra-segundo-toque') {
-    const response = await notificacionUseCase.notificarRecompraPacientesSegundoToque();
-    return { statusCode: response.status, body: JSON.stringify({ message: response.message, data: response.data }) };
-  }
+  // if (action === 'notificar-recompra-segundo-toque') {
+  //   const response = await notificacionUseCase.notificarRecompraPacientesSegundoToque();
+  //   return { statusCode: response.status, body: JSON.stringify({ message: response.message, data: response.data }) };
+  // }
 
   if (action === 'notificar-boleta') {
     const response = await notificacionUseCase.notificarBoleta(body.id);

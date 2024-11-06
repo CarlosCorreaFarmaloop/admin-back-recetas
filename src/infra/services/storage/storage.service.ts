@@ -20,26 +20,10 @@ export class StorageService implements IStorageService {
       }
 
       return response.Body;
-
-      // const bodyContents = await this.streamToBuffer(response.Body as ReadableStream);
-      // return bodyContents;
     } catch (error) {
       const err = error as Error;
       console.error('Error general al obtener archivo', JSON.stringify({ bucket, archivo, error: err.message }, null, 2));
       throw new Error(err.message);
     }
   }
-
-  // private async streamToBuffer(stream: ReadableStream): Promise<Buffer> {
-  //   const chunks: Uint8Array[] = [];
-  //   const reader = stream.getReader();
-
-  //   while (true) {
-  //     const { done, value } = await reader.read();
-  //     if (done) break;
-  //     chunks.push(value);
-  //   }
-
-  //   return Buffer.concat(chunks);
-  // }
 }
