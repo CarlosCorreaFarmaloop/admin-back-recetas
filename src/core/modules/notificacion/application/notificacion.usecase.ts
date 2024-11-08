@@ -297,8 +297,8 @@ export class NotificacionUseCase implements INotificacionUseCase {
         contenido: boletaBuffer,
       },
       asunto: `Boleta Electrónica ${id} - Farmaloop`,
-      // destinatarios: [orden.customer],
-      destinatarios: ['cristian.olivares@farmaloop.cl'],
+      destinatarios: [orden.customer],
+      // destinatarios: ['cristian.olivares@farmaloop.cl'],
       fuente: 'Notificaciones Farmaloop <notificaciones@farmaloop.cl>',
       html: this.generarHTMLBoleta(orden),
     });
