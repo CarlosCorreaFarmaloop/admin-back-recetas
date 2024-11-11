@@ -18,6 +18,7 @@ functions:
       MONGO_DATA_BASE: ${MONGO_DATA_BASE}
       ENV: ${ENV}
       TZ: ${TZ}
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
     vpc:
       securityGroupIds:
         - ${LAMBDA_SG}
