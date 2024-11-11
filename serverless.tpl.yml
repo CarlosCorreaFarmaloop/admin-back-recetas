@@ -12,10 +12,10 @@ provider:
 functions:
   main:
     handler: build/infra/handler/handler.handler
-    timeout: 300
+    timeout: 30
     environment:
-      MONGO_CONNECTION_STRING: ${MONGO_CONNECTION_STRING}
-      MONGO_DATA_BASE: ${MONGO_DATA_BASE}
+      MONGODB_URI: ${MONGODB_URI}
+      MONGODB_DB_NAME: ${MONGODB_DB_NAME}
       ENV: ${ENV}
       TZ: ${TZ}
       OPENAI_API_KEY: ${OPENAI_API_KEY}
