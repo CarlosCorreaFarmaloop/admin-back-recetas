@@ -1,4 +1,4 @@
-service: admin-back-notificaciones-core
+service: admin-back-recetas-read
 frameworkVersion: '3'
 
 provider:
@@ -18,7 +18,7 @@ custom:
 
 functions:
   app:
-    handler: src/infra/handler/handler.handler
+    handler: src/handler.handler
     timeout: 900
     events:
       - http:

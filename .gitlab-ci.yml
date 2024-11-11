@@ -5,5 +5,5 @@ include:
 
 variables:
   LAMBDA_RUNTIME: 'nodejs16.x'
-  APP_NAME: 'admin-back-notificaciones-core'
+  APP_NAME: 'admin-back-recetas-read'
   REGIONS: 'us-east-1'
