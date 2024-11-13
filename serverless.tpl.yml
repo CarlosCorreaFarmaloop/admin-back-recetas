@@ -11,7 +11,7 @@ provider:
 
 functions:
   main:
-    handler: build/infra/handler/handler.handler
+    handler: handler.handler
     timeout: 30
     environment:
       MONGODB_URI: ${MONGODB_URI}

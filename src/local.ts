@@ -2,7 +2,7 @@ import { writeFile } from 'fs/promises';
 
 import { connectToDatabase } from './database';
 import { Order } from './types';
-import { handler as handlerOne } from './handler';
+// import { handler as handlerOne } from './handler';
 
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY ?? '';
 
@@ -38,7 +38,7 @@ export const handler = async () => {
     for (const order of orders) {
       try {
         ordersProcessed.push(order.id);
-        await handlerOne(order.id);
+        // await handlerOne(order.id);
         await sleep(3000);
       } catch (error) {
         const err = error as Error;
