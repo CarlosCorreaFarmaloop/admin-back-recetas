@@ -71,8 +71,7 @@ export const handler: SQSHandler = async (event) => {
     console.log('Order updated: ', id);
   } catch (error) {
     const err = error as Error;
-    console.log(err.message);
-    throw new Error('General error');
+    console.log('Error: ', err.message);
   }
 };
 
