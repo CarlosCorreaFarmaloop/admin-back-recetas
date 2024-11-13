@@ -14,6 +14,7 @@ export const handler: SQSHandler = async (event) => {
 
   try {
     const { id } = JSON.parse(record.body);
+    // const id = 'CL-E-WQ949856';
 
     if (!OPENAI_API_KEY) {
       throw new Error('OpenAI API Key not configured');
@@ -41,11 +42,14 @@ export const handler: SQSHandler = async (event) => {
     }
 
     const prescriptionUrl = getPrescriptionUrl(order);
+    if (!prescriptionUrl) {
+      throw new Error('The order does not have a prescription');
+    }
+
+    const isPDF = validateIsPDF(prescriptionUrl);
     const signedUrl = await generateSignedUrl(prescriptionUrl);
 
-    console.log('URL: ', signedUrl);
-
-    const response = await extrarInfo(signedUrl);
+    const response = await extrarInfo(signedUrl, isPDF);
 
     console.log('Predicted data: ', response);
 
@@ -78,4 +82,8 @@ const getPrescriptionUrl = (order: Order): string => {
 
   const prescriptionUrl = product.prescription.file;
   return prescriptionUrl;
+};
+
+const validateIsPDF = (fileUrl: string): boolean => {
+  return fileUrl.toLowerCase().endsWith('.pdf');
 };

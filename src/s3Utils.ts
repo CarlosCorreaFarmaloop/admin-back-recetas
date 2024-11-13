@@ -14,7 +14,7 @@ export const generateSignedUrl = async (fileKey: string): Promise<string> => {
       Key: relativeKey,
     });
 
-    const signedUrl = await getSignedUrl(s3Client, command, { expiresIn: 300 });
+    const signedUrl = await getSignedUrl(s3Client, command, { expiresIn: 3000 });
     return signedUrl;
   } catch (error) {
     console.error('Error generating signed URL:', error);

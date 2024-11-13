@@ -13,11 +13,13 @@
     "@aws-sdk/s3-request-presigner": "3.687.0",
     "aws-lambda": "1.0.7",
     "axios": "1.7.7",
-    "mongodb": "6.10.0"
+    "mongodb": "6.10.0",
+    "pdf-parse": "1.1.1"
   },
   "devDependencies": {
     "@types/aws-lambda": "8.10.137",
     "@types/jest": "29.5.2",
+    "@types/pdf-parse": "1.1.4",
     "@typescript-eslint/eslint-plugin": "5.61.0",
     "eslint": "8.44.0",
     "eslint-config-prettier": "8.8.0",
