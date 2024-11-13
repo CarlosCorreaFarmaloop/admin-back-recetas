@@ -13,7 +13,7 @@ export const handler: SQSHandler = async (event) => {
   const record = event.Records[0];
 
   try {
-    const { id } = JSON.parse(record.body);
+    const id = JSON.parse(record.body)?.detail.id;
     // const id = 'CL-E-WQ949856';
 
     if (!OPENAI_API_KEY) {
