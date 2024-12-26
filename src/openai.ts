@@ -14,6 +14,12 @@ export const extrarInfo = async (fileUrl: string, isPDF: boolean): Promise<GPTRe
     imagePromp = { type: 'text', text: `The following text was extracted from a medical prescription PDF:\n ${pdfText}` };
   }
 
+  const SYSTEM_PROMPT =
+    'You are an AI assistant specialized in extracting and formatting information from medical prescriptions.\n\nFormat rules:\nFor institution:\n- Replace spaces with underscores (_)\n- Maintain original capitalization\n- Format: INSTITUTION_NAME\n\nFor doctor:\n- Include full names and first surname\n- Only initial of second surname followed by uppercase\n- Replace spaces with underscores (_)\n- Format: NAME_FIRSTNAME_SURNAME_X\n\nExample:\nOriginal: "Dr. Carlos Miguel Correa Martínez - Clínica Alemana"\nFormatted: {\n  "clinica": "Clinica_Alemana",\n  "doctor": "Carlos_Miguel_Correa_M"\n}\n\nExtract and format the information regardless of whether it exists in the reference database.';
+
+  const USER_PROMPT =
+    'From the prescription file provided, extract the clinic name and doctor name. Format them according to the rules and return in JSON format. If you cannot determine either field with certainty, leave it blank.\nReturn only the JSON in this format: { "clinica": "Formatted_Clinic_Name", "doctor": "Formatted_Doctor_Name", "especialidad": "Specialty" }';
+
   try {
     const response = await axios.post(
       OPENAI_API_URL,
@@ -22,39 +28,18 @@ export const extrarInfo = async (fileUrl: string, isPDF: boolean): Promise<GPTRe
         messages: [
           {
             role: 'system',
-            content: `You are an AI assistant specialized in extracting and formatting information from medical prescriptions.
-
-Format rules:
-For institution:
-- Replace spaces with underscores (_)
-- Maintain original capitalization
-- Format: INSTITUTION_NAME
-
-For doctor:
-- Include full names and first surname
-- Only initial of second surname followed by uppercase
-- Replace spaces with underscores (_)
-- Format: NAME_FIRSTNAME_SURNAME_X
-
-Example:
-Original: "Dr. Carlos Miguel Correa Martínez - Clínica Alemana"
-Formatted: {
-  "clinica": "Clinica_Alemana",
-  "doctor": "Carlos_Miguel_Correa_M"
-}
-
-Extract and format the information regardless of whether it exists in the reference database.`,
+            content: SYSTEM_PROMPT,
           },
           {
             role: 'user',
             content: [
               {
                 type: 'text',
-                text: 'From the prescription file provided, extract the clinic name and doctor name. Format them according to the rules and return in JSON format. If you cannot determine either field with certainty, leave it blank.',
+                text: 'From the prescription file provided, extract the following details and return only in the specified JSON format without additional explanations.',
               },
               {
                 type: 'text',
-                text: 'Return only the JSON in this format: { "clinica": "Formatted_Clinic_Name", "doctor": "Formatted_Doctor_Name", "especialidad": "Specialty" }',
+                text: USER_PROMPT,
               },
               imagePromp,
             ],
