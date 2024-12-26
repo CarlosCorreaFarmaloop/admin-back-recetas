@@ -35,10 +35,6 @@ export const extrarInfo = async (fileUrl: string, isPDF: boolean): Promise<GPTRe
             content: [
               {
                 type: 'text',
-                text: 'From the prescription file provided, extract the following details and return only in the specified JSON format without additional explanations.',
-              },
-              {
-                type: 'text',
                 text: USER_PROMPT,
               },
               imagePromp,
