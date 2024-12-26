@@ -10,11 +10,11 @@ const OPENAI_API_KEY = process.env.OPENAI_API_KEY ?? '';
 export const handler: SQSHandler = async (event) => {
   console.log('Event: ', JSON.stringify(event, null, 2));
 
-  const record = event.Records[0];
+  // const record = event.Records[0];
 
   try {
-    const id = JSON.parse(record.body)?.detail.id;
-    // const id = 'CL-E-WQ949856';
+    // const id = JSON.parse(record.body)?.detail.id;
+    const id = 'CL-E-NU912224';
 
     if (!OPENAI_API_KEY) {
       throw new Error('OpenAI API Key not configured');
@@ -51,24 +51,24 @@ export const handler: SQSHandler = async (event) => {
 
     const response = await extrarInfo(signedUrl, isPDF);
 
-    console.log('Predicted data: ', response);
+    console.log('Predicted data: ', JSON.stringify(response, null, 2));
 
-    if (!response.clinica || !response.doctor || !response.especialidad) {
-      throw new Error('Invalid GPT response');
-    }
+    // if (!response.clinica || !response.doctor || !response.especialidad) {
+    //   throw new Error('Invalid GPT response');
+    // }
 
-    await collection.updateOne(
-      { id },
-      {
-        $set: {
-          'resumeOrder.prediccion_clinica': response.clinica,
-          'resumeOrder.prediccion_doctor': response.doctor,
-          'resumeOrder.prediccion_especialidad': response.especialidad,
-        },
-      }
-    );
+    // await collection.updateOne(
+    //   { id },
+    //   {
+    //     $set: {
+    //       'resumeOrder.prediccion_clinica': response.clinica,
+    //       'resumeOrder.prediccion_doctor': response.doctor,
+    //       'resumeOrder.prediccion_especialidad': response.especialidad,
+    //     },
+    //   }
+    // );
 
-    console.log('Order updated: ', id);
+    // console.log('Order updated: ', id);
   } catch (error) {
     const err = error as Error;
     console.log('Error: ', err.message);
