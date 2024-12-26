@@ -18,7 +18,7 @@ export const extrarInfo = async (fileUrl: string, isPDF: boolean): Promise<GPTRe
     const response = await axios.post(
       OPENAI_API_URL,
       {
-        model: 'gpt-4-vision-preview',
+        model: 'gpt-4o',
         messages: [
           {
             role: 'system',
