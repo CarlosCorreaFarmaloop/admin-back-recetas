@@ -54,7 +54,7 @@ export const extrarInfo = async (fileUrl: string, isPDF: boolean): Promise<GPTRe
     const tokens = response.data.usage.total_tokens;
     console.log('Used tokens: ', tokens);
 
-    console.log(`Response:`, JSON.stringify(response, null, 2));
+    console.log(response);
 
     const responseText = response.data.choices[0].message.content;
     const cleanedResponseText = responseText
