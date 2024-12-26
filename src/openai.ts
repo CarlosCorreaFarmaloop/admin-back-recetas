@@ -67,7 +67,7 @@ export const extrarInfo = async (fileUrl: string, isPDF: boolean): Promise<GPTRe
     return JSON.parse(cleanedResponseText);
   } catch (error) {
     const err = error as AxiosError;
-    console.error(err?.response?.data);
+    console.error(JSON.stringify(err.response, null, 2));
     throw new Error('Failed to process medical information');
   }
 };
