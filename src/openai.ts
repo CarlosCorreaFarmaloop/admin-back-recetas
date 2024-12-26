@@ -9,6 +9,7 @@ const OPENAI_API_URL = 'https://api.openai.com/v1/chat/completions';
 export const extrarInfo = async (fileUrl: string, isPDF: boolean): Promise<GPTResponse> => {
   let imagePromp: any = { type: 'image_url', image_url: { url: fileUrl } };
 
+  console.log('fileU', fileUrl);
   if (isPDF) {
     const pdfText = await extractTextFromPDF(fileUrl);
     imagePromp = { type: 'text', text: `The following text was extracted from a medical prescription PDF:\n ${pdfText}` };
@@ -18,7 +19,7 @@ export const extrarInfo = async (fileUrl: string, isPDF: boolean): Promise<GPTRe
     'You are an AI assistant specialized in extracting and formatting information from medical prescriptions.\n\nFormat rules:\nFor institution:\n- Replace spaces with underscores (_)\n- Maintain original capitalization\n- Format: INSTITUTION_NAME\n\nFor doctor:\n- Include full names and first surname\n- Only initial of second surname followed by uppercase\n- Replace spaces with underscores (_)\n- Format: NAME_FIRSTNAME_SURNAME_X\n\nExample:\nOriginal: "Dr. Carlos Miguel Correa Martínez - Clínica Alemana"\nFormatted: {\n  "clinica": "Clinica_Alemana",\n  "doctor": "Carlos_Miguel_Correa_M"\n}\n\nExtract and format the information regardless of whether it exists in the reference database.';
 
   const USER_PROMPT =
-    'From the prescription file provided, extract the clinic name and doctor name. Format them according to the rules and return in JSON format. If you cannot determine either field with certainty, leave it blank.\nReturn only the JSON in this format: { "clinica": "Formatted_Clinic_Name", "doctor": "Formatted_Doctor_Name", "especialidad": "Specialty" }';
+    'From the prescription file provided, extract the clinic name and doctor name. Format them according to the rules and return in JSON format. If you cannot determine either field with certainty, choose the most acceptable option based on the available information, which may include details from the logo. Avoid considering irrelevant data such as address, RUN, or any information not directly related to the doctor or the medical institution.\nReturn only the JSON in this format: { "clinica": "Formatted_Clinic_Name", "doctor": "Formatted_Doctor_Name", "especialidad": "Specialty" }';
 
   try {
     const response = await axios.post(
@@ -52,15 +53,19 @@ export const extrarInfo = async (fileUrl: string, isPDF: boolean): Promise<GPTRe
     );
 
     const tokens = response.data.usage.total_tokens;
-    console.log('Used tokens: ', tokens);
+    /*     console.log('Used tokens: ', tokens); */
 
-    console.log(JSON.stringify(response, null, 2));
+    /*     console.log(JSON.stringify(response, null, 2)); */
+    /*     console.log('here', response.data); */
 
     if (!response.data.choices[0].message.content) {
       throw new Error('Failed Choices');
     }
 
     const responseText = response.data.choices[0].message.content;
+
+    /*     console.log('responseText', responseText); */
+
     const cleanedResponseText = responseText
       .trim()
       .replace(/^```json\s*/, '')
