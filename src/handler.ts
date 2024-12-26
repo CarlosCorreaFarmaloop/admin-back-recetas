@@ -14,7 +14,7 @@ export const handler: SQSHandler = async (event) => {
 
   try {
     // const id = JSON.parse(record.body)?.detail.id;
-    const id = 'CL-E-NU912224';
+    const id = 'CL-E-GY364732';
 
     if (!OPENAI_API_KEY) {
       throw new Error('OpenAI API Key not configured');
