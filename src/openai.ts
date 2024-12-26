@@ -66,6 +66,10 @@ export const extrarInfo = async (fileUrl: string, isPDF: boolean): Promise<GPTRe
       .replace(/^```json\s*/, '')
       .replace(/```$/, '');
 
+    if (!cleanedResponseText) {
+      throw new Error('Failed to clean response text');
+    }
+
     return JSON.parse(cleanedResponseText);
   } catch (error) {
     const err = error as AxiosError;
